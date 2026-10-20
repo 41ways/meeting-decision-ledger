@@ -111,7 +111,13 @@ input, select, textarea { font: inherit; color: inherit; }
 .scope label { display: flex; gap: 6px; align-items: center; flex: none; }
 .scope select, .scope input { padding: 3px 6px; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; font-size: 12.5px; color: var(--fg); height: 28px; }
 /* 폭 고정: 고르는 회의 이름 길이에 따라 상자가 늘었다 줄었다 하지 않게 */
-.scope .s-prj { width: 190px; } .scope .s-date { width: 140px; } .scope .s-mtg { width: 300px; text-overflow: ellipsis; }
+.scope .s-prj { width: 190px; } .scope .s-mtg { width: 300px; text-overflow: ellipsis; }
+/* 달력 아이콘: 투명한 날짜 입력을 아이콘 위에 겹쳐 누르면 달력이 뜬다 */
+.cal-pick { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; color: var(--muted); flex: none; cursor: pointer; }
+.cal-pick svg { width: 16px; height: 16px; pointer-events: none; } .cal-pick:hover { color: var(--accent); border-color: var(--accent); }
+.cal-pick.on { color: #fff; background: var(--accent); border-color: var(--accent); }
+.cal-pick input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; }
+.cal-pick input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
 .scope select, .scope input { flex: none; min-width: 0; }
 .scope .s-clear { font-size: 12.5px; color: var(--accent); padding: 3px 6px; } .scope .s-clear:hover { text-decoration: underline; }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
@@ -491,11 +497,13 @@ tr.lock td { color: var(--muted); }
           <label>프로젝트
             <select class="s-prj" v-model="scopePrj" @change="onScopePrj"><option value="">자동</option>
               <option v-for="p in projects" :key="p.key" :value="p.key">{{ p.key }} · {{ p.name }}</option></select></label>
-          <label>날짜
-            <input class="s-date" type="date" v-model="scopeDate" @change="onScopeDate" :min="meetingDates[0]" :max="meetingDates[meetingDates.length - 1]"></label>
           <label>회의
-            <select class="s-mtg" v-model="scopeMtg" @change="onScopeMtg"><option value="">지정 안 함</option>
-              <option v-for="m in scopeMeetings" :key="m.meeting_id" :value="m.meeting_id">{{ m.date.slice(5) }} · {{ m.meeting_id }} · {{ m.title }}</option></select></label>
+            <select class="s-mtg" v-model="scopeMtg" @change="onScopeMtg"><option value="">{{ scopeDate ? scopeDate.slice(5) + ' 회의 중 선택' : '지정 안 함' }}</option>
+              <option v-for="m in scopeMeetings" :key="m.meeting_id" :value="m.meeting_id">{{ m.date.slice(5) }} · {{ m.meeting_id }} · {{ m.title }}</option></select>
+            <span class="cal-pick" :class="{ on: scopeDate }" :title="scopeDate ? scopeDate + ' 회의만 보는 중' : '날짜로 회의 찾기'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              <input type="date" v-model="scopeDate" @change="onScopeDate" :min="meetingDates[0]" :max="meetingDates[meetingDates.length - 1]" aria-label="날짜로 회의 찾기">
+            </span></label>
           <button class="s-clear" v-if="scopePrj || scopeMtg || scopeDate" @click="scopePrj = ''; scopeMtg = ''; scopeDate = ''">범위 해제</button>
         </div>
       </div>
