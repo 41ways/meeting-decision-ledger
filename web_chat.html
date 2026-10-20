@@ -77,37 +77,50 @@ input, select, textarea { font: inherit; color: inherit; }
 .tab:hover { color: #fff; background: var(--navy2); }
 .tab.on { color: #fff; box-shadow: inset 0 -3px 0 #fff; }
 .top .ib { color: #c4cfdd; width: 38px; height: 38px; } .top .ib svg { width: 20px; height: 20px; } .top .ib:hover { background: var(--navy2); color: #fff; }
-.page { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 0 96px; scrollbar-gutter: stable; }
-.col { max-width: 800px; margin: 0 auto; padding: 0 22px; }
+.page { flex: 1; min-height: 0; overflow-y: auto; padding: 26px 0 150px; scrollbar-gutter: stable; }
+.page.chat { background: #fff; position: relative; }
+.col { max-width: 760px; margin: 0 auto; padding: 0 22px; }
 .wide { max-width: 1000px; }
 
 /* 대화 */
-.hello { padding: 40px 0; }
-.hello h2 { font-size: 20px; margin-bottom: 6px; }
+.hello { position: absolute; left: 0; right: 0; top: 17%; text-align: center; padding: 0 22px; }
+.hello h2 { font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 8px; letter-spacing: -.01em; }
 .hello p { color: var(--muted); margin-bottom: 18px; }
 .samples { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.samples button { text-align: left; border: 1px solid var(--line); background: #fff; border-radius: var(--r); padding: 10px 12px; }
-.samples button:hover { border-color: var(--accent); }
+.samples button { text-align: left; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 14px; transition: border-color .15s, background .15s; }
+.samples button:hover { border-color: #9fb1c8; background: #f7f9fb; }
 .samples small { display: block; color: var(--muted); font-size: 12px; }
 .mu { text-align: right; margin: 0 0 12px; }
-.mu span { display: inline-block; padding: 8px 12px; background: var(--accent); color: #fff; border-radius: var(--r); max-width: 80%; text-align: left; white-space: pre-wrap; }
-.steps { font-size: 12.5px; color: #3d4957; border-left: 2px solid var(--line2); padding: 2px 0 2px 12px; margin: 0 0 12px; }
+.mu span { display: inline-block; padding: 9px 14px; background: #eef1f5; color: var(--fg); border-radius: 12px; max-width: 80%; text-align: left; white-space: pre-wrap; }
+.steps-box { margin: 0 0 10px; }
+.steps-hd { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); padding: 4px 8px 4px 2px; border-radius: 6px; max-width: 100%; }
+.steps-hd span:not(.dot) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .steps-hd:hover { color: var(--fg); }
+.steps-hd svg { width: 13px; height: 13px; flex: none; transition: transform .15s; } .steps-hd svg.rot { transform: rotate(90deg); }
+.steps-hd .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+.steps { font-size: 12.5px; color: #3d4957; border-left: 2px solid var(--line2); padding: 2px 0 2px 12px; margin: 4px 0 6px 4px; }
 .steps div::before { content: "· "; color: var(--muted); }
 .steps .warn { color: var(--warn); }
-.ma { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; margin-bottom: 16px; white-space: pre-wrap; }
+.ma { padding: 2px 2px 4px; margin-bottom: 18px; white-space: pre-wrap; font-size: 15px; line-height: 1.7; }
 .ma .h { font-weight: 700; color: var(--navy); }
 .ma .qt { display: inline-block; border-left: 3px solid var(--line2); padding: 2px 0 2px 10px; color: #2f3b48; background: #f7f9fb; width: 100%; }
 .ma .lb { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .ma .warn { color: var(--warn); }
 .ma b { font-weight: 700; }
 .act { display: flex; gap: 8px; flex-wrap: wrap; margin: -8px 0 16px; align-items: center; font-size: 13px; }
-.err { border-color: #e7b3aa; background: #fdf3f1; color: var(--warn); }
-.composer { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 22px 22px; background: linear-gradient(rgba(243,245,248,0), var(--bg) 35%); }
-.composer .box { max-width: 800px; margin: 0 auto; display: flex; border: 1px solid var(--line2); background: #fff; border-radius: var(--r); }
-.composer input { flex: 1; border: 0; background: none; padding: 12px; outline: none; }
-.composer button { padding: 0 18px; border-left: 1px solid var(--line); color: var(--accent); font-weight: 700; }
-.composer button:disabled { color: var(--line2); }
-.scope { max-width: 800px; margin: 6px auto 0; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.ma.err { background: #fdf3f1; border: 1px solid #e7b3aa; color: var(--warn); padding: 10px 12px; border-radius: 8px; }
+.composer { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 22px 26px; background: linear-gradient(rgba(255,255,255,0), #fff 30%); z-index: 3; }
+.composer.center { top: 32%; bottom: auto; background: none; }
+.cbox { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #cfd6df; border-radius: 12px; box-shadow: 0 2px 10px rgba(20,35,60,.06);
+  padding: 10px 10px 8px 14px; transition: border-color .15s, box-shadow .15s; }
+.cbox:focus-within { border-color: #9fb1c8; box-shadow: 0 2px 14px rgba(20,35,60,.10); }
+.cbox textarea { width: 100%; border: 0; outline: none; resize: none; font: inherit; font-size: 15px; line-height: 1.5; color: var(--fg); background: none; min-height: 26px; max-height: 180px; padding: 2px 0 6px; display: block; }
+.crow { display: flex; align-items: center; gap: 6px; }
+.crow .scope { flex: 1; min-width: 0; }
+.send { width: 32px; height: 32px; border-radius: 8px; background: var(--navy); color: #fff; display: grid; place-items: center; flex: none; }
+.send svg { width: 17px; height: 17px; } .send:hover { background: var(--accent); } .send:disabled { background: #c9d1db; cursor: default; }
+.composer .samples { max-width: 760px; margin: 16px auto 0; }
+.scope { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; font-size: 12.5px; color: var(--muted); }
 .scope label { display: flex; gap: 6px; align-items: center; flex: none; }
 .scope select, .sel { -webkit-appearance: none; appearance: none; height: 30px; padding: 0 28px 0 10px; border: 1px solid var(--line2); border-radius: var(--r);
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234c5866' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center;
@@ -117,11 +130,11 @@ input, select, textarea { font: inherit; color: inherit; }
 .scope select:disabled, .sel:disabled { background-color: #f4f6f9; color: var(--muted); cursor: default; }
 input.sel { padding-right: 10px; background-image: none; cursor: text; }
 /* 입력창 안 모델 선택 (Claude처럼 보내기 왼쪽) */
-.in-model { -webkit-appearance: none; appearance: none; border: 0; border-left: 1px solid var(--line); background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234c5866' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
-  padding: 0 30px 0 12px; font-size: 12.5px; color: var(--muted); cursor: pointer; max-width: 230px; }
+.in-model { -webkit-appearance: none; appearance: none; height: 30px; border: 0; border-radius: 6px; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234c5866' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  padding: 0 24px 0 10px; font-size: 12.5px; color: var(--muted); cursor: pointer; width: auto; max-width: 170px; flex: none; field-sizing: content; }
 .in-model:hover { color: var(--fg); background-color: #f7f9fb; } .in-model:focus { outline: none; color: var(--fg); }
 /* 폭 고정: 고르는 회의 이름 길이에 따라 상자가 늘었다 줄었다 하지 않게 */
-.scope .s-prj { width: 190px; } .scope .s-mtg { width: 300px; text-overflow: ellipsis; }
+.scope .s-prj { width: 150px; } .scope .s-mtg { width: 230px; text-overflow: ellipsis; }
 /* 달력 아이콘: 투명한 날짜 입력을 아이콘 위에 겹쳐 누르면 달력이 뜬다 */
 .cal-pick { position: relative; width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; color: var(--muted); flex: none; cursor: pointer; }
 .cal-pick svg { width: 16px; height: 16px; pointer-events: none; } .cal-pick:hover { color: var(--accent); border-color: var(--accent); }
@@ -342,19 +355,23 @@ tr.lock td { color: var(--muted); }
       </div>
 
       <!-- 대화 -->
-      <div class="page" v-show="page === 'chat'" ref="chatBox" @scroll.passive="onChatScroll">
+      <div class="page chat" v-show="page === 'chat'" ref="chatBox" @scroll.passive="onChatScroll">
         <div class="col">
           <div class="hello" v-if="!log.length">
             <h2>{{ me.name }}님, 무엇을 정리할까요?</h2>
-            <p>회의를 정리하면 결정·할 일을 근거와 함께 뽑고 과거 결정·정책과 충돌하는지 확인합니다.</p>
-            <div class="samples">
-              <button v-for="s in samples" :key="s.q" @click="send(s.q)">{{ s.q }}<small>{{ s.d }}</small></button>
-            </div>
+            <p>회의를 정리하면 결정·할 일을 근거와 함께 뽑고, 과거 결정·사내 정책과 충돌하는지 확인합니다.</p>
           </div>
           <template v-for="item in log" :key="item.id">
             <div class="mu" v-if="item.kind === 'user'"><span>{{ item.text }}</span></div>
-            <div class="steps" v-else-if="item.kind === 'steps' && item.steps.length">
-              <div v-for="(s, i) in item.steps" :key="i" :class="{ warn: s.startsWith('충돌') || s.startsWith('권한') }">{{ s }}</div>
+            <div class="steps-box" v-else-if="item.kind === 'steps' && item.steps.length">
+              <button class="steps-hd" @click="item.open = !item.open" :class="{ live: !item.done }">
+                <span class="dot" v-if="!item.done"></span>
+                <span>{{ item.done ? '처리 과정 · ' + item.steps.length + '단계' : item.steps[item.steps.length - 1] }}</span>
+                <svg :class="{ rot: item.open }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+              <div class="steps" v-if="item.open">
+                <div v-for="(s, i) in item.steps" :key="i" :class="{ warn: s.startsWith('충돌') || s.startsWith('권한') || s.includes('⚠') }">{{ s }}</div>
+              </div>
             </div>
             <div class="ma" v-else-if="item.kind === 'agent'" :class="{ err: item.err }" v-html="md(item.text)"></div>
             <div class="act" v-else-if="item.kind === 'denied'">
@@ -496,17 +513,17 @@ tr.lock td { color: var(--muted); }
         </div>
       </div>
 
-      <div class="composer" v-show="page === 'chat'">
-        <div class="box"><input v-model="input" @keyup.enter="send()" placeholder="회의 정리(OPS-M04 회의 정리해줘), 제안 검토, 결정 근거 질문">
-          <select class="in-model" v-model="modelKey" title="모델 조합 (분류·주제 / 추출·판정·답변)">
-            <option v-for="p in presets" :key="p.key" :value="p.key" :disabled="!p.available">{{ p.key === 'auto' ? '자동 · 작업에 맞춰 선택' : p.label + ' · ' + (p.fast === p.quality ? p.quality : p.fast + ' + ' + p.quality) }}</option>
-          </select><button :disabled="sending" @click="send()">보내기</button></div>
+      <div class="composer" v-show="page === 'chat'" :class="{ center: !log.length }">
+        <div class="cbox">
+          <textarea ref="inputEl" v-model="input" rows="1" @input="autoGrow" @keydown.enter.exact.prevent="send()"
+                    placeholder="회의 정리, 제안 검토, 결정 근거를 물어보세요 (Shift+Enter 줄바꿈)"></textarea>
+          <div class="crow">
         <div class="scope">
-          <label>프로젝트
-            <select class="s-prj" v-model="scopePrj" @change="onScopePrj"><option value="">자동</option>
+          <label>
+            <select class="s-prj" title="프로젝트" v-model="scopePrj" @change="onScopePrj"><option value="">프로젝트 자동</option>
               <option v-for="p in projects" :key="p.key" :value="p.key">{{ p.key }} · {{ p.name }}</option></select></label>
-          <label>회의
-            <select class="s-mtg" v-model="scopeMtg" @change="onScopeMtg"><option value="">{{ scopeDate ? scopeDate.slice(5) + ' 회의 중 선택' : '지정 안 함' }}</option>
+          <label>
+            <select class="s-mtg" title="회의" v-model="scopeMtg" @change="onScopeMtg"><option value="">{{ scopeDate ? scopeDate.slice(5) + ' 회의 중 선택' : '회의 지정 안 함' }}</option>
               <option v-for="m in scopeMeetings" :key="m.meeting_id" :value="m.meeting_id">{{ m.date.slice(5) }} · {{ m.meeting_id }} · {{ m.title }}</option></select>
             <span class="cal-pick" :class="{ on: scopeDate }" :title="scopeDate ? scopeDate + ' 회의만 보는 중' : '날짜로 회의 찾기'" @click.stop="openMini">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -524,7 +541,17 @@ tr.lock td { color: var(--muted); }
               </div>
             </span></label>
 
-          <button class="s-clear" v-if="scopePrj || scopeMtg || scopeDate" @click="scopePrj = ''; scopeMtg = ''; scopeDate = ''">범위 해제</button>
+          <button class="s-clear" v-if="scopePrj || scopeMtg || scopeDate" @click="scopePrj = ''; scopeMtg = ''; scopeDate = ''">해제</button>
+            </div>
+            <select class="in-model" v-model="modelKey" title="모델 조합">
+              <option v-for="p in presets" :key="p.key" :value="p.key" :disabled="!p.available">{{ p.key === 'auto' ? '자동' : p.label + ' · ' + (p.fast === p.quality ? p.quality : p.fast + '+' + p.quality) }}</option>
+            </select>
+            <button class="send" :disabled="sending || !input.trim()" @click="send()" title="보내기">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          </div>
+        </div>
+        <div class="samples" v-if="!log.length">
+          <button v-for="s in samples" :key="s.q" @click="send(s.q)">{{ s.q }}<small>{{ s.d }}</small></button>
         </div>
       </div>
       <div class="ver">v{{ version }} · {{ build }}</div>
@@ -788,6 +815,9 @@ createApp({
       log.value = msgs.map(m => ({ id: nextId++, kind: m.role === 'user' ? 'user' : 'agent', text: m.content }));
       scroll(true);
     }
+    const inputEl = ref(null);
+    function autoGrow() { const el = inputEl.value; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 180) + 'px'; }
+    watch(input, v => { if (!v) nextTick(autoGrow); });
     // 답변이 흘러나오는 동안에도 사용자가 위로 스크롤할 수 있게: 바닥 근처에 있을 때만 따라 내려간다
     let follow = true;
     function onChatScroll() {
@@ -817,11 +847,11 @@ createApp({
       const tid = threadId.value;
       const here = () => me.value && me.value.user_id === uid && threadId.value === tid;   // 사용자·대화방을 바꿨으면 화면 갱신만 멈춤
       log.value.push({ id: nextId++, kind: 'user', text }); input.value = ''; sending.value = true;
-      const steps = reactive({ id: nextId++, kind: 'steps', steps: [] }); log.value.push(steps); scroll(true);
+      const steps = reactive({ id: nextId++, kind: 'steps', steps: [], open: false, done: false }); log.value.push(steps); scroll(true);
       const es = new EventSource(`/chat/stream?message=${encodeURIComponent(text)}&thread_id=${threadId.value}&user=${me.value.user_id}${force ? '&force=true' : ''}&project=${scopePrj.value}&meeting=${scopeMtg.value}&model=${modelKey.value}`);
       let stream = null, attempt = null;
       es.onmessage = ev => {
-        if (ev.data === '[DONE]') { es.close(); sending.value = false; if (me.value) { loadThreads(); loadNotes(); loadProjects(); if (selPrj.value) loadLedger(); loadAdmin(); } return; }
+        if (ev.data === '[DONE]') { es.close(); sending.value = false; steps.done = true; if (me.value) { loadThreads(); loadNotes(); loadProjects(); if (selPrj.value) loadLedger(); loadAdmin(); } return; }
         if (!here()) return;   // 답변은 서버가 원래 대화방에 저장한다
         let e; try { e = JSON.parse(ev.data); } catch { return; }
         if (e.type === 'AnswerToken') {
@@ -937,7 +967,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
