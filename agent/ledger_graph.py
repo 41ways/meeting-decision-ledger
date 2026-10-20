@@ -35,6 +35,8 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, StateGraph
 from langsmith import traceable
 
+from ledger.thresholds import MIN_TOPIC_SCORE
+
 TODAY = "2026-10-20"
 _PRJ_FILE = Path(__file__).resolve().parent.parent / "data" / "project" / "projects.json"
 # 프로젝트 이름표 (질문 대상 프로젝트 고르기·표시용). 약자·이름은 projects.json 한 곳에서 관리
@@ -421,18 +423,19 @@ async def ensure_topic(deps: "LedgerDeps", topic: str, text: str) -> str:
     """
     빈 주제 키를 임베딩 검색 1순위 주제로 보충
 
-    LLM 선택이 실패했을 때의 대비책.
+    LLM 선택이 실패했을 때의 대비책. 1위라도 점수가 하한 미만이면 새 주제로 보고 비워 둔다
+    — 가장 가까운 주제를 억지로 붙이면 엉뚱한 기준과 비교하게 된다 (조용한 폴백 방지).
     Args:
         deps: 의존성 (mcp)
         topic: topic_key로 정리한 주제 키 (빈 문자열 가능)
         text: 검색에 쓸 문장
     Returns:
-        주제 키. 검색 결과도 없으면 'unknown'
+        주제 키. 검색 결과가 없거나 하한 미만이면 빈 문자열
     """
     if topic:
         return topic
     cands = await deps.mcp.call("topic_candidates", text=text, k=1)
-    return cands[0]["topic"] if cands else "unknown"
+    return cands[0]["topic"] if cands and cands[0]["score"] >= MIN_TOPIC_SCORE else ""
 
 
 def _lines(segs: list[dict]) -> str:
@@ -945,10 +948,47 @@ def decide(item: dict, checks: list[dict], waiver_covers: dict) -> dict:
                               "against": [ref], "detail": c["reason"]})
     # 다른 프로젝트 참고(past_project)는 표시만 하고 상태를 conflict로 만들지 않는다
     blocking = [c for c in conflicts if c["type"] != "past_project"]
-    status = "conflict" if blocking else ("change_approved" if changes else "ok")
+    # '봤더니 괜찮다(ok)'와 '볼 기준이 없었다(no_basis)'를 같은 라벨로 내보내지 않는다
+    status = "conflict" if blocking else ("change_approved" if changes else ("ok" if srcs else "no_basis"))
     return {"status": status, "conflicts": conflicts, "changes": changes, "confirms": confirms,
             "waiver_applied": waiver_applied,
             "notes": item["research"].get("notes", [])}
+
+
+def _needs_human(item: dict, why: str) -> dict:
+    """
+    판정을 내리지 않고 사람 검토로 넘기는 review
+    Args:
+        item: 검토 항목
+        why:  사람에게 넘기는 이유
+    Returns:
+        status needs_approval인 review dict
+    """
+    return {"status": "needs_approval", "conflicts": [], "changes": [], "confirms": [], "waiver_applied": None,
+            "notes": [why] + item.get("research", {}).get("notes", [])}
+
+
+def _guard_topic(item: dict, review: dict) -> dict:
+    """
+    주제 선택이 의심스러우면 결정·기준 문서 비교 결과로 단정하지 않게 바꾸는 가드 (코드)
+
+    정책 충돌은 문장 유사도로 찾은 것이라 주제와 무관하게 유지한다.
+    결정·기준 문서 비교와 '문제없음'은 주제가 맞다는 전제 위에 있으므로, 주제가 의심스러우면 사람에게 넘긴다.
+    Args:
+        item:   research가 붙은 검토 항목 (topic_doubt, similar_other)
+        review: decide()가 낸 review
+    Returns:
+        그대로이거나 needs_approval로 바꾼 review
+    """
+    res = item.get("research", {})
+    if not (res.get("topic_doubt") or res.get("similar_other")):
+        return review
+    hard = [c for c in review["conflicts"] if c["type"] in ("policy", "authority")]
+    if hard:                       # 정책·권한 충돌은 주제와 무관하게 확실하다
+        return review
+    why = ("주제 불확실 — 결정·기준 비교 결과를 확인해야 함" if res.get("topic_doubt")
+           else "다른 주제의 비슷한 결정이 있음 — 같은 사안인지 확인해야 함")
+    return {**review, "status": "needs_approval", "notes": [why] + review.get("notes", [])}
 
 
 @traceable(name="analysis_node")
@@ -980,12 +1020,15 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
                                        "notes": ["기준 조회 실패 — 사람 검토 필요"] + item["research"]["notes"]}}, None
         srcs = _sources(item)
         if not srcs:                              # 비교할 기준이 없으면 LLM을 부르지 않는다
-            return {**item, "review": decide(item, [], {})}, None
+            return {**item, "review": _guard_topic(item, decide(item, [], {}))}, None
         lines = "\n".join(f"- {s['ref']} ({s['kind']}): {s['text']}" for s in srcs)
         said = "\n".join(f"- {e['speaker']}: {e['quote']}" for e in item.get("evidence", []))
         user = (f"## 검토 대상\n{item['statement']}\n" + (f"원문 발언:\n{said}\n" if said else "")
                 + f"\n## 기준\n{lines}")
         out, usage = await deps.quality_llm.json(JUDGE_SYSTEM, user, JUDGE_SCHEMA, max_tokens=600)
+        if usage.get("parse_error") or not out.get("checks"):
+            # 모델 출력이 깨지면 판정이 비고, 그대로 두면 판정표가 '문제없음'을 낸다
+            return {**item, "review": _needs_human(item, "판정 실패(모델 출력 해석 불가) — 사람 검토 필요")}, usage
         covers = {}
         for w in item.get("waivers", []):          # 예외 범위는 따로 한 문항으로 묻는다 (섞어 물으면 놓친다)
             ans, u = await deps.fast_llm.json(
@@ -999,7 +1042,7 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
             # 추가 호출 사용량을 판정 호출 usage에 합쳐 _usage가 한 번에 세게 한다
             usage = {**usage, "tokens": usage.get("tokens", 0) + u.get("tokens", 0),
                      "extra_calls": usage.get("extra_calls", 0) + 1}
-        return {**item, "review": decide(item, out.get("checks", []), covers)}, usage
+        return {**item, "review": _guard_topic(item, decide(item, out.get("checks", []), covers))}, usage
 
     # 판정이 실패한 항목은 '문제없음'으로 넘기지 않고 '승인 필요'로 사람에게 돌린다
     results = await gather_safe([judge(i) for i in state["items"]],
@@ -1016,7 +1059,7 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 # ---------------------------------------------------------------- write / validate
 STATUS_KO = {"ok": "문제없음", "conflict": "충돌", "change_approved": "기준 변경(승인됨, 문서 개정 필요)",
-             "needs_approval": "승인 필요"}
+             "needs_approval": "확인 필요", "no_basis": "비교할 기준 없음(새 주제)"}
 
 
 def render_meeting(state: LedgerState) -> str:
@@ -1050,6 +1093,8 @@ def render_meeting(state: LedgerState) -> str:
             rows.append(f"   - 승인 대기 결정 {', '.join(r['confirms'])}과 같은 내용 — 원장에서 승인하면 확정")
         if r.get("waiver_applied"):
             rows.append(f"   - 예외 적용: {r['waiver_applied']}")
+        if r["status"] in ("needs_approval", "no_basis"):
+            rows += [f"   - 확인: {n}" for n in r.get("notes", [])[:2]]
     rows += ["", "### 할 일"]
     for a in state.get("action_items", []):
         # gate가 비운 담당자·기한은 '?'와 경고로 드러낸다 (빈칸을 지어내지 않음)
@@ -1140,6 +1185,8 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
     cur_id = res["current"]["decision_id"] if res["authority"] == "decision" else None
     pend = {p["decision_id"] for p in res.get("pending", [])}
     decs = ([res["current"]] if cur_id else []) + res.get("pending", []) + res.get("advisory", [])
+    # 질문에 결정 ID가 직접 적혀 있으면 그 결정도 근거로 (벡터 검색은 ID 같은 기호에 약하다)
+    decs += [d for d in res.get("id_refs", []) if d["decision_id"] not in {x["decision_id"] for x in decs}]
     asked = item.get("project", DEFAULT_PID)
     if asked != DEFAULT_PID:      # 다른 프로젝트를 물으면 그 프로젝트 결정을 먼저 (나머지는 참고로 뒤에)
         decs = [d for d in decs if d["project_id"] == asked] + [d for d in decs if d["project_id"] != asked]
@@ -1188,12 +1235,56 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
             f"- {x['meeting_id']} [{x['seq']}] {x['speaker']}: {x['text']}" for x in item["discussion"]))
     for x in item.get("discussion", []):
         rows.append(f"[원문 논의·미결] {x['meeting_id']} [{x['seq']}] {x['speaker']}: \"{x['text']}\"")
+    if not decs and res["authority"] != "baseline" and not item.get("discussion"):
+        # 아무것도 못 찾았으면 그렇다고 말한다 — 가장 가까운 발언을 '관련 논의'로 붙이지 않는다
+        rows.append("[찾지 못함] 이 질문과 관련된 결정·기준 문서·회의 논의가 없다")
+        blocks.append("### 찾지 못함\n이 질문과 관련된 결정·기준 문서·회의 논의를 찾지 못했습니다.")
+    if res.get("topic_doubt") or res.get("similar_other"):
+        warn = [n for n in res.get("notes", []) if "주제" in n]
+        blocks.append("### 확인 필요\n" + "\n".join(f"- {n}" for n in warn))
     return "\n".join(rows), "\n\n".join(blocks)
+
+
+def _code_answer(item: dict, restricted: list | None = None) -> str:
+    """
+    모델 문장 대신 원장 필드로 만드는 한 줄 답
+
+    3번 다시 써도 근거 검사를 통과하지 못하면 모델 문장을 버리고 이 답을 쓴다.
+    Args:
+        item:       research가 붙은 질의 항목
+        restricted: 열람 권한이 없어 가린 결정 ID 목록 (내용을 쓰지 않는다)
+    Returns:
+        답 문장
+    """
+    res, hidden = item["research"], set(restricted or [])
+
+    def say(d: dict, head: str) -> str:
+        """결정 하나를 권한에 맞춰 한 줄로"""
+        if d["decision_id"] in hidden:
+            return f"{head} {d['decision_id']}입니다 (열람 권한 없음 — 내용 비공개)."
+        return f"{head} {d['decision_id']}입니다" + (f": {d['statement']}" if d.get("statement") else ".")
+
+    if res["authority"] == "decision":
+        return say(res["current"], "현재 유효한 결정은")
+    if res.get("pending"):
+        return say(res["pending"][0], "아직 승인 대기(권위 없음)인 결정은")
+    if res["authority"] == "baseline":
+        b = res["current"]
+        return f"유효한 결정은 없고, 기준 문서 {b['doc_id']} {b['doc_version']} {b['section']}이 현재 기준입니다."
+    if item.get("discussion"):
+        return "논의는 있었지만 결정되지 않았습니다."
+    return "관련 결정·기준 문서·회의 논의를 찾지 못했습니다."
+
+
+# 답변 속 값: 날짜, 숫자+단위, 결정·정책·예외 ID — 근거에 없는 값은 지어낸 것으로 본다
+VALUE = re.compile(r"\d{4}-\d{2}-\d{2}|\d+(?:\.\d+)?\s?(?:초|분|시간|일|주|개월|년|건|%|원|명|회|배)"
+                   r"|(?<![A-Za-z0-9])[A-Z]{2,4}-\d{2,4}(?!\d)")
 
 
 ANSWER_SYSTEM = (
     "프로젝트 결정 이력 담당자로서 질문에 1~2문장으로 직접 답한다. 이유·기각한 대안·원문 인용은 답변 아래에 따로 붙으니 반복하지 않는다.\n"
-    "결정이 있으면 결정 ID를 한 번 밝힌다. 승인 대기면 '아직 승인 대기', 논의만 있으면 '논의는 있었지만 결정되지 않음'이라고 쓴다. "
+    "결정이 있으면 결정 ID를 한 번 밝힌다. 승인 대기면 '아직 승인 대기', 논의만 있으면 '논의는 있었지만 결정되지 않음', "
+    "근거가 '찾지 못함'이면 '관련 결정이나 논의를 찾지 못했다'고만 쓴다. "
     "질문이 특정 프로젝트(예: 고객센터 챗봇)를 묻으면 그 프로젝트의 결정으로 답한다. "
     "'열람 권한 없음'인 결정은 ID만 말하고 내용을 추측하지 않는다. 근거에 없는 내용과 날짜는 쓰지 않는다.")
 
@@ -1275,11 +1366,19 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
             problems.append(f"근거 결정 ID({', '.join(ids)})를 답변에 밝히세요.")
         if res.get("pending") and "승인 대기" not in state["draft"]:
             problems.append("승인 대기 결정이라는 점을 밝히세요.")
-        if not ids and res["authority"] in ("none", "discussion") and "결정되지 않" not in state["draft"]:
-            problems.append("유효한 결정이 없으니 '결정되지 않음'을 밝히세요.")
+        if not ids and res["authority"] in ("none", "discussion"):
+            if item.get("discussion") and "결정되지 않" not in state["draft"]:
+                problems.append("유효한 결정이 없으니 '결정되지 않음'을 밝히세요.")
+            elif not item.get("discussion") and "찾지 못" not in state["draft"]:
+                problems.append("관련 결정·논의가 없으니 '찾지 못했다'고 밝히세요.")
+        # 답에 쓴 날짜·숫자·ID가 근거에 있는지 글자로 대조 (공백 무시)
+        short = state["draft"].split("\n\n### ")[0]
+        known = (state.get("answer_sources", "") + state["draft"][len(short):]).replace(" ", "")
+        made_up = [v for v in dict.fromkeys(VALUE.findall(short)) if v.replace(" ", "") not in known]
+        if made_up:
+            problems.append(f"근거에 없는 값: {', '.join(made_up)}")
         # 코드 검사를 통과했으면 LLM 심판(LLM-as-Judge)이 질문 대비 답의 품질을 4기준으로 채점 — 3점 미만이면 재작성
-        if not problems and attempts < 3:
-            short = state["draft"].split("\n\n### ")[0]          # 코드가 붙인 근거 블록은 빼고 모델이 쓴 답만
+        if not problems and attempts < 3:          # short: 코드가 붙인 근거 블록은 빼고 모델이 쓴 답만
             sc, judge_usage = await deps.fast_llm.json(
                 "질문에 대한 답을 근거와 비교해 1~5점으로 채점한다. "
                 "relevance(질문에 바로 답하는가), grounding(근거에 있는 내용만 쓰는가), "
@@ -1303,17 +1402,11 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
     if judge_usage:
         out["usage"] = _usage(state, judge_usage)
     if problems and ok and state["mode"] == "question":
-        # 3번 다시 써도 빠진 사실은 코드가 덧붙인다 (모델에게 맡기지 않는 마지막 안전장치)
-        res = state["items"][0]["research"]
-        notes = []
-        if res["authority"] == "decision" and res["current"]["decision_id"] not in state["draft"]:
-            notes.append(f"근거 결정: {res['current']['decision_id']}")
-        notes += [f"{p['decision_id']}는 아직 승인 대기 (권위 없음)" for p in res.get("pending", [])
-                  if "승인 대기" not in state["draft"]]
-        if not notes and res["authority"] in ("none", "discussion") and "결정되지 않" not in state["draft"]:
-            notes.append("유효한 결정 없음 — 논의는 있었지만 결정되지 않음")
-        if notes:
-            out["draft"] = state["draft"] + "\n\n" + "\n".join(f"※ {n}" for n in notes)
+        # 3번 다시 써도 통과 못 하면 모델 문장을 버리고 원장 필드로 만든 답으로 바꾼다 (근거 블록은 그대로)
+        short = state["draft"].split("\n\n### ")[0]
+        out["draft"] = (_code_answer(state["items"][0], state.get("restricted"))
+                        + "\n\n※ 자동 작성 답변이 근거 검사를 통과하지 못해 원장 기록으로 답했습니다."
+                        + state["draft"][len(short):])
     return out
 
 
@@ -1346,7 +1439,7 @@ async def finalize_node(state: LedgerState, deps: LedgerDeps) -> dict:
             if d["review"].get("confirms"):          # 기존 승인 대기 결정을 확정하는 발언 → 새로 올리지 않고 그 결정을 승인 대상으로
                 proposed += d["review"]["confirms"]
             # 충돌·승인 필요 결정은 원장에 올리지 않는다
-            elif d["review"]["status"] in ("ok", "change_approved"):
+            elif d["review"]["status"] in ("ok", "change_approved", "no_basis"):
                 r = await deps.mcp.call("propose_decision", statement=d["statement"], topic=d["topic"],
                                         decided_by=d["decided_by"],
                                         evidence=[{k: e[k] for k in ("meeting_id", "seq", "quote")}

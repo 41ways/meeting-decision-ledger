@@ -283,7 +283,7 @@ class LedgerRAG:
         return cs[0] if len(cs) == 1 else {"$and": cs}
 
     def search_transcript(self, query: str, meeting_id: str | None = None, project_id: str | None = None,
-                          k: int = 5) -> list[dict]:
+                          k: int = 5, min_score: float | None = None) -> list[dict]:
         """
         R1 원문 발언 검색
         Args:
@@ -291,12 +291,31 @@ class LedgerRAG:
             meeting_id: 특정 회의로 한정. None이면 전체
             project_id: 특정 프로젝트로 한정. None이면 전체
             k:          최대 결과 수
+            min_score:  이 유사도 미만 발언은 버린다. None이면 거르지 않음
         Returns:
             발언 메타데이터 목록 (_id, _score 포함)
         """
-        return self._search(R1, query, self._and(
+        rows = self._search(R1, query, self._and(
             {"meeting_id": meeting_id} if meeting_id else None,
             {"project_id": project_id} if project_id else None), k)
+        # 하한이 없으면 논의한 적 없는 주제에도 가장 가까운 발언이 '관련 논의'로 붙는다
+        return [r for r in rows if min_score is None or r["_score"] >= min_score]
+
+    def topic_support(self, query: str, topic: str) -> float | None:
+        """
+        이 주제로 저장된 결정·기준 문서 중 질의와 가장 가까운 것의 유사도
+
+        LLM이 고른 주제가 문장 내용과 맞는지 독립적으로 확인하는 데 쓴다.
+        Args:
+            query: 결정·의견 문장
+            topic: 확인할 주제 키
+        Returns:
+            최고 유사도. 그 주제로 저장된 결정·기준 문서가 하나도 없으면 None
+        """
+        scores = []
+        for name in (R3, R2):
+            scores += [r["_score"] for r in self._search(name, query, {"topic": topic}, 1)]
+        return max(scores) if scores else None
 
     def search_baseline(self, query: str, project_id: str | None = None, k: int = 4,
                         filtered: bool = True) -> list[dict]:

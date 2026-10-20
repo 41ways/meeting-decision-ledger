@@ -666,7 +666,7 @@ const STEP = {
   DecisionFound: e => `결정 발견 [${e.seq}] ${e.decided_by}: ${e.statement}`,
   TaskCompleted: e => e.source ? `원문 논의 추가 조회: ${e.statement}` : `기준 조회 (${e.topic}): ${({ decision: '유효 결정 ' + (e.current || ''), baseline: '기준 문서', discussion: '논의만 있음', none: '기준 없음' })[e.authority]}`,
   ReplanCheck: e => e.is_sufficient ? null : '기준 부족 → 회의 원문에서 논의 추가 조사',
-  ConflictChecked: e => `${({ ok: '문제없음', conflict: '충돌', change_approved: '기준 변경(승인됨)', needs_approval: '승인 필요' })[e.status]}: ${e.statement}${e.conflicts.length ? ' — ' + e.conflicts.join(' / ') : ''}`,
+  ConflictChecked: e => `${({ ok: '문제없음', conflict: '충돌', change_approved: '기준 변경(승인됨)', needs_approval: '확인 필요', no_basis: '비교할 기준 없음' })[e.status]}: ${e.statement}${e.conflicts.length ? ' — ' + e.conflicts.join(' / ') : ''}`,
   DraftWritten: e => `답변 작성 (시도 ${e.attempt})`,
   Validation: e => (e.verdict.startsWith('합격') ? '검증 통과' : `검증 반려 → 다시 작성 (${e.problems.join(' ')})`)
     + (e.judge && Object.keys(e.judge.scores || {}).length ? ` · 품질 심판 관련성 ${e.judge.scores.relevance}·근거 ${e.judge.scores.grounding}·완전성 ${e.judge.scores.completeness}·명확성 ${e.judge.scores.clarity}` : ''),

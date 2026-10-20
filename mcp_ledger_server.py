@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 from ledger.rag import LedgerRAG          # noqa: E402
-from ledger.resolve import Resolver       # noqa: E402
+from ledger.resolve import MIN_DISCUSSION_SCORE, Resolver  # noqa: E402
 from ledger.store import LedgerStore      # noqa: E402
 
 # 저장소·검색기는 프로세스당 하나만 만들어 모든 도구가 공유
@@ -56,7 +56,8 @@ def search_transcript(query: str, meeting_id: str = "", k: int = 5) -> list[dict
     Returns:
         발언 목록 (meeting_id, date, seq, ts, speaker, role, text, _score)
     """
-    rows = rag.search_transcript(query, meeting_id=meeting_id or None, k=k)
+    # 유사도 하한 미만은 '관련 논의'로 돌려주지 않는다 (논의한 적 없는 주제에 아무 발언이나 붙는 것 방지)
+    rows = rag.search_transcript(query, meeting_id=meeting_id or None, k=k, min_score=MIN_DISCUSSION_SCORE)
     return _slim(rows, ("meeting_id", "date", "seq", "ts", "speaker", "role", "text", "_score"))
 
 

@@ -331,3 +331,86 @@ def test_missed_decision_candidate_is_rechecked():
     out = run(G.plan_node(st, deps=G.LedgerDeps(fast_llm=RecheckLLM(), quality_llm=RecheckLLM(), mcp=FakeMCP())))
     assert [d["decided_seq"] for d in out["items"]] == [4]
     assert out["events"][-1]["rechecked"] >= 1
+
+
+# ---------------------------------------------------------------- '모르면 모른다' 가드
+def test_no_basis_is_not_reported_as_ok():
+    """비교할 기준이 하나도 없으면 '문제없음'이 아니라 '비교할 기준 없음'."""
+    res = {"topic": "cache", "authority": "none", "current": None, "rules": [], "pending": [], "advisory": [],
+           "baseline": []}
+    assert G.decide(_item(res), [], {})["status"] == "no_basis"
+
+
+class BrokenJudgeLLM(FakeLLM):
+    async def json(self, system, user, schema, **kw):
+        if "checks" in schema["properties"]:
+            return {}, {"tokens": 1, "parse_error": True}      # 출력이 잘려 JSON 해석 실패
+        return await super().json(system, user, schema, **kw)
+
+
+def test_unparseable_judge_output_goes_to_human():
+    """판정 LLM 출력이 깨지면 판정표가 '문제없음'을 내지 않고 사람에게 넘긴다."""
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=BrokenJudgeLLM(), mcp=FakeMCP()))
+    st = run(graph.ainvoke({"message": "OPS-M04 회의 정리해줘", "events": []}))
+    rv = st["items"][0]["review"]
+    assert rv["status"] == "needs_approval" and "판정 실패" in rv["notes"][0]
+
+
+def test_topic_doubt_turns_decision_conflict_into_check():
+    """주제가 의심스러우면 결정 비교 충돌로 단정하지 않는다. 정책 충돌은 그대로."""
+    review = {"status": "conflict", "conflicts": [{"type": "past_decision", "against": ["OPS-0008"], "detail": ""}],
+              "changes": [], "notes": []}
+    doubt = {"research": {"topic_doubt": True, "notes": []}}
+    assert G._guard_topic(doubt, review)["status"] == "needs_approval"
+    policy = {**review, "conflicts": [{"type": "policy", "against": ["SEC-01"], "detail": ""}]}
+    assert G._guard_topic(doubt, policy)["status"] == "conflict"
+    other = {"research": {"similar_other": [{"decision_id": "OPS-0008"}], "notes": []}}
+    assert G._guard_topic(other, {**review, "status": "ok", "conflicts": []})["status"] == "needs_approval"
+    assert G._guard_topic({"research": {}}, review) is review          # 의심이 없으면 그대로
+
+
+class LowScoreMCP(FakeMCP):
+    async def call(self, name, **a):
+        if name == "topic_candidates":
+            return [{"topic": "session.store", "score": 0.41}]       # 새 주제(함정) 수준의 점수
+        return await super().call(name, **a)
+
+
+def test_low_score_topic_is_not_silently_filled():
+    """LLM이 주제를 못 정했을 때 점수 낮은 검색 1순위를 억지로 붙이지 않는다 (조용한 폴백 방지)."""
+    deps = G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=FakeLLM(), mcp=LowScoreMCP())
+    assert run(G.ensure_topic(deps, "", "회식 장소를 정하자")) == ""
+    assert run(G.ensure_topic(deps, "cache", "캐시")) == "cache"
+
+
+def _q_state(draft, research, discussion=None, attempts=0):
+    item = {"research": research, "project": G.DEFAULT_PID, **({"discussion": discussion} if discussion else {})}
+    return {"mode": "question", "draft": draft, "events": [], "items": [item], "validation_attempts": attempts,
+            "answer_sources": "[OPS-0005] 응답 시간 기준을 첫 진행 표시 2초 이내, 최종 답변 30초 이내로 변경한다."}
+
+
+RES_LAT = {"authority": "decision", "pending": [],
+           "current": {"decision_id": "OPS-0005", "statement": "응답 시간 기준을 첫 진행 표시 2초, 최종 30초로 변경"}}
+
+
+def test_value_not_in_sources_is_rejected_then_replaced_by_ledger_answer():
+    """근거에 없는 숫자를 쓰면 반려하고, 3번째에도 남으면 모델 문장을 원장 기록으로 바꾼다."""
+    out = run(G.validate_node(_q_state("OPS-0005에 따라 최종 답변은 45초 이내입니다.", RES_LAT), deps=None))
+    assert "근거에 없는 값: 45초" in out["validation_feedback"]
+    out = run(G.validate_node(_q_state("OPS-0005에 따라 최종 답변은 45초 이내입니다.\n\n### OPS-0005 · x", RES_LAT,
+                                       attempts=2), deps=None))
+    assert out["validation_feedback"] is None and "45초" not in out["draft"]
+    assert out["draft"].startswith("현재 유효한 결정은 OPS-0005입니다") and "### OPS-0005" in out["draft"]
+    ok = run(G.validate_node(_q_state("OPS-0005에 따라 최종 답변은 30초 이내입니다.", RES_LAT, attempts=2), deps=None))
+    assert ok["validation_feedback"] is None and "draft" not in ok          # 근거와 맞으면 모델 답 그대로
+
+
+def test_nothing_found_must_be_said_not_undecided():
+    """관련 논의가 없으면 '결정되지 않음'(논의는 있었다는 뜻)이 아니라 '찾지 못했다'고 해야 한다."""
+    none = {"authority": "none", "pending": []}
+    out = run(G.validate_node(_q_state("논의는 있었지만 결정되지 않았습니다.", none), deps=None))
+    assert "찾지 못" in out["validation_feedback"]
+    disc = [{"meeting_id": "OPS-M03", "seq": 10, "speaker": "서지후", "text": "캐시는 다음에 다시"}]
+    out = run(G.validate_node(_q_state("관련 결정을 찾지 못했습니다.", {"authority": "discussion", "pending": []}, disc),
+                              deps=None))
+    assert "결정되지 않" in out["validation_feedback"]

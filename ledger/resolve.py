@@ -10,10 +10,16 @@
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from .rag import LedgerRAG
 from .store import LedgerStore
+from .thresholds import CROSS_TOPIC_SCORE, MIN_DISCUSSION_SCORE, MIN_TOPIC_SCORE
+
+# 문장에 직접 적힌 결정 ID (OPS-0007, CSB-0004)
+# \b는 한글 앞에서 경계로 안 잡혀서("OPS-0007은") 영숫자 기준 전후 확인으로 쓴다
+DECISION_ID = re.compile(r"(?<![A-Za-z0-9])[A-Z]{3}-\d{4}(?!\d)")
 
 # 역할 → 결정 권한 매핑 (R4 권한표의 approver_role 문자열과 대조)
 # 권한표 표기("보안 담당", "PM / 본부장")가 화자 역할 표기와 달라 별칭으로 맞춘다
@@ -35,8 +41,12 @@ class Resolution:
         pending:    승인 대기 결정 (권위 없음)
         advisory:   다른 프로젝트 결정 (참고)
         baseline:   현행 기준 문서 조항
-        discussion: 원문 논의 (결정 없음일 때)
+        discussion: 원문 논의 (결정 없음일 때, 유사도 하한 이상만)
         notes:      사용자에게 보여 줄 안내 문구
+        topic_support: 이 주제로 저장된 결정·기준 문서와 문장의 최고 유사도 (그 주제 자료가 없으면 None)
+        topic_doubt:   주제 자료는 있는데 문장과 멀다 — 주제를 잘못 골랐을 수 있음
+        similar_other: 다른 주제로 저장된 유효 결정 중 문장과 아주 가까운 것 (같은 사안일 수 있음)
+        id_refs:       문장에 ID로 직접 적힌 결정
     """
     topic: str
     authority: str                       # policy | decision | baseline | discussion | none
@@ -47,6 +57,10 @@ class Resolution:
     baseline: list[dict] = field(default_factory=list)    # 현행 기준 문서 조항
     discussion: list[dict] = field(default_factory=list)  # 원문 논의 (결정 없음일 때)
     notes: list[str] = field(default_factory=list)
+    topic_support: float | None = None
+    topic_doubt: bool = False
+    similar_other: list[dict] = field(default_factory=list)
+    id_refs: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         """
@@ -110,7 +124,8 @@ class Resolver:
             주제 키. 후보가 없으면 빈 문자열
         """
         cands = self.topic_candidates(text, k=1)
-        return cands[0]["topic"] if cands else ""
+        # 1위라도 점수가 낮으면 목록에 없는 새 주제 — 가장 가까운 주제를 억지로 붙이지 않는다 (조용한 폴백 방지)
+        return cands[0]["topic"] if cands and cands[0]["score"] >= MIN_TOPIC_SCORE else ""
 
     def resolve(self, text: str, topic: str | None = None, project_id: str | None = None) -> Resolution:
         """
@@ -127,6 +142,7 @@ class Resolver:
         pid = project_id or self.project_id
         topic = topic or self.topic_of(text)
         res = Resolution(topic=topic, authority="none")
+        self._cross_check(res, text, pid)
 
         # R4: 현행 정책만 (구 정책은 판단에 쓰지 않음)
         # 0.45는 무관한 규칙을 걸러 내는 경험적 임계값 (주제 일치 대신 유사도로만 거른다)
@@ -165,15 +181,46 @@ class Resolver:
             res.authority = "baseline"
         else:
             # 권위 있는 기준이 없을 때만 원문을 찾는다 — 원문은 "미결정" 안내용
-            res.discussion = self.rag.search_transcript(text, project_id=pid, k=3)
+            res.discussion = self.rag.search_transcript(text, project_id=pid, k=3, min_score=MIN_DISCUSSION_SCORE)
             res.authority = "discussion" if res.discussion else "none"
-            res.notes.append("유효한 결정·기준 문서 없음 — 원문 논의만 있음 (미결정)")
+            # '논의는 있었지만 미결정'과 '관련된 게 아예 없음'을 구분한다
+            res.notes.append("유효한 결정·기준 문서 없음 — 원문 논의만 있음 (미결정)" if res.discussion
+                             else "관련 결정·기준 문서·회의 논의를 찾지 못함")
         if res.pending:
             res.notes.append("승인 대기 결정 있음: " + ", ".join(p["decision_id"] for p in res.pending)
                              + " (권위 없음)")
         if others:
             res.notes.append("다른 프로젝트 결정은 참고용: " + ", ".join(o["decision_id"] for o in others))
         return res
+
+    def _cross_check(self, res: Resolution, text: str, pid: str) -> None:
+        """
+        주제 선택을 독립 경로로 대조하고 결과를 res에 기록
+
+        주제 키로 찾는 경로(R3 결정)와 별개로, 문장 자체로 검색해 두 결과가 같은 곳을 가리키는지 본다.
+        - 주제 자료가 있는데 문장과 멀면 topic_doubt
+        - 다른 주제의 유효 결정이 더 가깝거나 아주 가까우면 similar_other
+        - 문장에 결정 ID가 직접 적혀 있으면 id_refs (벡터 검색은 ID 같은 기호에 약하다)
+        Args:
+            res:  채울 해석 결과 (topic 설정 상태)
+            text: 결정·의견·질문 문장
+            pid:  기준 프로젝트
+        """
+        if res.topic:
+            res.topic_support = self.rag.topic_support(text, res.topic)
+            res.topic_doubt = res.topic_support is not None and res.topic_support < MIN_TOPIC_SCORE
+            if res.topic_doubt:
+                res.notes.append(f"주제 {res.topic}의 기존 자료와 문장이 멀다(유사도 {res.topic_support:.2f}) "
+                                 "— 주제를 잘못 골랐을 수 있음")
+        floor = max(CROSS_TOPIC_SCORE, res.topic_support or 0.0)
+        res.similar_other = [
+            {"decision_id": d["decision_id"], "topic": d["topic"], "statement": d["statement"], "score": d["_score"]}
+            for d in self.rag.search_decisions(text, project_id=pid, k=3)
+            if d.get("topic") != res.topic and d["_score"] >= floor]
+        if res.similar_other:
+            res.notes.append("다른 주제의 비슷한 결정: " + ", ".join(
+                f"{d['decision_id']}({d['topic']}, {d['score']:.2f})" for d in res.similar_other) + " — 같은 사안인지 확인")
+        res.id_refs = [d for d in (self.store.get_decision(i) for i in dict.fromkeys(DECISION_ID.findall(text))) if d]
 
     # ---------- 결정적 검사 (권위 게이트) ----------
     def check_authority(self, topic: str, decided_by_role: str, attendee_roles: list[str]) -> dict:
