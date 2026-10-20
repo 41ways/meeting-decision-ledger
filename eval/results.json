@@ -1,0 +1,1366 @@
+{
+ "runs": {
+  "After 결정 원장": {
+   "meetings": {
+    "OPS-M03": {
+     "decisions": [
+      {
+       "seq": 3,
+       "statement": "작성 후 검증 노드 추가, 재작성 최대 1회",
+       "quote": "작성 뒤에 검증 노드를 두고, 불합격이면 피드백 주고 재작성은 최대 1회만 하는 걸로 하겠습니다. 무한 반복은 안 돼요.",
+       "against": [],
+       "blocking": [],
+       "changes": [],
+       "confirms": [],
+       "status": "ok",
+       "_seq": 3
+      },
+      {
+       "seq": 5,
+       "statement": "버니게이트로 코드 검사, 모델 판단 제안만 수용",
+       "quote": "그건 버니게이트로 코드에서 걸러요. 모델 판단은 제안으로만 받고요.",
+       "against": [],
+       "blocking": [],
+       "changes": [],
+       "confirms": [],
+       "status": "ok",
+       "_seq": 5
+      },
+      {
+       "seq": 7,
+       "statement": "타임아웃 재시도 공통화, 다른 오류 즉시 실패",
+       "quote": "타임아웃만 재시도하게 with_retry로 공통화합시다. 다른 오류는 바로 실패 처리하고요.",
+       "against": [],
+       "blocking": [],
+       "changes": [],
+       "confirms": [],
+       "status": "ok",
+       "_seq": 7
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 13,
+       "statement": "with_retry 공통화",
+       "owner": "장상민",
+       "due": "2026-10-10"
+      },
+      {
+       "seq": 14,
+       "statement": "캐시 후보 정리",
+       "owner": "장상민",
+       "due": "2026-10-10"
+      },
+      {
+       "seq": 15,
+       "statement": "캐시 후보 정리",
+       "owner": null,
+       "due": "2026-10-13"
+      },
+      {
+       "seq": 16,
+       "statement": "평가 데이터셋 30문항 작성",
+       "owner": "노영오",
+       "due": "2026-10-13"
+      }
+     ],
+     "sec": 37.6626810838934,
+     "calls": 1,
+     "tokens": 3044,
+     "events": [
+      {
+       "type": "RouteDecided",
+       "route": "meeting"
+      },
+      {
+       "type": "PlanCreated",
+       "items": 3,
+       "action_items": 4
+      },
+      {
+       "type": "GateApplied",
+       "removed": 0,
+       "removed_seq": []
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "작성 후 검증 노드 추가, 재작성 최대 1회",
+       "seq": 3,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "버니게이트로 코드 검사, 모델 판단 제안만 수용",
+       "seq": 5,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "타임아웃 재시도 공통화, 다른 오류 즉시 실패",
+       "seq": 7,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "작성 후 검증 노드 추가, 재작성 최대 1회",
+       "topic": "answer.grounding: 답변 근거·환각 방지",
+       "authority": "discussion",
+       "current": null
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "버니게이트로 코드 검사, 모델 판단 제안만 수용",
+       "topic": "agent.reliability: 에이전트 안정성 장치 (권위 게이트)",
+       "authority": "discussion",
+       "current": null
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "타임아웃 재시도 공통화, 다른 오류 즉시 실패",
+       "topic": "realtime.transport: 화면과 서버 간 실시간 전송 방식",
+       "authority": "discussion",
+       "current": null
+      },
+      {
+       "type": "ReplanCheck",
+       "round": 0,
+       "is_sufficient": false,
+       "gap": [
+        "작성 후 검증 노드 추가, 재작성 최대 1회",
+        "버니게이트로 코드 검사, 모델 판단 제안만 수용",
+        "타임아웃 재시도 공통화, 다른 오류 즉시 실패"
+       ]
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "작성 후 검증 노드 추가, 재작성 최대 1회",
+       "source": "R1 원문 논의"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "버니게이트로 코드 검사, 모델 판단 제안만 수용",
+       "source": "R1 원문 논의"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "타임아웃 재시도 공통화, 다른 오류 즉시 실패",
+       "source": "R1 원문 논의"
+      },
+      {
+       "type": "ReplanCheck",
+       "round": 1,
+       "is_sufficient": true
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "작성 후 검증 노드 추가, 재작성 최대 1회",
+       "status": "ok",
+       "conflicts": []
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "버니게이트로 코드 검사, 모델 판단 제안만 수용",
+       "status": "ok",
+       "conflicts": []
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "타임아웃 재시도 공통화, 다른 오류 즉시 실패",
+       "status": "ok",
+       "conflicts": []
+      },
+      {
+       "type": "DraftWritten",
+       "attempt": 1,
+       "length": 996
+      },
+      {
+       "type": "Validation",
+       "attempt": 1,
+       "verdict": "합격",
+       "problems": []
+      },
+      {
+       "type": "Finalize",
+       "pipeline": "meeting",
+       "proposed": []
+      }
+     ]
+    },
+    "OPS-M04": {
+     "decisions": [
+      {
+       "seq": 4,
+       "statement": "실시간 전송 방식을 웹소켓으로 변경",
+       "quote": "그럼 실시간 전송은 웹소켓으로 바꾸는 걸로 하죠.",
+       "against": [
+        "ARC-02",
+        "OPS-0007",
+        "CSB-0004"
+       ],
+       "blocking": [
+        "ARC-02",
+        "OPS-0007"
+       ],
+       "changes": [],
+       "confirms": [],
+       "status": "conflict",
+       "_seq": 4
+      },
+      {
+       "seq": 7,
+       "statement": "운영 반영 일정을 2주 미루기",
+       "quote": "네 그럼 운영 반영은 2주 미루는 걸로 하겠습니다.",
+       "against": [
+        "OPS-01",
+        "AUTH-03",
+        "REQ-06"
+       ],
+       "blocking": [
+        "OPS-01",
+        "AUTH-03",
+        "REQ-06"
+       ],
+       "changes": [],
+       "confirms": [],
+       "status": "conflict",
+       "_seq": 7
+      },
+      {
+       "seq": 9,
+       "statement": "외부 LLM으로 운영 로그 비교 진행",
+       "quote": "보안 예외 승인 받은 게 있으니까 그렇게 진행하죠.",
+       "against": [
+        "SEC-01",
+        "AUTH-05",
+        "OPS-0004"
+       ],
+       "blocking": [
+        "SEC-01",
+        "AUTH-05",
+        "OPS-0004"
+       ],
+       "changes": [],
+       "confirms": [],
+       "status": "conflict",
+       "_seq": 9
+      },
+      {
+       "seq": 11,
+       "statement": "캐시 적용 범위를 런북 문서로 제한",
+       "quote": "좋습니다. 캐시는 런북 문서에만 적용하고 모니터링 조회는 매번 새로 하는 걸로 하겠습니다.",
+       "against": [],
+       "blocking": [],
+       "changes": [],
+       "confirms": [],
+       "status": "ok",
+       "_seq": 11
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 12,
+       "statement": "웹소켓 전환 설계",
+       "owner": "장상민",
+       "due": "2026-10-17"
+      },
+      {
+       "seq": 14,
+       "statement": "운영 로그로 외부 LLM 비교",
+       "owner": "한소율",
+       "due": "2026-10-20"
+      },
+      {
+       "seq": 16,
+       "statement": "런북 캐시 적용",
+       "owner": "장상민",
+       "due": "2026-10-17"
+      }
+     ],
+     "sec": 55.744656583992764,
+     "calls": 5,
+     "tokens": 4541,
+     "events": [
+      {
+       "type": "RouteDecided",
+       "route": "meeting"
+      },
+      {
+       "type": "PlanCreated",
+       "items": 4,
+       "action_items": 3
+      },
+      {
+       "type": "GateApplied",
+       "removed": 0,
+       "removed_seq": []
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "실시간 전송 방식을 웹소켓으로 변경",
+       "seq": 4,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "운영 반영 일정을 2주 미루기",
+       "seq": 7,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "외부 LLM으로 운영 로그 비교 진행",
+       "seq": 9,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "캐시 적용 범위를 런북 문서로 제한",
+       "seq": 11,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "실시간 전송 방식을 웹소켓으로 변경",
+       "topic": "realtime.transport",
+       "authority": "decision",
+       "current": "OPS-0007"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "운영 반영 일정을 2주 미루기",
+       "topic": "schedule",
+       "authority": "baseline",
+       "current": null
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "외부 LLM으로 운영 로그 비교 진행",
+       "topic": "llm.external",
+       "authority": "decision",
+       "current": "OPS-0004"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "캐시 적용 범위를 런북 문서로 제한",
+       "topic": "cache",
+       "authority": "discussion",
+       "current": null
+      },
+      {
+       "type": "ReplanCheck",
+       "round": 0,
+       "is_sufficient": false,
+       "gap": [
+        "캐시 적용 범위를 런북 문서로 제한"
+       ]
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "캐시 적용 범위를 런북 문서로 제한",
+       "source": "R1 원문 논의"
+      },
+      {
+       "type": "ReplanCheck",
+       "round": 1,
+       "is_sufficient": true
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "실시간 전송 방식을 웹소켓으로 변경",
+       "status": "conflict",
+       "conflicts": [
+        "policy:ARC-02",
+        "past_decision:OPS-0007",
+        "past_project:CSB-0004"
+       ]
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "운영 반영 일정을 2주 미루기",
+       "status": "conflict",
+       "conflicts": [
+        "policy:OPS-01",
+        "authority:AUTH-03",
+        "baseline:REQ-06"
+       ]
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "외부 LLM으로 운영 로그 비교 진행",
+       "status": "conflict",
+       "conflicts": [
+        "policy:SEC-01",
+        "authority:AUTH-05",
+        "past_decision:OPS-0004"
+       ]
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "캐시 적용 범위를 런북 문서로 제한",
+       "status": "ok",
+       "conflicts": []
+      },
+      {
+       "type": "DraftWritten",
+       "attempt": 1,
+       "length": 1479
+      },
+      {
+       "type": "Validation",
+       "attempt": 1,
+       "verdict": "합격",
+       "problems": []
+      },
+      {
+       "type": "Finalize",
+       "pipeline": "meeting",
+       "proposed": []
+      }
+     ]
+    },
+    "OPS-M05": {
+     "decisions": [
+      {
+       "seq": 4,
+       "statement": "응답 시간을 60초로 확정",
+       "quote": "그럼 최종 답변 기준을 60초로 늘리겠습니다. 요구사항 변경이니까 제가 승인하고 정의서도 개정할게요.",
+       "against": [],
+       "blocking": [],
+       "changes": [
+        "OPS-0005",
+        "REQ-03"
+       ],
+       "confirms": [],
+       "status": "change_approved",
+       "_seq": 4
+      },
+      {
+       "seq": 6,
+       "statement": "대화 저장 DB를 MySQL로 확정",
+       "quote": "운영팀 다른 시스템이 MySQL이라 맞추는 것도 방법이긴 하네요. 대화 저장은 MySQL로 바꾸죠.",
+       "against": [
+        "ARC-01",
+        "OPS-0008"
+       ],
+       "blocking": [
+        "ARC-01",
+        "OPS-0008"
+       ],
+       "changes": [],
+       "confirms": [],
+       "status": "conflict",
+       "_seq": 6
+      },
+      {
+       "seq": 8,
+       "statement": "회의 전사문 90일 후 파기",
+       "quote": "네 회의 원문은 90일 지나면 파기하고 결정 근거 인용만 원장에 남기는 걸로 하겠습니다.",
+       "against": [],
+       "blocking": [],
+       "changes": [],
+       "confirms": [],
+       "status": "ok",
+       "_seq": 8
+      },
+      {
+       "seq": 10,
+       "statement": "모델 티어링 구조 확정",
+       "quote": "네 분류와 계획은 작은 모델, 작성과 검증은 큰 모델로 나누는 걸로 확정하겠습니다.",
+       "against": [],
+       "blocking": [],
+       "changes": [],
+       "confirms": [
+        "OPS-0010"
+       ],
+       "status": "ok",
+       "_seq": 10
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 12,
+       "statement": "로그 마스킹 스크립트 개발",
+       "owner": null,
+       "due": null
+      },
+      {
+       "seq": 13,
+       "statement": "검증 2회 적용",
+       "owner": "노영오",
+       "due": "2026-10-24"
+      },
+      {
+       "seq": 15,
+       "statement": "MySQL 전환 검토",
+       "owner": "장상민",
+       "due": null
+      }
+     ],
+     "sec": 45.569563500001095,
+     "calls": 5,
+     "tokens": 4256,
+     "events": [
+      {
+       "type": "RouteDecided",
+       "route": "meeting"
+      },
+      {
+       "type": "PlanCreated",
+       "items": 4,
+       "action_items": 3
+      },
+      {
+       "type": "GateApplied",
+       "removed": 0,
+       "removed_seq": []
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "응답 시간을 60초로 확정",
+       "seq": 4,
+       "decided_by": "정한결"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "대화 저장 DB를 MySQL로 확정",
+       "seq": 6,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "회의 전사문 90일 후 파기",
+       "seq": 8,
+       "decided_by": "정한결"
+      },
+      {
+       "type": "DecisionFound",
+       "statement": "모델 티어링 구조 확정",
+       "seq": 10,
+       "decided_by": "서지후"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "응답 시간을 60초로 확정",
+       "topic": "perf.latency",
+       "authority": "decision",
+       "current": "OPS-0005"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "대화 저장 DB를 MySQL로 확정",
+       "topic": "session.store",
+       "authority": "decision",
+       "current": "OPS-0008"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "회의 전사문 90일 후 파기",
+       "topic": "meeting.retention",
+       "authority": "discussion",
+       "current": null
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "모델 티어링 구조 확정",
+       "topic": "llm.tiering",
+       "authority": "discussion",
+       "current": null
+      },
+      {
+       "type": "ReplanCheck",
+       "round": 0,
+       "is_sufficient": false,
+       "gap": [
+        "회의 전사문 90일 후 파기",
+        "모델 티어링 구조 확정"
+       ]
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "회의 전사문 90일 후 파기",
+       "source": "R1 원문 논의"
+      },
+      {
+       "type": "TaskCompleted",
+       "statement": "모델 티어링 구조 확정",
+       "source": "R1 원문 논의"
+      },
+      {
+       "type": "ReplanCheck",
+       "round": 1,
+       "is_sufficient": true
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "응답 시간을 60초로 확정",
+       "status": "change_approved",
+       "conflicts": []
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "대화 저장 DB를 MySQL로 확정",
+       "status": "conflict",
+       "conflicts": [
+        "policy:ARC-01",
+        "past_decision:OPS-0008"
+       ]
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "회의 전사문 90일 후 파기",
+       "status": "ok",
+       "conflicts": []
+      },
+      {
+       "type": "ConflictChecked",
+       "statement": "모델 티어링 구조 확정",
+       "status": "ok",
+       "conflicts": []
+      },
+      {
+       "type": "DraftWritten",
+       "attempt": 1,
+       "length": 1206
+      },
+      {
+       "type": "Validation",
+       "attempt": 1,
+       "verdict": "합격",
+       "problems": []
+      },
+      {
+       "type": "Finalize",
+       "pipeline": "meeting",
+       "proposed": []
+      }
+     ]
+    }
+   },
+   "opinions": {
+    "O1": {
+     "verdict": "conflict",
+     "against": [
+      "SEC-01",
+      "OPS-0004",
+      "LLM"
+     ],
+     "waiver": null,
+     "topic": "llm.external",
+     "sec": 19.243263417039998,
+     "calls": 3,
+     "tokens": 1319
+    },
+    "O2": {
+     "verdict": "conflict",
+     "against": [
+      "ARC-01"
+     ],
+     "waiver": null,
+     "topic": "session.store",
+     "sec": 11.809172915993258,
+     "calls": 2,
+     "tokens": 1072
+    },
+    "O3": {
+     "verdict": "allowed_with_waiver",
+     "against": [],
+     "waiver": "W-001",
+     "topic": "llm.external",
+     "sec": 15.093594833044335,
+     "calls": 3,
+     "tokens": 1284
+    },
+    "O4": {
+     "verdict": "no_conflict",
+     "against": [],
+     "waiver": null,
+     "topic": "agent.reliability",
+     "sec": 7.969303417019546,
+     "calls": 2,
+     "tokens": 748
+    },
+    "O5": {
+     "verdict": "conflict",
+     "against": [
+      "OPS-0007"
+     ],
+     "waiver": null,
+     "topic": "realtime.transport",
+     "sec": 10.358458208036609,
+     "calls": 2,
+     "tokens": 973
+    }
+   },
+   "questions": {
+    "Q1": {
+     "answer": "실시간 전송을 SSE로 선택한 이유는 단방향 전송이 충분하고, 사내 프록시 통과가 가능하며, WebSocket은 CSBOT 프록시 끊김 사례와 아키텍처 원칙상 예외 승인 필요로 인해 배제되었기 때문입니다.  \n결정 ID: OPS-0007\n\n### OPS-0007 · 실시간 전송을 Long Polling에서 SSE로 변경한다\n현재 유효 · 시행 2026-09-29 · 결정 서지후\n\n이유\n- 단방향이면 충분\n- 사내 프록시 통과\n- Long Polling은 요청 누적\n\n기각한 대안\n- WebSocket (CSBOT 프록시 끊김 사례, ARC-02 예외 승인 필요)\n- Long Polling 유지\n\n원문 · OPS-M02 [8] 서지후\n> 실시간 전송은 SSE로 바꾸겠습니다. 서버에서 화면으로 한 방향이면 충분하고 사내 프록시도 그냥 통과해요. 웹소켓은 고객센터 챗봇 때 프록시에서 연결이 끊겨서 결국 포기했잖아요.\n\n원문 · OPS-M02 [9] 김태림\n> 웹소켓은 아키텍처 원칙상 예외 승인도 받아야 해서 SSE가 낫습니다.\n\n### CSB-0004 · WebSocket을 중단하고 Long Polling으로 전환한다\n다른 프로젝트 참고 · 고객센터 챗봇 · 시행 2025-08-20 · 결정 CSBOT PL\n\n이유\n- 사내 프록시에서 WebSocket 연결이 주기적으로 끊겨 장애가 반복됨\n\n기각한 대안\n- WebSocket 유지\n\n원장 인용 · CSB-M09 (원문은 보존 기한이 지나 파기)\n> 프록시에서 웹소켓이 계속 끊겨서 더는 못 쓰겠어요. 롱폴링으로 돌립니다.",
+     "sec": 10.932220499962568,
+     "calls": 2,
+     "tokens": 1212,
+     "attempts": 1
+    },
+    "Q2": {
+     "answer": "대화 저장소는 PostgreSQL이에요. 결정 ID: OPS-0008. 이유: CSBOT Redis TTL 유실 사례, 사내 표준 RDBMS(ARC-01) 때문입니다.\n\n### OPS-0008 · 대화 이력은 PostgreSQL에 저장한다\n현재 유효 · 시행 2026-09-29 · 결정 서지후\n\n이유\n- CSBOT Redis TTL 유실 사례\n- 사내 표준 RDBMS(ARC-01)\n\n기각한 대안\n- Redis\n\n원문 · OPS-M02 [11] 서지후\n> 고객센터 챗봇 때 레디스 TTL 때문에 대화가 날아간 적 있어요. 대화 이력은 PostgreSQL에 저장하는 걸로 하겠습니다. 사내 표준이기도 하고요.\n\n### CSB-0005 · 대화 이력 저장소를 Redis에서 MySQL로 이전한다\n다른 프로젝트 참고 · 고객센터 챗봇 · 시행 2025-09-15 · 결정 CSBOT PL\n\n이유\n- Redis TTL 만료로 대화 이력이 유실되는 사고 발생\n\n기각한 대안\n- Redis TTL 연장\n\n원장 인용 · CSB-M10 (원문은 보존 기한이 지나 파기)\n> TTL 때문에 대화가 날아갔어요. 이력은 DB로 옮깁니다.",
+     "sec": 9.075915374909528,
+     "calls": 2,
+     "tokens": 1066,
+     "attempts": 1
+    },
+    "Q3": {
+     "answer": "아직 승인 대기\n\n근거: 장상민이 캐시 후보 정리에서 런북 문서만 캐시하는 것이 적절하다고 제안했고, 모니터링 수치는 캐시하지 않는 것이 결정되었으나, 최종 결정은 이루어지지 않았습니다.\n\n### 원문 논의 · 결정되지 않음\n- OPS-M03 [9] 노영오: 모니터링 수치는 계속 바뀌어서 캐시하면 옛날 값이 나올 수 있어요.\n- OPS-M03 [8] 장상민: 자주 묻는 질문은 레디스 캐시에 넣어 두면 빠를 것 같은데요.\n- OPS-M04 [10] 장상민: 캐시 후보 정리해 왔는데 런북 문서만 캐시하는 게 맞을 것 같아요. 모니터링 수치는 빼고요.\n- HBE-I01 [8] 지원자 K: 캐시 도입을 두고 팀원이랑 의견이 달랐는데, 둘 다 부하 테스트를 돌려 보고 수치로 정했습니다. 결국 제 안이 아니라 팀원 안으로 갔습니다.",
+     "sec": 9.795360416988842,
+     "calls": 2,
+     "tokens": 1046,
+     "attempts": 1
+    },
+    "Q4": {
+     "answer": "OPS-0010 결정 ID: '논의는 있었지만 결정되지 않음'\n\n### OPS-0010 · 분류는 작은 모델, 작성은 큰 모델로 나누는 모델 티어링을 적용한다\n승인 대기 · 아직 권위 없음 · 결정 노영오 (제안)\n\n이유\n- 비용 절감\n\n원문 · OPS-M02 [14] 노영오\n> 비용 줄이려면 분류는 작은 모델, 작성은 큰 모델로 나누는 것도 제안드려요.\n\n원문 · OPS-M02 [15] 서지후\n> 모델 티어링은 좋은데 품질 영향을 먼저 봐야 해요. 다음 회의 전에 수치 보고 정합시다. 일단 제안으로 올려 두세요.\n\n### 원문 논의 · 결정되지 않음\n- OPS-M02 [19] 정한결: 영오 님은 모델 티어링 품질 비교를 10월 6일 회의 전까지 부탁드려요.\n- OPS-M02 [15] 서지후: 모델 티어링은 좋은데 품질 영향을 먼저 봐야 해요. 다음 회의 전에 수치 보고 정합시다. 일단 제안으로 올려 두세요.\n- OPS-M05 [9] 노영오: 모델 티어링은 결과 보니 분류는 작은 모델로 해도 될 것 같아요.\n- OPS-M02 [20] 노영오: 네 6일 전까지 할게요.",
+     "sec": 7.764836709015071,
+     "calls": 2,
+     "tokens": 1152,
+     "attempts": 1
+    },
+    "Q5": {
+     "answer": "CSB-0004에 따르면, 고객센터 챗봇에서는 사내 프록시에서 WebSocket 연결이 주기적으로 끊겨 장애가 반복되자 Long Polling으로 전환했다.\n\n### CSB-0004 · WebSocket을 중단하고 Long Polling으로 전환한다\n질문한 프로젝트 · 시행 2025-08-20 · 결정 CSBOT PL\n\n이유\n- 사내 프록시에서 WebSocket 연결이 주기적으로 끊겨 장애가 반복됨\n\n기각한 대안\n- WebSocket 유지\n\n원장 인용 · CSB-M09 (원문은 보존 기한이 지나 파기)\n> 프록시에서 웹소켓이 계속 끊겨서 더는 못 쓰겠어요. 롱폴링으로 돌립니다.\n\n### OPS-0007 · 실시간 전송을 Long Polling에서 SSE로 변경한다\n현재 유효 · 시행 2026-09-29 · 결정 서지후\n\n이유\n- 단방향이면 충분\n- 사내 프록시 통과\n- Long Polling은 요청 누적\n\n기각한 대안\n- WebSocket (CSBOT 프록시 끊김 사례, ARC-02 예외 승인 필요)\n- Long Polling 유지\n\n원문 · OPS-M02 [8] 서지후\n> 실시간 전송은 SSE로 바꾸겠습니다. 서버에서 화면으로 한 방향이면 충분하고 사내 프록시도 그냥 통과해요. 웹소켓은 고객센터 챗봇 때 프록시에서 연결이 끊겨서 결국 포기했잖아요.\n\n원문 · OPS-M02 [9] 김태림\n> 웹소켓은 아키텍처 원칙상 예외 승인도 받아야 해서 SSE가 낫습니다.",
+     "sec": 8.995108541916125,
+     "calls": 2,
+     "tokens": 1212,
+     "attempts": 1
+    },
+    "Q6": {
+     "answer": "응답 시간 기준은 2초 이내로 변경되었다. 결정 ID: OPS-0005.\n\n### OPS-0005 · 응답 시간 기준을 첫 진행 표시 2초 이내, 최종 답변 30초 이내로 변경한다\n현재 유효 · 시행 2026-09-29 · 결정 정한결\n\n이유\n- 사내 모델로 조사\n- 검증까지 5초는 불가능\n- 진행 표시가 보이면 기다릴 수 있음\n\n기각한 대안\n- 최종 답변 5초 유지\n\n원문 · OPS-M02 [4] 정한결\n> 그럼 응답 시간 기준을 바꾸겠습니다. 첫 진행 표시는 2초 안, 최종 답변은 30초 안으로 하고 요구사항정의서 개정할게요.",
+     "sec": 7.1570700840093195,
+     "calls": 2,
+     "tokens": 941,
+     "attempts": 1
+    }
+   }
+  },
+  "Before-A LLM 단독": {
+   "meetings": {
+    "OPS-M03": {
+     "decisions": [
+      {
+       "seq": 1,
+       "statement": "검증 단계를 도입하여 작성 결과의 정확도를 높이기로 함",
+       "quote": "[2] 노영오(AI 개발): 작성 결과를 그대로 내보내니까 근거 없는 답이 가끔 나와요. 검증 단계가 필요할 것 같아요.",
+       "against": [],
+       "_seq": 2
+      },
+      {
+       "seq": 2,
+       "statement": "검증 실패 시 피드백을 주고, 재작성은 최대 1회만 허용",
+       "quote": "[3] 서지후(PL): 작성 뒤에 검증 노드를 두고, 불합격이면 피드백 주고 재작성은 최대 1회만 하는 걸로 하겠습니다. 무한 반복은 안 돼요.",
+       "against": [],
+       "_seq": 3
+      },
+      {
+       "seq": 3,
+       "statement": "MCP 호출 시 타임아웃에 대해서는 with_retry로 재시도를 공통화",
+       "quote": "[7] 서지후(PL): 타임아웃만 재시도하게 with_retry로 공통화합시다. 다른 오류는 바로 실패 처리하고요.",
+       "against": [],
+       "_seq": 7
+      },
+      {
+       "seq": 4,
+       "statement": "자주 묻는 질문은 레디스 캐시에 저장하여 응답 속도를 개선",
+       "quote": "[8] 장상민(백엔드): 자주 묻는 질문은 레디스 캐시에 넣어 두면 빠를 것 같은데요.",
+       "against": [],
+       "_seq": 8
+      },
+      {
+       "seq": 5,
+       "statement": "캐시 적용 대상은 추후 논의를 통해 정리하고, 현재는 결정하지 않음",
+       "quote": "[10] 서지후(PL): 캐시는 대상부터 정해야 할 것 같아요. 오늘 결론 내지 말고 상민 님 후보 정리해서 다음에 다시 봅시다.",
+       "against": [],
+       "_seq": 5
+      },
+      {
+       "seq": 6,
+       "statement": "작성 성능에 있어 큰 모델이 작문에 있어 우수함",
+       "quote": "[11] 노영오(AI 개발): 모델 티어링 비교해 봤는데 분류는 작은 모델도 정확도 차이가 거의 없었어요. 작성은 큰 모델이 확실히 나아요.",
+       "against": [],
+       "_seq": 11
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 1,
+       "statement": "with_retry로 MCP 호출 재시도를 공통화",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-10"
+      },
+      {
+       "seq": 2,
+       "statement": "캐시 적용 대상 후보 정리",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-13"
+      },
+      {
+       "seq": 3,
+       "statement": "평가 데이터셋 30문항 작성",
+       "owner": "노영오(AI 개발)",
+       "due": "2023-10-13"
+      }
+     ],
+     "sec": 44.08021499996539,
+     "calls": 1,
+     "tokens": 1586
+    },
+    "OPS-M04": {
+     "decisions": [
+      {
+       "seq": 1,
+       "statement": "실시간 전송은 웹소켓으로 바꾸는 걸로 하죠.",
+       "quote": "[4] 서지후(PL): 그럼 실시간 전송은 웹소켓으로 바꾸는 걸로 하죠.",
+       "against": [],
+       "_seq": 4
+      },
+      {
+       "seq": 2,
+       "statement": "운영 반영은 2주 미루는 걸로 하겠습니다.",
+       "quote": "[7] 서지후(PL): 네 그럼 운영 반영은 2주 미루는 걸로 하겠습니다.",
+       "against": [],
+       "_seq": 7
+      },
+      {
+       "seq": 3,
+       "statement": "캐시는 런북 문서에만 적용하고 모니터링 조회는 매번 새로 하는 걸로 하겠습니다.",
+       "quote": "[11] 서지후(PL): 좋습니다. 캐시는 런북 문서에만 적용하고 모니터링 조회는 매번 새로 하는 걸로 하겠습니다.",
+       "against": [],
+       "_seq": 11
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 1,
+       "statement": "웹소켓 전환 설계",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-17"
+      },
+      {
+       "seq": 2,
+       "statement": "운영 로그로 외부 LLM 비교",
+       "owner": "노영오(AI 개발)",
+       "due": "2023-10-20"
+      },
+      {
+       "seq": 3,
+       "statement": "런북 캐시 적용",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-17"
+      }
+     ],
+     "sec": 22.998224708950147,
+     "calls": 1,
+     "tokens": 1154
+    },
+    "OPS-M05": {
+     "decisions": [
+      {
+       "seq": 1,
+       "statement": "최종 답변 기준을 60초로 늘리겠습니다.",
+       "quote": "그럼 최종 답변 기준을 60초로 늘리겠습니다. 요구사항 변경이니까 제가 승인하고 정의서도 개정할게요.",
+       "against": [],
+       "_seq": 4
+      },
+      {
+       "seq": 2,
+       "statement": "대화 저장은 MySQL로 바꾸죠.",
+       "quote": "대화 저장 DB 말인데요, MySQL로 가도 되지 않나요? 예전 정책에서는 MySQL이 표준이었잖아요. 운영팀 다른 시스템이 MySQL이라 맞추는 것도 방법이긴 하네요. 대화 저장은 MySQL로 바꾸죠.",
+       "against": [],
+       "_seq": 6
+      },
+      {
+       "seq": 3,
+       "statement": "회의 원문은 90일 지나면 파기하고 결정 근거 인용만 원장에 남기는 걸로 하겠습니다.",
+       "quote": "네 회의 원문은 90일 지나면 파기하고 결정 근거 인용만 원장에 남기는 걸로 하겠습니다.",
+       "against": [],
+       "_seq": 8
+      },
+      {
+       "seq": 4,
+       "statement": "분류와 계획은 작은 모델, 작성과 검증은 큰 모델로 나누는 걸로 확정하겠습니다.",
+       "quote": "분류와 계획은 작은 모델, 작성과 검증은 큰 모델로 나누는 걸로 확정하겠습니다.",
+       "against": [],
+       "_seq": 10
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 1,
+       "statement": "영오 님 검증 2회 적용",
+       "owner": "노영오(AI 개발)",
+       "due": "2023-10-24"
+      },
+      {
+       "seq": 2,
+       "statement": "MySQL 전환 검토",
+       "owner": "장상민(백엔드)",
+       "due": null
+      }
+     ],
+     "sec": 24.890864791930653,
+     "calls": 1,
+     "tokens": 1180
+    }
+   },
+   "opinions": {
+    "O1": {
+     "verdict": "allowed_with_waiver",
+     "against": [
+      "12345"
+     ],
+     "sec": 1.4468641249695793,
+     "calls": 1,
+     "tokens": 124
+    },
+    "O2": {
+     "verdict": "no_conflict",
+     "against": [],
+     "sec": 0.8992185420356691,
+     "calls": 1,
+     "tokens": 112
+    },
+    "O3": {
+     "verdict": "allowed_with_waiver",
+     "against": [
+      "policy-001"
+     ],
+     "sec": 1.308832542039454,
+     "calls": 1,
+     "tokens": 134
+    },
+    "O4": {
+     "verdict": "allowed_with_waiver",
+     "against": [
+      "against_001"
+     ],
+     "sec": 1.3086776670534164,
+     "calls": 1,
+     "tokens": 123
+    },
+    "O5": {
+     "verdict": "allowed_with_waiver",
+     "against": [
+      "12345"
+     ],
+     "sec": 1.3058565409155563,
+     "calls": 1,
+     "tokens": 120
+    }
+   },
+   "questions": {
+    "Q1": {
+     "answer": "실시간 전송을 SSE(Server-Sent Events)로 선택한 이유는, 단방향 실시간 데이터 전송이 필요했고, SSE는 HTTP 기반으로 구현되어 간단하고 효율적인 연결을 제공하기 때문입니다. 또한, SSE는 WebSocket보다 구현이 간단하며, 브라우저 호환성이 좋습니다. 결정 ID는 12345입니다.",
+     "sec": 4.756892875069752,
+     "calls": 1,
+     "tokens": 171
+    },
+    "Q2": {
+     "answer": "결정 ID: 12345  \n대화 저장소에 PostgreSQL을 선택한 이유는 고성능, 확장성, 복잡한 쿼리 처리 능력, 그리고 데이터 일관성 유지에 대한 강력한 지원 때문입니다. 또한, JSONB 타입을 통해 구조화되지 않은 데이터도 효율적으로 저장할 수 있어 유연성도 있습니다.",
+     "sec": 4.545144542003982,
+     "calls": 1,
+     "tokens": 164
+    },
+    "Q3": {
+     "answer": "프로젝트 결정 ID는 1001입니다. Redis 캐시를 쓰기로 결정하셨군요. Redis는 고성능의 인메모리 데이터베이스로, 캐시, 세션 저장, 메시지 �ro커 등 다양한 용도에서 사용됩니다. 캐시를 사용하면 응답 속도를 높이고, 데이터베이스 부하를 줄일 수 있습니다. 적절한 키 관리와 TTL 설정이 중요합니다.",
+     "sec": 5.897059499984607,
+     "calls": 1,
+     "tokens": 197
+    },
+    "Q4": {
+     "answer": "모델 티어링에 대한 결정 ID는 없습니다. 관련된 결정 정보가 없습니다.",
+     "sec": 1.3100900830468163,
+     "calls": 1,
+     "tokens": 100
+    },
+    "Q5": {
+     "answer": "이 질문에 대한 구체적인 답변은 제공된 참고 자료에 없습니다. 결정 ID가 제공되지 않았으므로, 추가 정보 없이는 정확한 이유를 밝히기 어렵습니다.",
+     "sec": 2.545304417028092,
+     "calls": 1,
+     "tokens": 128
+    },
+    "Q6": {
+     "answer": "현재 응답 시간 기준은 약 0.5초입니다.",
+     "sec": 1.1570807500975206,
+     "calls": 1,
+     "tokens": 96
+    }
+   }
+  },
+  "Before-B 단순 RAG": {
+   "meetings": {
+    "OPS-M03": {
+     "decisions": [
+      {
+       "seq": 1,
+       "statement": "작성 결과를 그대로 내보내니까 근거 없는 답이 가끔 나와요. 검증 단계가 필요할 것 같아요.",
+       "quote": "작성 결과를 그대로 내보내니까 근거 없는 답이 가끔 나와요. 검증 단계가 필요할 것 같아요.",
+       "against": [],
+       "_seq": 2
+      },
+      {
+       "seq": 2,
+       "statement": "작성 뒤에 검증 노드를 두고, 불합격이면 피드백 주고 재작성은 최대 1회만 하는 걸로 하겠습니다. 무한 반복은 안 돼요.",
+       "quote": "작성 뒤에 검증 노드를 두고, 불합격이면 피드백 주고 재작성은 최대 1회만 하는 걸로 하겠습니다. 무한 반복은 안 돼요.",
+       "against": [],
+       "_seq": 3
+      },
+      {
+       "seq": 3,
+       "statement": "타임아웃만 재시도하게 with_retry로 공통화합시다. 다른 오류는 바로 실패 처리하고요.",
+       "quote": "타임아웃만 재시도하게 with_retry로 공통화합시다. 다른 오류는 바로 실패 처리하고요.",
+       "against": [],
+       "_seq": 7
+      },
+      {
+       "seq": 4,
+       "statement": "모델 티어링 비교해 봤는데 분류는 작은 모델도 정확도 차이가 거의 없었어요. 작성은 큰 모델이 확실히 나아요.",
+       "quote": "모델 티어링 비교해 봤는데 분류는 작은 모델도 정확도 차이가 거의 없었어요. 작성은 큰 모델이 확실히 나아요.",
+       "against": [],
+       "_seq": 11
+      },
+      {
+       "seq": 5,
+       "statement": "영오 님은 평가 데이터셋 30문항을 10월 13일까지 만들어 주세요.",
+       "quote": "영오 님은 평가 데이터셋 30문항을 10월 13일까지 만들어 주세요.",
+       "against": [],
+       "_seq": 16
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 1,
+       "statement": "with_retry 공통화",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-10"
+      },
+      {
+       "seq": 2,
+       "statement": "캐시 후보 정리",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-10"
+      },
+      {
+       "seq": 3,
+       "statement": "캐시 후보 정리",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-13"
+      },
+      {
+       "seq": 4,
+       "statement": "평가 데이터셋 30문항 작성",
+       "owner": "노영오(AI 개발)",
+       "due": "2023-10-13"
+      }
+     ],
+     "sec": 46.866647041984834,
+     "calls": 1,
+     "tokens": 2121
+    },
+    "OPS-M04": {
+     "decisions": [
+      {
+       "seq": 1,
+       "statement": "실시간 전송을 웹소켓으로 바꾸는 걸로 하죠.",
+       "quote": "[4] 장상민(백엔드): 멈추려면 화면에서 서버로도 신호를 보내야 하니까 양방향이 필요해요. 실시간 전송을 웹소켓으로 바꾸는 게 깔끔합니다.",
+       "against": [
+        "CSB-0001",
+        "CSB-0002",
+        "CSB-0004",
+        "OPS-0007",
+        "ARC-02"
+       ],
+       "_seq": 3
+      },
+      {
+       "seq": 2,
+       "statement": "운영 반영은 2주 미루는 걸로 하겠습니다.",
+       "quote": "[7] 서지후(PL): 네 그럼 운영 반영은 2주 미루는 걸로 하겠습니다.",
+       "against": [
+        "REQ-06",
+        "AUTH-03"
+       ],
+       "_seq": 7
+      },
+      {
+       "seq": 3,
+       "statement": "운영 로그로 외부 LLM 비교를 진행합니다.",
+       "quote": "[8] 노영오(AI 개발): 품질 비교할 때 샘플만으로는 부족해서, 실제 운영 로그를 외부 LLM API에 그대로 넣어서 비교하고 싶어요.",
+       "against": [
+        "SEC-01"
+       ],
+       "_seq": 8
+      },
+      {
+       "seq": 4,
+       "statement": "상민 님은 웹소켓 전환 설계를 10월 17일까지 해 주세요.",
+       "quote": "[12] 서지후(PL): 상민 님은 웹소켓 전환 설계를 10월 17일까지 해 주세요.",
+       "against": [],
+       "_seq": 12
+      },
+      {
+       "seq": 5,
+       "statement": "영오 님은 운영 로그로 외부 LLM 비교를 10월 20일까지 해 주세요.",
+       "quote": "[14] 서지후(PL): 영오 님은 운영 로그로 외부 LLM 비교를 10월 20일까지 해 주세요.",
+       "against": [],
+       "_seq": 5
+      },
+      {
+       "seq": 6,
+       "statement": "상민 님 런북 캐시 적용도 10월 17일까지 같이 부탁해요.",
+       "quote": "[16] 서지후(PL): 상민 님 런북 캐시 적용도 10월 17일까지 같이 부탁해요.",
+       "against": [],
+       "_seq": 16
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 1,
+       "statement": "웹소켓 전환 설계",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-17"
+      },
+      {
+       "seq": 2,
+       "statement": "운영 로그로 외부 LLM 비교",
+       "owner": "노영오(AI 개발)",
+       "due": "2023-10-20"
+      },
+      {
+       "seq": 3,
+       "statement": "런북 캐시 적용",
+       "owner": "장상민(백엔드)",
+       "due": "2023-10-17"
+      }
+     ],
+     "sec": 45.6171444170177,
+     "calls": 1,
+     "tokens": 2087
+    },
+    "OPS-M05": {
+     "decisions": [
+      {
+       "seq": 1,
+       "statement": "최종 답변 기준을 60초로 늘린다.",
+       "quote": "그럼 최종 답변 기준을 60초로 늘리겠습니다. 요구사항 변경이니까 제가 승인하고 정의서도 개정할게요.",
+       "against": [
+        "OPS-0005",
+        "REQ-03 응답 시간"
+       ],
+       "_seq": 4
+      },
+      {
+       "seq": 2,
+       "statement": "대화 저장 DB를 MySQL로 변경한다.",
+       "quote": "대화 저장은 MySQL로 바꾸죠.",
+       "against": [
+        "CSB-0005",
+        "CSB-0002",
+        "ARC-01"
+       ],
+       "_seq": 6
+      },
+      {
+       "seq": 3,
+       "statement": "회의 전사문 보관 기간을 90일로 한다.",
+       "quote": "회의 전사문 보관 기간도 확인해 주세요. 지금은 90일이에요.",
+       "against": [
+        "SEC-02"
+       ],
+       "_seq": 7
+      },
+      {
+       "seq": 4,
+       "statement": "회의 원문은 90일 후 파기하고, 결정 근거 인용문은 원장에 남긴다.",
+       "quote": "네 회의 원문은 90일 지나면 파기하고 결정 근거 인용만 원장에 남기는 걸로 하겠습니다.",
+       "against": [
+        "SEC-02"
+       ],
+       "_seq": 8
+      },
+      {
+       "seq": 5,
+       "statement": "모델 티어링을 작은 모델로 분류하고, 작성과 검증은 큰 모델로 나눈다.",
+       "quote": "네 분류와 계획은 작은 모델, 작성과 검증은 큰 모델로 나누는 걸로 확정하겠습니다.",
+       "against": [],
+       "_seq": 10
+      },
+      {
+       "seq": 6,
+       "statement": "로그 마스킹 스크립트를 개발하여 고객 정보를 보호한다.",
+       "quote": "누가 로그 마스킹 스크립트 좀 만들어 주세요. 급해요.",
+       "against": [
+        "SEC-01"
+       ],
+       "_seq": 12
+      }
+     ],
+     "action_items": [
+      {
+       "seq": 1,
+       "statement": "AI 검증 2회 적용",
+       "owner": "노영오(AI 개발)",
+       "due": "2023-10-24"
+      },
+      {
+       "seq": 2,
+       "statement": "MySQL 전환 검토",
+       "owner": "장상민(백엔드)",
+       "due": null
+      }
+     ],
+     "sec": 37.23999349994119,
+     "calls": 1,
+     "tokens": 1904
+    }
+   },
+   "opinions": {
+    "O1": {
+     "verdict": "conflict",
+     "against": [
+      "OPS-0004",
+      "SEC-01"
+     ],
+     "sec": 5.066662667086348,
+     "calls": 1,
+     "tokens": 535
+    },
+    "O2": {
+     "verdict": "conflict",
+     "against": [
+      "결정 CSB-0003",
+      "결정 OPS-0008",
+      "정책 ARC-01",
+      "문서 ARCH 대화 저장",
+      "회의 OPS-M02#11"
+     ],
+     "sec": 6.076949500013143,
+     "calls": 1,
+     "tokens": 538
+    },
+    "O3": {
+     "verdict": "allowed_with_waiver",
+     "against": [
+      "SEC-01",
+      "CSB-0002",
+      "OPS-M02#16"
+     ],
+     "sec": 5.334605709067546,
+     "calls": 1,
+     "tokens": 581
+    },
+    "O4": {
+     "verdict": "allowed_with_waiver",
+     "against": [
+      "REQ-05 근거 인용"
+     ],
+     "sec": 4.541405374999158,
+     "calls": 1,
+     "tokens": 553
+    },
+    "O5": {
+     "verdict": "conflict",
+     "against": [
+      "OPS-0007",
+      "OPS-0003",
+      "CSB-0004",
+      "ARC-02",
+      "ARCH 실시간 전송",
+      "OPS-M04#4"
+     ],
+     "sec": 5.571173749980517,
+     "calls": 1,
+     "tokens": 505
+    }
+   },
+   "questions": {
+    "Q1": {
+     "answer": "실시간 전송을 SSE로 선택한 이유는 서버에서 화면으로 한 방향의 실시간 전송이 필요하고, 사내 프록시 제약으로 WebSocket 사용이 어렵기 때문입니다. 또한, Long Polling은 요청이 많이 쌓이는 문제가 있었기 때문에 SSE가 더 효율적이라고 판단했습니다. 결정 ID는 OPS-0007입니다.",
+     "sec": 7.072951084002852,
+     "calls": 1,
+     "tokens": 569
+    },
+    "Q2": {
+     "answer": "결정 OPS-0008과 문서 ARCH 대화 저장에 따르면, 대화 이력은 PostgreSQL에 저장한다. 이는 사내 표준 RDBMS인 PostgreSQL을 사용하기 위한 정책 ARC-01과, Redis로 인한 대화 이력 손실 사례를 고려한 결정이다.",
+     "sec": 7.698657750035636,
+     "calls": 1,
+     "tokens": 497
+    },
+    "Q3": {
+     "answer": "Redis 캐시를 사용하고 있습니다. [결정 CSB-0003]과 [회의 OPS-M03#8]에서 Redis를 캐시로 사용하는 방안이 논의되었습니다. 다만, [회의 OPS-M03#9]에서는 캐시로 인해 오래된 데이터가 나타날 수 있는 문제가 제기되었습니다.",
+     "sec": 7.6318536249455065,
+     "calls": 1,
+     "tokens": 523
+    },
+    "Q4": {
+     "answer": "결정 OPS-0010에 따르면 모델 티어링을 적용한다고 명시되어 있습니다. 다만, 회의 OPS-M05#9에서는 분류 모델은 작은 모델로도 충분할 수 있다고 제안했고, 회의 OPS-M02#15에서는 품질 영향을 검토해야 한다고 언급하며 추가 검토가 필요하다고 보입니다.",
+     "sec": 8.690191540983506,
+     "calls": 1,
+     "tokens": 625
+    },
+    "Q5": {
+     "answer": "[회의 OPS-M02#8]에 따르면, 예전 고객센터 챗봇에서는 웹소켓을 그만둔 이유는 사내 프록시에서 연결이 끊겨서 결국 포기했기 때문입니다.",
+     "sec": 5.7820409999694675,
+     "calls": 1,
+     "tokens": 564
+    },
+    "Q6": {
+     "answer": "현재 응답 시간 기준은 첫 진행 표시 2초 이내, 최종 답변 30초 이내입니다. 이는 결정 OPS-0005에 명시된 내용입니다.",
+     "sec": 5.307237625005655,
+     "calls": 1,
+     "tokens": 579
+    }
+   }
+  }
+ },
+ "scores": {
+  "Before-A LLM 단독": {
+   "결정 재현율(%)": 91,
+   "결정 정밀도(%)": 77,
+   "회상 발언 오추출(건)": 0,
+   "인용 원문 일치(%)": 92,
+   "할 일 담당·기한 정확(%)": 11,
+   "충돌 탐지율(%)": 0,
+   "충돌 오탐(건)": 0,
+   "의견 판정 정확(%)": 20,
+   "대체된 결정 인용(건)": 0,
+   "근거 질의 정답(%)": 0,
+   "평균 처리 시간(초)": 8.5,
+   "LLM 호출 수": 14,
+   "토큰": 5389
+  },
+  "Before-B 단순 RAG": {
+   "결정 재현율(%)": 82,
+   "결정 정밀도(%)": 53,
+   "회상 발언 오추출(건)": 1,
+   "인용 원문 일치(%)": 94,
+   "할 일 담당·기한 정확(%)": 11,
+   "충돌 탐지율(%)": 88,
+   "충돌 오탐(건)": 2,
+   "의견 판정 정확(%)": 80,
+   "대체된 결정 인용(건)": 2,
+   "근거 질의 정답(%)": 50,
+   "평균 처리 시간(초)": 14.2,
+   "LLM 호출 수": 14,
+   "토큰": 12181
+  },
+  "After 결정 원장": {
+   "결정 재현율(%)": 100,
+   "결정 정밀도(%)": 100,
+   "회상 발언 오추출(건)": 0,
+   "인용 원문 일치(%)": 100,
+   "할 일 담당·기한 정확(%)": 89,
+   "충돌 탐지율(%)": 100,
+   "충돌 오탐(건)": 0,
+   "의견 판정 정확(%)": 100,
+   "대체된 결정 인용(건)": 0,
+   "근거 질의 정답(%)": 100,
+   "평균 처리 시간(초)": 18.4,
+   "LLM 호출 수": 35,
+   "토큰": 23866
+  }
+ }
+}

@@ -1,0 +1,180 @@
+{
+ "versions": [
+  {
+   "policy_version": "v2",
+   "effective_from": "2025-01-01",
+   "is_current": false,
+   "note": "구 정책. 감사용 보관, 판단에는 사용하지 않는다.",
+   "rules": [
+    {
+     "rule_id": "AUTH-01",
+     "domain": "authority",
+     "topic": "tech.stack",
+     "text": "기술 스택·라이브러리·구현 방식 선택은 PL이 결정할 수 있다.",
+     "approver_role": "PL",
+     "threshold": null
+    },
+    {
+     "rule_id": "AUTH-02",
+     "domain": "authority",
+     "topic": "scope",
+     "text": "요구사항(범위) 변경은 PM 승인이 필요하다.",
+     "approver_role": "PM",
+     "threshold": null
+    },
+    {
+     "rule_id": "AUTH-03",
+     "domain": "authority",
+     "topic": "schedule",
+     "text": "마일스톤 지연은 PM 승인이 필요하다.",
+     "approver_role": "PM",
+     "threshold": null
+    },
+    {
+     "rule_id": "SEC-01",
+     "domain": "security",
+     "topic": "llm.external",
+     "text": "고객 개인정보를 외부 서비스로 전송할 수 없다.",
+     "approver_role": "보안 담당",
+     "threshold": null
+    },
+    {
+     "rule_id": "SEC-02",
+     "domain": "security",
+     "topic": "meeting.retention",
+     "text": "회의 녹음·전사문은 180일 보관 후 파기한다.",
+     "approver_role": "보안 담당",
+     "threshold": "180일"
+    },
+    {
+     "rule_id": "ARC-01",
+     "domain": "architecture",
+     "topic": "db.rdbms",
+     "text": "사내 표준 RDBMS는 MySQL이다.",
+     "approver_role": "아키텍처 위원회",
+     "threshold": null
+    }
+   ]
+  },
+  {
+   "policy_version": "v3",
+   "effective_from": "2026-07-01",
+   "is_current": true,
+   "note": "현행 정책. 개정은 본부장 이상 승인으로만 가능하다.",
+   "rules": [
+    {
+     "rule_id": "AUTH-01",
+     "domain": "authority",
+     "topic": "tech.stack",
+     "text": "기술 스택·라이브러리·구현 방식 선택은 PL이 결정할 수 있다. 단 보안·아키텍처 원칙에 걸리는 선택은 해당 승인자의 승인이 추가로 필요하다.",
+     "approver_role": "PL",
+     "threshold": null
+    },
+    {
+     "rule_id": "AUTH-02",
+     "domain": "authority",
+     "topic": "scope",
+     "text": "요구사항(범위·성능 기준 포함) 변경은 PM 승인이 필요하며, 승인 후 요구사항정의서를 개정해야 한다.",
+     "approver_role": "PM",
+     "threshold": null
+    },
+    {
+     "rule_id": "AUTH-03",
+     "domain": "authority",
+     "topic": "schedule",
+     "text": "마일스톤을 1주 이상 2주 미만 지연하는 결정은 PM 승인, 2주 이상 지연은 본부장 승인이 필요하다.",
+     "approver_role": "PM / 본부장",
+     "threshold": "2주"
+    },
+    {
+     "rule_id": "AUTH-04",
+     "domain": "authority",
+     "topic": "budget",
+     "text": "월 비용 500만 원 이하 지출은 PM, 초과는 본부장 승인이 필요하다.",
+     "approver_role": "PM / 본부장",
+     "threshold": "월 500만 원"
+    },
+    {
+     "rule_id": "AUTH-05",
+     "domain": "authority",
+     "topic": "security",
+     "text": "보안에 영향을 주는 결정은 보안 담당 승인이 필요하다.",
+     "approver_role": "보안 담당",
+     "threshold": null
+    },
+    {
+     "rule_id": "SEC-01",
+     "domain": "security",
+     "topic": "llm.external",
+     "text": "고객 개인정보와 운영 로그 원문을 외부 LLM API로 전송할 수 없다. 마스킹된 데이터에 한해 보안 담당 예외 승인으로 허용할 수 있다.",
+     "approver_role": "보안 담당",
+     "threshold": null
+    },
+    {
+     "rule_id": "SEC-02",
+     "domain": "security",
+     "topic": "meeting.retention",
+     "text": "회의 녹음·전사문은 90일 보관 후 파기한다. 결정 원장의 인용문은 결정 근거로 보존할 수 있다.",
+     "approver_role": "보안 담당",
+     "threshold": "90일"
+    },
+    {
+     "rule_id": "SEC-03",
+     "domain": "security",
+     "topic": "saas.new",
+     "text": "외부 SaaS를 새로 도입하려면 보안성 검토를 통과해야 한다.",
+     "approver_role": "보안 담당",
+     "threshold": null
+    },
+    {
+     "rule_id": "ARC-01",
+     "domain": "architecture",
+     "topic": "db.rdbms",
+     "text": "사내 표준 RDBMS는 PostgreSQL이다. 다른 RDBMS 사용은 아키텍처 위원회 승인이 필요하다.",
+     "approver_role": "아키텍처 위원회",
+     "threshold": null
+    },
+    {
+     "rule_id": "ARC-02",
+     "domain": "architecture",
+     "topic": "realtime.transport",
+     "text": "서비스와 화면 간 실시간 통신은 표준 HTTP 기반(SSE 포함)을 쓴다. WebSocket은 사내 프록시 제약으로 아키텍처 위원회 예외 승인이 있어야 한다.",
+     "approver_role": "아키텍처 위원회",
+     "threshold": null
+    },
+    {
+     "rule_id": "OPS-01",
+     "domain": "operation",
+     "topic": "release",
+     "text": "운영 반영은 변경관리위원회(CAB) 승인 후에만 할 수 있다.",
+     "approver_role": "CAB",
+     "threshold": null
+    },
+    {
+     "rule_id": "FAIR-01",
+     "domain": "fairness",
+     "topic": "interview.question",
+     "text": "면접에서 직무 수행과 관계없는 개인 정보(혼인·임신·가족 관계, 부모의 직업·재산, 출신 지역, 신체 조건)를 묻거나 평가에 쓸 수 없다. 채용절차법 제4조의3 취지.",
+     "approver_role": "인사 담당",
+     "threshold": null
+    },
+    {
+     "rule_id": "FAIR-02",
+     "domain": "fairness",
+     "topic": "interview.evaluation",
+     "text": "면접 평가는 직무기술서 루브릭 역량 항목으로만 하고, 평가마다 지원자 답변을 근거로 남긴다.",
+     "approver_role": "인사 담당",
+     "threshold": null
+    },
+    {
+     "rule_id": "FAIR-03",
+     "domain": "fairness",
+     "topic": "interview.decision",
+     "text": "합격·불합격은 면접관 합의 회의에서만 정한다. 면접 중 개인이 합격을 확정하거나 AI가 판정할 수 없다.",
+     "approver_role": "면접관 합의",
+     "threshold": null
+    }
+   ]
+  }
+ ]
+}

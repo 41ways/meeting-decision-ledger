@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>결정 원장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 사내 포털 배치 + 그룹웨어 남색. 본문 대비 13:1, 보조 글자 6:1 이상 */
+:root {
+  --font: "Noto Sans KR", sans-serif; --mono: "IBM Plex Mono", monospace;
+  --bg: #f3f5f8; --side: #ffffff; --panel: #ffffff; --fg: #141c26; --muted: #4c5866; --line: #dfe4ea; --line2: #bcc5d0;
+  --hover: #edf1f6; --sel: #e1e9f5; --navy: #1f2f46; --navy2: #2b3e5a; --accent: #1f4e8c; --accent-fg: #fff;
+  --warn: #b02a17; --ok: #1f6b3d; --chg: #1f4e8c; --r: 3px; --sb: 268px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: var(--font); background: var(--bg); color: var(--fg); font-size: 14px; line-height: 1.55; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+.mono { font-family: var(--mono); font-size: 12.5px; }
+.muted { color: var(--muted); }
+[v-cloak] { display: none; }
+
+.app { display: grid; grid-template-columns: var(--sb) minmax(0, 1fr); height: 100vh; overflow: hidden; }
+/* 좌측 */
+.side { display: flex; flex-direction: column; background: var(--side); border-right: 1px solid var(--line); min-height: 0; }
+.brand { height: 52px; background: var(--navy); color: #fff; padding: 8px 16px; display: flex; flex-direction: column; justify-content: center; }
+.brand b { font-size: 15px; letter-spacing: -.01em; }
+.brand small { color: #a9b7ca; font-size: 11px; }
+.newchat { margin: 12px 12px 8px; padding: 8px 10px; text-align: left; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; font-weight: 500; }
+.newchat:hover { border-color: var(--accent); color: var(--accent); }
+.sorthint { padding: 2px 16px 6px; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+.sorthint b { color: var(--accent); font-family: var(--mono); font-weight: 500; }
+.threads { flex: 1; min-height: 0; overflow-y: auto; padding: 0 8px 8px; scrollbar-gutter: stable; }
+.group { font-size: 12px; color: #34414f; font-weight: 700; padding: 10px 8px 4px; }
+.th { display: block; width: 100%; text-align: left; padding: 7px 8px; border-radius: var(--r); border-left: 3px solid transparent;
+  transition: transform .45s cubic-bezier(.2,.7,.2,1), opacity .3s; }
+.th:hover { background: var(--hover); }
+.th.on { background: var(--sel); border-left-color: var(--accent); }
+.th { position: relative; }
+.th .t { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 18px; }
+.th .del { position: absolute; right: 6px; top: 6px; width: 20px; height: 20px; line-height: 18px; text-align: center; border-radius: var(--r);
+  color: var(--muted); font-size: 16px; opacity: 0; }
+.th:hover .del, .th.on .del { opacity: 1; }
+.th .del:hover { background: #f6dcd7; color: var(--warn); }
+@media (hover: none) { .th .del { opacity: .6; } }
+.th .m { display: block; font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
+.th.dim { opacity: .4; }
+.empty { padding: 14px 10px; color: var(--muted); font-size: 13px; }
+.me { border-top: 1px solid var(--line); padding: 10px 12px; display: flex; align-items: center; gap: 6px; position: relative; }
+.switch { position: absolute; left: 10px; right: 10px; bottom: 58px; background: #fff; border: 1px solid var(--line2); border-radius: var(--r);
+  box-shadow: 0 -6px 22px rgba(20,35,60,.16); z-index: 20; max-height: 60vh; overflow-y: auto; }
+.switch .hd { padding: 8px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.srow { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; width: 100%; text-align: left; padding: 7px 12px; }
+.srow:hover { background: var(--hover); } .srow.on { background: var(--sel); }
+.srow .nm small { display: block; font-size: 11.5px; color: var(--muted); } .srow .rl { font-size: 12px; color: var(--muted); }
+.av.sm { width: 26px; height: 26px; font-size: 12px; }
+.av { width: 32px; height: 32px; display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; border-radius: var(--r); flex: none; }
+.me .who { flex: 1; min-width: 0; line-height: 1.35; }
+.me .who b { display: block; }
+.me .who span { font-size: 12px; color: var(--muted); }
+.ib { width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--r); color: var(--muted); position: relative; }
+.ib:hover { background: var(--hover); color: var(--fg); }
+.ib svg { width: 18px; height: 18px; }
+.badge { position: absolute; top: 2px; right: 1px; min-width: 16px; height: 16px; font-size: 10.5px; line-height: 16px; text-align: center;
+  background: #d9412b; color: #fff; border-radius: 2px; padding: 0 3px; font-family: var(--mono); }
+
+/* 본문 */
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }   /* min-height:0 없으면 긴 보고서가 main을 늘려 입력창이 화면 밖으로 밀림 */
+.top { height: 52px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 12px 0 22px; background: var(--navy); color: #fff; }
+.top h1 { font-size: 15px; font-weight: 500; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top h1 small { color: #a9b7ca; font-family: var(--mono); margin-left: 8px; font-size: 12px; }
+.tab { padding: 7px 12px; color: #c4cfdd; white-space: nowrap; }
+.tab:hover { color: #fff; background: var(--navy2); }
+.tab.on { color: #fff; box-shadow: inset 0 -3px 0 #fff; }
+.top .ib { color: #c4cfdd; } .top .ib:hover { background: var(--navy2); color: #fff; }
+.page { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 0 96px; scrollbar-gutter: stable; }
+.col { max-width: 800px; margin: 0 auto; padding: 0 22px; }
+.wide { max-width: 1000px; }
+
+/* 대화 */
+.hello { padding: 40px 0; }
+.hello h2 { font-size: 20px; margin-bottom: 6px; }
+.hello p { color: var(--muted); margin-bottom: 18px; }
+.samples { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.samples button { text-align: left; border: 1px solid var(--line); background: #fff; border-radius: var(--r); padding: 10px 12px; }
+.samples button:hover { border-color: var(--accent); }
+.samples small { display: block; color: var(--muted); font-size: 12px; }
+.mu { text-align: right; margin: 0 0 12px; }
+.mu span { display: inline-block; padding: 8px 12px; background: var(--accent); color: #fff; border-radius: var(--r); max-width: 80%; text-align: left; white-space: pre-wrap; }
+.steps { font-size: 12.5px; color: #3d4957; border-left: 2px solid var(--line2); padding: 2px 0 2px 12px; margin: 0 0 12px; }
+.steps div::before { content: "· "; color: var(--muted); }
+.steps .warn { color: var(--warn); }
+.ma { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; margin-bottom: 16px; white-space: pre-wrap; }
+.ma .h { font-weight: 700; color: var(--navy); }
+.ma .qt { display: inline-block; border-left: 3px solid var(--line2); padding: 2px 0 2px 10px; color: #2f3b48; background: #f7f9fb; width: 100%; }
+.ma .lb { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.ma .warn { color: var(--warn); }
+.ma b { font-weight: 700; }
+.act { display: flex; gap: 8px; flex-wrap: wrap; margin: -8px 0 16px; align-items: center; font-size: 13px; }
+.err { border-color: #e7b3aa; background: #fdf3f1; color: var(--warn); }
+.composer { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 22px 22px; background: linear-gradient(rgba(243,245,248,0), var(--bg) 35%); }
+.composer .box { max-width: 800px; margin: 0 auto; display: flex; border: 1px solid var(--line2); background: #fff; border-radius: var(--r); }
+.composer input { flex: 1; border: 0; background: none; padding: 12px; outline: none; }
+.composer button { padding: 0 18px; border-left: 1px solid var(--line); color: var(--accent); font-weight: 700; }
+.composer button:disabled { color: var(--line2); }
+.ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+/* 공통 버튼·표 */
+.btn { padding: 5px 12px; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; font-size: 13px; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.pri { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.pri:hover { background: #183f73; color: #fff; }
+.btn.dng:hover { border-color: var(--warn); color: var(--warn); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; padding: 7px 8px; border-bottom: 1px solid var(--line2); background: #f7f9fb; }
+td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr.sup td { color: var(--muted); text-decoration: line-through; }
+tr.lock td { color: var(--muted); }
+.st-ok { color: var(--ok); } .st-bad { color: var(--warn); } .st-wait { color: var(--chg); font-weight: 500; }
+.ptabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line2); margin-bottom: 14px; }
+.ptabs button { padding: 9px 14px; color: var(--muted); }
+.ptabs button.on { color: var(--fg); font-weight: 500; box-shadow: inset 0 -3px 0 var(--accent); }
+.ptabs .cnt { font-family: var(--mono); font-size: 11.5px; color: var(--accent); margin-left: 4px; }
+.note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+.perm { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; margin-top: 8px; padding: 8px 10px; background: #f7f9fb; border: 1px solid var(--line); }
+.perm label { display: flex; gap: 5px; align-items: center; }
+.done { color: var(--ok); font-weight: 500; }
+.sel { padding: 4px 6px; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; font-size: 13px; }
+
+/* 메뉴 서랍 */
+.drawer { position: absolute; top: 52px; right: 0; bottom: 0; width: 540px; max-width: 100%; background: #fff; border-left: 1px solid var(--line2);
+  box-shadow: -8px 0 24px rgba(20,35,60,.10); transform: translateX(102%); transition: transform .35s cubic-bezier(.2,.7,.2,1); overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; z-index: 6; }
+.drawer.open { transform: none; }
+.sec { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.sec h4 { font-size: 12.5px; color: #34414f; font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.sec h4 .mono { font-weight: 400; }
+.monthnav button { padding: 0 6px; color: var(--muted); } .monthnav button:hover { color: var(--accent); }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.cal > div { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-height: 56px; padding: 3px 4px; font-size: 11px; min-width: 0; }
+.cal .h { min-height: 0; text-align: center; color: var(--muted); background: #f7f9fb; padding: 3px 0; }
+.cal .d { color: var(--muted); font-family: var(--mono); font-size: 10.5px; }
+.cal .today { background: #eef3fa; }
+.ev { display: block; width: 100%; text-align: left; margin-top: 2px; font-size: 11px; font-weight: 500; padding: 2px 4px; border-left: 4px solid var(--pc); background: var(--pbg); color: var(--pc); border-radius: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--mono); transition: opacity .3s; }
+.ev.off { opacity: .2; filter: grayscale(1); }
+.legend { display: flex; gap: 12px; font-size: 12px; margin: 0 0 8px; flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 14px; height: 10px; background: var(--pbg); border-left: 4px solid var(--pc); display: inline-block; }
+.ev.locked { opacity: .55; }
+.prj { display: grid; grid-template-columns: 12px 42px 1fr auto; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 6px; border-radius: var(--r); }
+.prj:hover { background: var(--hover); }
+.prj.on { background: var(--sel); box-shadow: inset 3px 0 0 var(--accent); }
+.prj i { width: 10px; height: 10px; background: var(--pc); display: block; }
+.prj .k { font-family: var(--mono); font-weight: 500; }
+.prj .n { font-size: 12px; color: var(--muted); }
+
+/* 알림 */
+.pop { position: absolute; top: 48px; right: 50px; width: 360px; max-height: 70vh; overflow-y: auto; background: #fff; border: 1px solid var(--line2);
+  box-shadow: 0 8px 26px rgba(20,35,60,.18); z-index: 9; border-radius: var(--r); }
+.pop .hd { padding: 10px 14px; font-weight: 700; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+.pop .row { padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13px; border-left: 3px solid transparent; }
+.pop .row.approved { border-left-color: var(--ok); } .pop .row.rejected { border-left-color: var(--warn); } .pop .row.request { border-left-color: var(--accent); }
+.pop .row small { display: block; color: var(--muted); font-size: 11.5px; font-family: var(--mono); }
+.pop .row.new { background: #f5f8fc; }
+
+/* 설정 */
+.users { border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
+.urow { display: grid; grid-template-columns: 34px 1fr 90px 90px; gap: 12px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; width: 100%; }
+.urow:last-child { border-bottom: 0; }
+.urow:hover { background: var(--hover); }
+.urow.on { background: var(--sel); }
+.rag { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: #fff; margin-bottom: 14px; }
+.rag div { padding: 10px 12px; border-right: 1px solid var(--line); }
+.rag div:last-child { border-right: 0; }
+.rag b { display: block; font-family: var(--mono); font-size: 19px; font-weight: 500; color: var(--navy); }
+.rag span { font-size: 12px; color: var(--muted); }
+.search { display: flex; border: 1px solid var(--line2); background: #fff; margin-bottom: 10px; }
+.search input { flex: 1; border: 0; padding: 9px 10px; outline: none; }
+.search select { border: 0; border-left: 1px solid var(--line); background: #fff; padding: 0 8px; }
+.search button { padding: 0 14px; border-left: 1px solid var(--line); color: var(--accent); font-weight: 500; }
+
+/* 로그인 */
+.login { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 50; }
+.login .card { width: 440px; max-width: calc(100% - 32px); background: #fff; border: 1px solid var(--line); }
+.login .card .hd { background: var(--navy); color: #fff; padding: 16px 20px; }
+.login .card .hd small { display: block; color: #a9b7ca; font-size: 12px; }
+.login .card .bd { padding: 14px 20px 18px; }
+
+@media (max-width: 860px) { :root { --sb: 220px; } .samples { grid-template-columns: 1fr; } .top h1 small { display: none; } }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <!-- 로그인 (시연용: 비밀번호 없음) -->
+  <div class="login" v-if="!me">
+    <div class="card">
+      <div class="hd"><b>결정 원장</b><small>SKALA 사내 포털 · 시연용 로그인</small></div>
+      <div class="bd">
+        <p class="note">사용자를 고르면 그 역할의 권한으로 들어갑니다.</p>
+        <div class="users">
+          <button class="urow" v-for="u in users" :key="u.user_id" @click="login(u.user_id)">
+            <span class="av">{{ u.name[0] }}</span><span><b>{{ u.name }}</b><br><span class="muted">{{ u.title }} · {{ u.team }}</span></span>
+            <span>{{ u.role }}</span><span class="muted">{{ u.role === '팀장' ? '승인 권한' : '' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app" v-if="me">
+    <aside class="side">
+      <div class="brand"><b>결정 원장</b><small>SKALA · Decision Ledger</small></div>
+      <button class="newchat" @click="newChat">+ 새 대화</button>
+      <div class="sorthint"><span>{{ selPrj ? '관련순' : '최신순' }}</span><b>{{ selPrj }}</b></div>
+      <div class="threads" ref="threadBox">
+        <div class="empty" v-if="!threads.length">대화가 없습니다. 아래 예시로 시작해 보세요.</div>
+        <template v-for="row in threadRows" :key="row.key">
+          <div class="group" v-if="row.group">{{ row.group }}</div>
+          <button v-else class="th" :data-id="row.t.thread_id" :class="{ on: row.t.thread_id === threadId, dim: selPrj && row.t.project_key !== selPrj }"
+                  @click="openThread(row.t)">
+            <span class="t">{{ row.t.title }}</span>
+            <span class="del" title="대화 삭제" @click.stop="removeThread(row.t)">×</span>
+            <span class="m">{{ row.t.project_key || '—' }}{{ row.t.meeting_id ? ' · ' + row.t.meeting_id : '' }} · {{ when(row.t.updated) }}</span>
+          </button>
+        </template>
+      </div>
+      <div class="me">
+        <div class="av">{{ me.name[0] }}</div>
+        <div class="who"><b>{{ me.name }}</b><span>{{ me.role }} · {{ me.title }}</span></div>
+        <button class="ib" title="사용자 전환" @click.stop="switchOpen = !switchOpen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 3l4 4-4 4"/><path d="M20 7H8"/><path d="M8 21l-4-4 4-4"/><path d="M4 17h12"/></svg>
+        </button>
+        <div class="switch" v-if="switchOpen" @click.stop>
+          <div class="hd">사용자 전환</div>
+          <button class="srow" v-for="u in users" :key="u.user_id" :class="{ on: u.user_id === me.user_id }" @click="switchOpen = false; login(u.user_id)">
+            <span class="av sm">{{ u.name[0] }}</span><span class="nm">{{ u.name }}<small>{{ u.title }}</small></span><span class="rl">{{ u.role }}</span>
+          </button>
+        </div>
+        <button class="ib" title="설정" @click="go('settings')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="top">
+        <h1>{{ titleText }}<small>{{ titleSub }}</small></h1>
+        <button class="tab" :class="{ on: page === 'chat' }" @click="go('chat')">대화</button>
+        <button class="tab" v-if="me.role === '팀장'" :class="{ on: page === 'admin' }" @click="go('admin')">관리자 콘솔</button>
+        <button class="ib" title="알림" @click="togglePop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="badge" v-if="unread">{{ unread }}</span>
+        </button>
+        <button class="ib" title="메뉴" @click="toggleDrawer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+
+      <div class="pop" v-if="popOpen">
+        <div class="hd"><span>알림</span><span class="muted" style="font-weight:400;font-size:12px">{{ me.name }}</span></div>
+        <div class="empty" v-if="!notes.length">알림이 없습니다.</div>
+        <div class="row" v-for="n in notes" :key="n.id" :class="[n.kind, { new: !n.read }]" @click="n.link === 'admin' && me.role === '팀장' && go('admin')">
+          {{ n.text }}<small>{{ when(n.created) }}</small></div>
+      </div>
+
+      <!-- 대화 -->
+      <div class="page" v-show="page === 'chat'" ref="chatBox" @scroll.passive="onChatScroll">
+        <div class="col">
+          <div class="hello" v-if="!log.length">
+            <h2>{{ me.name }}님, 무엇을 정리할까요?</h2>
+            <p>회의를 정리하면 결정·할 일을 근거와 함께 뽑고 과거 결정·정책과 충돌하는지 확인합니다.</p>
+            <div class="samples">
+              <button v-for="s in samples" :key="s.q" @click="send(s.q)">{{ s.q }}<small>{{ s.d }}</small></button>
+            </div>
+          </div>
+          <template v-for="item in log" :key="item.id">
+            <div class="mu" v-if="item.kind === 'user'"><span>{{ item.text }}</span></div>
+            <div class="steps" v-else-if="item.kind === 'steps' && item.steps.length">
+              <div v-for="(s, i) in item.steps" :key="i" :class="{ warn: s.startsWith('충돌') || s.startsWith('권한') }">{{ s }}</div>
+            </div>
+            <div class="ma" v-else-if="item.kind === 'agent'" :class="{ err: item.err }" v-html="md(item.text)"></div>
+            <div class="act" v-else-if="item.kind === 'denied'">
+              <span class="muted">열람 권한이 필요합니다:</span>
+              <template v-for="t in item.targets" :key="t">
+                <span class="done" v-if="item.sent[t]">{{ t }} 요청 보냄</span>
+                <button class="btn" v-else @click="requestAccess(item, t)">{{ t }} 열람 요청</button>
+              </template>
+            </div>
+            <div class="act" v-else-if="item.kind === 'cached'">
+              <span class="muted">저장된 결과입니다. 원장·정책·원문이 바뀌면 자동으로 새로 만듭니다.</span>
+              <button class="btn" @click="send(item.q, true)">다시 만들기</button>
+            </div>
+            <div class="act" v-else-if="item.kind === 'proposed'">
+              <span class="muted">승인 대기로 원장에 올렸습니다 (팀장 승인 필요):</span><span class="mono">{{ item.ids.join(', ') }}</span>
+            </div>
+            <div class="act" v-else-if="item.kind === 'opinion'">
+              <span class="done" v-if="item.sent">승인 요청 보냄 · {{ item.sent }}</span>
+              <template v-else><button class="btn" @click="proposeOpinion(item)">이 의견을 결정으로 승인 요청</button>
+                <span class="muted" v-if="item.op.status === 'conflict'">충돌이 있어 반려될 수 있습니다</span></template>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 관리자 콘솔 -->
+      <div class="page" v-show="page === 'admin'">
+        <div class="col wide">
+          <div class="ptabs">
+            <button :class="{ on: atab === 'dec' }" @click="atab = 'dec'">결정·의견 승인<span class="cnt">{{ admin.decisions.length }}</span></button>
+            <button :class="{ on: atab === 'req' }" @click="atab = 'req'">열람 요청<span class="cnt">{{ admin.requests.length }}</span></button>
+            <button :class="{ on: atab === 'acl' }" @click="atab = 'acl'; loadAcl()">회의 접근 권한</button>
+            <button :class="{ on: atab === 'his' }" @click="atab = 'his'">처리 이력</button>
+          </div>
+          <div v-if="atab === 'dec'">
+            <p class="note">승인하면 같은 주제의 기존 결정은 지우지 않고 '대체됨'으로 표시합니다. 승인 뒤 '확인'에서 이 결정을 볼 수 있는 범위를 정합니다 (기본: 근거 회의 참석자).</p>
+            <table>
+              <tr><th style="width:96px">번호</th><th>내용</th><th style="width:90px">요청</th><th style="width:96px">근거</th><th style="width:170px"></th></tr>
+              <tr v-if="!admin.decisions.length && !doneDec.length"><td colspan="5" class="muted">승인 대기 없음</td></tr>
+              <tr v-for="d in admin.decisions" :key="d.decision_id">
+                <td class="mono">{{ d.decision_id }}</td>
+                <td>{{ d.statement }}<br><span class="muted" style="font-size:12px">{{ d.topic }} · {{ d.source }}</span></td>
+                <td>{{ d.requested_by }}</td><td class="mono">{{ d.meetings.join(', ') || '의견' }}</td>
+                <td><button class="btn pri" @click="decide(d, true)">승인</button> <button class="btn dng" @click="decide(d, false)">반려</button></td>
+              </tr>
+              <tr v-for="d in doneDec" :key="'x' + d.decision_id">
+                <td class="mono">{{ d.decision_id }}</td><td>{{ d.statement }}
+                  <div class="perm" v-if="d.open && d.ok">
+                    <span class="muted">열람 범위 ({{ d.meetings.join(', ') || '의견' }}):</span>
+                    <label v-for="r in ['인턴', '팀원', '담당자']" :key="r"><input type="checkbox" :checked="d.roles.includes(r)" @change="toggleDecRole(d, r, $event.target.checked)">{{ r }}</label>
+                    <span class="muted">참석자·팀장은 항상</span>
+                  </div></td>
+                <td>{{ d.requested_by }}</td><td class="mono">{{ d.meetings.join(', ') }}</td>
+                <td><span :class="d.ok ? 'done' : 'st-bad'">{{ d.ok ? '승인됨' : '반려됨' }}</span><span class="muted" v-if="d.sup" style="font-size:12px"> · 대체 {{ d.sup }}</span>
+                  <button class="btn" v-if="d.ok" style="margin-left:6px" @click="d.open = !d.open">확인</button></td>
+              </tr>
+            </table>
+          </div>
+          <div v-if="atab === 'req'">
+            <p class="note">회의 권한 밖의 사람이 승인된 결정·회의 원문을 보려면 여기서 승인합니다.</p>
+            <table>
+              <tr><th>요청자</th><th>대상</th><th>사유</th><th style="width:430px">범위 · 기간</th></tr>
+              <tr v-if="!admin.requests.length"><td colspan="4" class="muted">열람 요청 없음</td></tr>
+              <tr v-for="r in admin.requests" :key="r.id">
+                <td>{{ r.requester_name }} <span class="muted">({{ r.requester_role }})</span></td><td class="mono">{{ r.target }}</td><td>{{ r.reason || '—' }}</td>
+                <td>
+                  <template v-if="!r.done">
+                    <select v-model="r.scope" class="sel" title="범위"><option value="user">이 사람만</option><option value="role">같은 역할 전체</option><option value="all">전체 (권장하지 않음)</option></select>
+                    <select v-model="r.duration" class="sel" title="기간"><option value="once">1회</option><option value="project">프로젝트 기간 동안</option><option value="forever">무기한 (권장하지 않음)</option><option value="until">직접 입력</option></select>
+                    <input v-if="r.duration === 'until'" type="date" v-model="r.until" class="sel" :min="todayIso" title="열람 기한">
+                    <button class="btn pri" @click="decideReq(r, true)">승인</button> <button class="btn dng" @click="decideReq(r, false)">반려</button>
+                  </template>
+                  <span v-else :class="r.done === 'approved' ? 'done' : 'st-bad'">{{ r.done === 'approved' ? '승인됨 · ' + scopeKo(r.scope) + ' · ' + durKo(r.duration, r.until) : '반려됨' }}</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div v-if="atab === 'acl'">
+            <p class="note">기본값은 그 회의 참석자만 열람. 체크한 역할은 참석하지 않았어도 원문과 결정을 볼 수 있습니다. 팀장은 항상 열람.</p>
+            <table>
+              <tr><th>회의</th><th>제목</th><th>참석자</th><th>인턴</th><th>팀원</th><th>담당자</th></tr>
+              <tr v-for="m in acl" :key="m.meeting_id">
+                <td class="mono">{{ m.meeting_id }}</td><td>{{ m.title }}</td><td class="muted" style="font-size:12px">{{ m.attendees.join(', ') }}</td>
+                <td v-for="r in ['인턴', '팀원', '담당자']" :key="r"><input type="checkbox" :checked="m.roles.includes(r)" @change="setAcl(m, r, $event.target.checked)"></td>
+              </tr>
+            </table>
+          </div>
+          <div v-if="atab === 'his'">
+            <table>
+              <tr><th>요청자</th><th>대상</th><th>결과</th><th>처리</th><th>시각</th></tr>
+              <tr v-for="r in admin.history" :key="r.id"><td>{{ r.requester_name }}</td><td class="mono">{{ r.target }}</td>
+                <td :class="r.status === 'approved' ? 'st-ok' : r.status === 'rejected' ? 'st-bad' : 'st-wait'">{{ { approved: '승인', rejected: '반려', pending: '대기' }[r.status] }}{{ r.scope ? ' · ' + scopeKo(r.scope) + (r.duration ? ' · ' + durKo(r.duration, r.expires) : '') : '' }}</td>
+                <td>{{ r.decided_by ? userName(r.decided_by) : '—' }}</td><td class="mono">{{ when(r.decided || r.created) }}</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 설정 -->
+      <div class="page" v-show="page === 'settings'">
+        <div class="col wide">
+          <div class="ptabs">
+            <button :class="{ on: stab === 'rag' }" @click="stab = 'rag'; loadRag()">RAG 저장소</button>
+            <button :class="{ on: stab === 'num' }" @click="stab = 'num'">프로젝트·번호 규칙</button>
+          </div>
+          <div v-if="stab === 'rag'">
+            <div class="rag">
+              <div><b>{{ ragCounts.r1_transcripts ?? '-' }}</b><span>R1 회의·면접 원문</span></div>
+              <div><b>{{ ragCounts.r2_baseline ?? '-' }}</b><span>R2 기준 문서</span></div>
+              <div><b>{{ ragCounts.r3_ledger ?? '-' }}</b><span>R3 결정 원장</span></div>
+              <div><b>{{ ragCounts.r4_governance ?? '-' }}</b><span>R4 정책·권한</span></div>
+            </div>
+            <div class="search">
+              <input v-model="ragQ" @keyup.enter="searchRag" placeholder="검색어">
+              <select v-model="ragCol"><option value="r1">R1 회의 원문</option><option value="r2">R2 기준 문서</option><option value="r3">R3 결정 원장</option><option value="r4">R4 정책</option></select>
+              <select v-model="ragFiltered"><option :value="true">현행만 (판정에 쓰는 것)</option><option :value="false">전체 (대체·구버전 포함)</option></select>
+              <button @click="searchRag">검색</button>
+            </div>
+            <p class="note">'전체'로 바꾸면 대체된 결정·구 정책이 섞여 나옵니다. 판정 단계는 '현행만'을 씁니다.</p>
+            <table v-if="ragRows.length">
+              <tr><th style="width:60px">유사도</th><th style="width:150px">위치</th><th style="width:90px">상태</th><th>내용</th></tr>
+              <tr v-for="(r, i) in ragRows" :key="i" :class="{ sup: r.is_current === false || (r.active === false && r.status === 'approved') }">
+                <td class="mono">{{ (r._score || 0).toFixed(2) }}</td>
+                <td class="mono">{{ r.decision_id || r.rule_id && (r.rule_id + ' ' + r.policy_version) || r.doc_id && (r.doc_id + ' ' + r.doc_version) || (r.meeting_id + ' #' + r.seq) }}</td>
+                <td>{{ ragState(r) }}</td>
+                <td>{{ (r.statement || r.text || '').slice(0, 160) }}</td>
+              </tr>
+            </table>
+          </div>
+          <div v-if="stab === 'num'">
+            <table>
+              <tr><th>약자</th><th>프로젝트</th><th>결정 번호</th><th>회의 번호</th><th>상태</th><th>결정</th></tr>
+              <tr v-for="p in projects" :key="p.key"><td class="mono">{{ p.key }}</td><td>{{ p.name }}</td><td class="mono">{{ p.key }}-0001…</td>
+                <td class="mono">{{ p.key }}-{{ p.key === 'HBE' ? 'I' : 'M' }}01…</td><td>{{ p.status }}</td><td class="mono">{{ p.decisions }}</td></tr>
+            </table>
+            <p class="note" style="margin-top:12px">결정 = 약자-4자리 일련번호 · 회의 = 약자-M2자리 · 면접 = 약자-I2자리 · 정책 = 영역-2자리(SEC-01) · 예외 = W-3자리.
+              약자는 프로젝트를 만들 때 정합니다 (data/project/projects.json). 입력할 때는 'M04'처럼 약자를 빼도 됩니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer" v-show="page === 'chat'">
+        <div class="box"><input v-model="input" @keyup.enter="send()" placeholder="회의 정리(OPS-M04 회의 정리해줘), 제안 검토, 결정 근거 질문"><button :disabled="sending" @click="send()">보내기</button></div>
+      </div>
+      <div class="ver">v{{ version }} · {{ build }}</div>
+
+      <!-- 메뉴: 캘린더 + 프로젝트 -->
+      <div class="drawer" :class="{ open: drawer }">
+        <div class="sec">
+          <h4><span class="monthnav"><button @click="month(-1)">‹</button> {{ calY }}년 {{ calM }}월 회의 <button @click="month(1)">›</button></span>
+            <span class="mono muted">{{ selPrj ? selPrj + '만 활성' : '전체 프로젝트' }}</span></h4>
+          <div class="legend"><span v-for="p in projects" :key="p.key" :style="{ '--pc': p.color, '--pbg': p.bg }"><i></i>{{ p.key }} {{ p.name }}</span>
+            <span class="muted">· 흐린 회의 = 열람 권한 없음 또는 다른 프로젝트</span></div>
+          <div class="cal">
+            <div class="h" v-for="d in '일월화수목금토'" :key="d">{{ d }}</div>
+            <div v-for="c in calCells" :key="c.k" :class="{ today: c.today }">
+              <span class="d" v-if="c.d">{{ c.d }}</span>
+              <button v-for="m in c.ms" :key="m.meeting_id" class="ev" :class="{ off: selPrj && prjKey(m) !== selPrj, locked: !m.can_view }"
+                      :style="{ '--pc': prjColor(prjKey(m)), '--pbg': prjBg(prjKey(m)) }" :title="m.meeting_id + ' ' + m.title + (m.can_view ? '' : ' (열람 권한 없음)')" @click="openMeeting(m)">{{ m.meeting_id.split('-')[1] }} {{ m.title.slice(0, 8) }}</button>
+            </div>
+          </div>
+        </div>
+        <div class="sec">
+          <h4><span>프로젝트</span><span class="muted" style="font-weight:400">누르면 관련 회의·대화만 앞으로</span></h4>
+          <button class="prj" v-for="p in projects" :key="p.key" :class="{ on: selPrj === p.key }" :style="{ '--pc': p.color }" @click="pickPrj(p.key)">
+            <i></i><span class="k">{{ p.key }}</span><span>{{ p.name }} <span class="muted" style="font-size:12px">({{ p.status }})</span></span>
+            <span class="n">결정 {{ p.decisions }}<template v-if="p.pending"> · 대기 {{ p.pending }}</template></span>
+          </button>
+        </div>
+        <div class="sec" v-if="selPrj && ledger.length">
+          <h4><span>{{ selPrj }} 원장</span><span class="mono muted">{{ ledger.length }}건</span></h4>
+          <table>
+            <tr><th style="width:90px">번호</th><th>내용</th><th style="width:96px">상태</th></tr>
+            <tr v-for="d in ledger" :key="d.decision_id" :class="{ sup: d.superseded_by, lock: !d.can_view }">
+              <td class="mono">{{ d.decision_id }}</td>
+              <td>{{ d.statement }}<button class="btn" v-if="!d.can_view && !reqSent[d.decision_id]" style="margin-left:6px;padding:1px 8px" @click="quickRequest(d.decision_id)">열람 요청</button>
+                <span class="done" v-if="reqSent[d.decision_id]" style="font-size:12px"> 요청 보냄</span></td>
+              <td :class="d.superseded_by ? '' : { approved: 'st-ok', proposed: 'st-wait', rejected: 'st-bad' }[d.status]">
+                {{ d.superseded_by ? '대체 → ' + d.superseded_by : { approved: '승인됨', proposed: '승인 대기', rejected: '반려' }[d.status] }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+<script>
+const { createApp, ref, reactive, computed, nextTick, watch } = Vue;
+
+function md(t) {   // 보고서의 **굵게**, ## 제목, ⚠ 만 표시 (HTML은 먼저 이스케이프)
+  const esc = (t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return esc.replace(/^#{2,3} (.*)$/gm, '<span class="h">$1</span>').replace(/^&gt; (.*)$/gm, '<span class="qt">$1</span>')
+            .replace(/^(이유|기각한 대안|원문 · .*|원장 인용 · .*)$/gm, '<span class="lb">$1</span>')
+            .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/⚠/g, '<span class="warn">⚠</span>');
+}
+const STEP = {
+  CacheHit: e => `같은 요청의 저장된 결과 재사용 (${e.created.slice(5, 16).replace('T', ' ')} 생성 · 원장·정책·원문 변경 없음)`,
+  RouteDecided: e => ({ meeting: '회의 정리', interview: '면접 요약', opinion: '의견 검토', question: '근거 질의', schedule: '일정 조회', chat: '일반 대화' })[e.route] + ' 경로',
+  ScheduleAnswered: e => `회의 목록에서 ${e.range} 조회 — ${e.count}건`,
+  PlanCreated: e => e.domain === 'interview' ? `계획: 질문·답변 ${e.competencies}쌍, 공정성 점검 ${e.items}건`
+    : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic}` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건`,
+  GateApplied: e => !e.removed ? null : e.removed_seq ? `권위 게이트: 결정 아닌 후보 ${e.removed}건 제외 (발언 ${e.removed_seq.join(', ')})` : `권위 게이트: 근거로 못 쓰는 발언 ${e.removed}건 제외`,
+  FairnessFlag: e => `공정성 점검 대상 [${e.seq}] → ${e.rule}`,
+  DecisionFound: e => `결정 발견 [${e.seq}] ${e.decided_by}: ${e.statement}`,
+  TaskCompleted: e => e.source ? `원문 논의 추가 조회: ${e.statement}` : `기준 조회 (${e.topic}): ${({ decision: '유효 결정 ' + (e.current || ''), baseline: '기준 문서', discussion: '논의만 있음', none: '기준 없음' })[e.authority]}`,
+  ReplanCheck: e => e.is_sufficient ? null : '기준 부족 → 회의 원문에서 논의 추가 조사',
+  ConflictChecked: e => `${({ ok: '문제없음', conflict: '충돌', change_approved: '기준 변경(승인됨)', needs_approval: '승인 필요' })[e.status]}: ${e.statement}${e.conflicts.length ? ' — ' + e.conflicts.join(' / ') : ''}`,
+  DraftWritten: e => `답변 작성 (시도 ${e.attempt})`,
+  Validation: e => e.verdict.startsWith('합격') ? '검증 통과' : `검증 반려 → 다시 작성 (${e.problems.join(' ')})`,
+};
+const api = (u, opt) => fetch(u, opt).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.detail || r.status); return j; });
+const post = (u, body) => api(u, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+createApp({
+  setup() {
+    const users = ref([]), me = ref(null), version = ref(''), build = ref('');
+    const threads = ref([]), threadId = ref(null), threadBox = ref(null), chatBox = ref(null);
+    const log = ref([]), input = ref(''), sending = ref(false), page = ref('chat');
+    const notes = ref([]), unread = ref(0), popOpen = ref(false);
+    const drawer = ref(false), selPrj = ref(null), projects = ref([]), meetings = ref([]), ledger = ref([]), reqSent = reactive({});
+    const calY = ref(2026), calM = ref(10);
+    const admin = reactive({ decisions: [], requests: [], history: [] }), doneDec = ref([]), atab = ref('dec'), acl = ref([]);
+    const switchOpen = ref(false); document.addEventListener('click', () => { switchOpen.value = false; });
+    const stab = ref('rag'), ragCounts = ref({}), ragQ = ref('실시간 전송 방식'), ragCol = ref('r3'), ragFiltered = ref(true), ragRows = ref([]);
+    let nextId = 0;
+    const samples = [
+      { q: 'OPS-M04 회의 정리해줘', d: 'PM 불참 회의 — 충돌·권한 위반 확인' },
+      { q: 'OPS-M05 회의 정리해줘', d: '기준 변경과 구 정책 근거' },
+      { q: '세션 저장소를 Redis로 바꾸면 어때?', d: '추가 의견 충돌 검토' },
+      { q: 'SSE는 왜 골랐어?', d: '결정 근거 질의' },
+      { q: '캐시는 어떻게 하기로 했어?', d: '미결 논의 질의' },
+      { q: 'HBE-I01 면접 요약해줘', d: '면접 전사문 — 질문·답변 요약' },
+    ];
+
+    const userName = id => (users.value.find(u => u.user_id === id) || {}).name || id;
+    const prjKey = m => (m.meeting_id || '').split('-')[0];
+    const prjColor = k => (projects.value.find(p => p.key === k) || {}).color || '#888';
+    const prjBg = k => (projects.value.find(p => p.key === k) || {}).bg || '#f1f4f8';
+    const scopeKo = s => ({ user: '이 사람만', role: '같은 역할 전체', all: '전체' })[s] || s || '';
+    const durKo = (d, until) => ({ once: '1회', '7d': '7일', project: '프로젝트 기간', forever: '무기한', until: (until || '').slice(0, 10) + '까지' })[d] || '';
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const when = iso => {
+      if (!iso) return '';
+      const d = new Date(iso), now = new Date(), hm = d.toTimeString().slice(0, 5);
+      if (d.toDateString() === now.toDateString()) return '오늘 ' + hm;
+      return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, '0')} ${hm}`;
+    };
+    const titleText = computed(() => page.value === 'admin' ? '관리자 콘솔' : page.value === 'settings' ? '설정'
+      : (threads.value.find(t => t.thread_id === threadId.value) || {}).title || '새 대화');
+    const titleSub = computed(() => {
+      if (page.value === 'admin') return '팀장 전용 · 승인과 권한';
+      if (page.value === 'settings') return 'RAG · 번호 규칙';
+      const t = threads.value.find(x => x.thread_id === threadId.value);
+      return t ? [t.project_key, t.meeting_id].filter(Boolean).join(' · ') : '';
+    });
+
+    // 대화방 목록: 최신순, 프로젝트 선택 시 관련순 (FLIP 애니메이션으로 재정렬)
+    const groupOf = t => {
+      const d = new Date(t.updated), now = new Date();
+      if (d.toDateString() === now.toDateString()) return '오늘';
+      return (now - d) < 7 * 864e5 ? '이번 주' : '이전';
+    };
+    const threadRows = computed(() => {
+      const list = [...threads.value];
+      if (selPrj.value) list.sort((a, b) => (b.project_key === selPrj.value) - (a.project_key === selPrj.value));
+      const rows = []; let g = null;
+      list.forEach(t => {
+        const gg = selPrj.value ? (t.project_key === selPrj.value ? (projects.value.find(p => p.key === selPrj.value) || {}).name : '그 외') : groupOf(t);
+        if (gg !== g) { rows.push({ key: 'g' + gg, group: gg }); g = gg; }
+        rows.push({ key: t.thread_id, t });
+      });
+      return rows;
+    });
+    let firstPos = {};
+    function capture() { firstPos = {}; threadBox.value?.querySelectorAll('.th').forEach(el => firstPos[el.dataset.id] = el.getBoundingClientRect().top); }
+    function animate() {
+      threadBox.value?.querySelectorAll('.th').forEach(el => {
+        const y0 = firstPos[el.dataset.id]; if (y0 === undefined) return;
+        const dy = y0 - el.getBoundingClientRect().top; if (!dy) return;
+        el.style.transition = 'none'; el.style.transform = `translateY(${dy}px)`;
+        requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = ''; el.style.transform = ''; }));
+      });
+    }
+    async function setPrj(k) { capture(); selPrj.value = k; await nextTick(); animate(); }
+
+    async function loadThreads() { threads.value = (await api(`/threads?user=${me.value.user_id}`)).threads; }
+    async function loadNotes() {
+      if (!me.value) return;
+      const j = await api(`/notifications?user=${me.value.user_id}`); notes.value = j.notifications; unread.value = j.unread;
+    }
+    async function loadProjects() { projects.value = (await api('/projects')).projects; }
+    async function loadMeetings() { meetings.value = (await api(`/meetings?user=${me.value.user_id}`)).meetings; }
+    async function loadLedger() { ledger.value = selPrj.value ? (await api(`/projects/${selPrj.value}/ledger?user=${me.value.user_id}`)).decisions : []; }
+    async function loadAdmin() {
+      if (me.value?.role !== '팀장') return;
+      const j = await api(`/admin/pending?user=${me.value.user_id}`);
+      admin.decisions = j.decisions; admin.requests = j.requests.map(r => ({ ...r, scope: 'user', duration: 'once', until: '', done: null })); admin.history = j.history;
+    }
+    async function loadAcl() { acl.value = (await api(`/admin/acl?user=${me.value.user_id}`)).meetings; }
+
+    async function login(uid) {
+      me.value = users.value.find(u => u.user_id === uid); ls.set('ledger_user', uid);
+      threadId.value = null; log.value = []; page.value = 'chat'; popOpen.value = false; selPrj.value = null; drawer.value = false; sending.value = false;
+      await Promise.all([loadThreads(), loadNotes(), loadMeetings(), loadProjects(), loadAdmin()]);
+    }
+    async function removeThread(t) {
+      if (!confirm(`'${t.title}' 대화를 삭제할까요? 되돌릴 수 없습니다.`)) return;
+      await api(`/threads/${t.thread_id}?user=${me.value.user_id}`, { method: 'DELETE' });
+      threads.value = threads.value.filter(x => x.thread_id !== t.thread_id);
+      if (threadId.value === t.thread_id) newChat();
+    }
+    function newChat() { threadId.value = null; log.value = []; page.value = 'chat'; }
+    async function openThread(t) {
+      page.value = 'chat'; threadId.value = t.thread_id;
+      const msgs = (await api(`/threads/${t.thread_id}/messages`)).messages;
+      log.value = msgs.map(m => ({ id: nextId++, kind: m.role === 'user' ? 'user' : 'agent', text: m.content }));
+      scroll(true);
+    }
+    // 답변이 흘러나오는 동안에도 사용자가 위로 스크롤할 수 있게: 바닥 근처에 있을 때만 따라 내려간다
+    let follow = true;
+    function onChatScroll() {
+      const el = chatBox.value; if (!el) return;
+      follow = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    }
+    async function scroll(force = false) {
+      await nextTick();
+      const el = chatBox.value; if (!el) return;
+      if (force) follow = true;
+      if (follow) el.scrollTop = el.scrollHeight;
+    }
+
+    function send(q, force = false) {
+      const text = (q ?? input.value).trim();
+      if (!text || sending.value) return;
+      page.value = 'chat';
+      const uid = me.value.user_id;
+      if (!threadId.value) {
+        threadId.value = 't-' + Date.now().toString(36);
+        // 예시를 누르거나 첫 질문을 보내면 대화방을 바로 목록 맨 위에 만든다 (서버도 시작 시점에 저장)
+        const mid = (text.match(/\b(?:([A-Z]{3})-)?([MI])(\d{2})\b/) || []);
+        const key = mid[0] ? (mid[1] || (mid[2] === 'I' ? 'HBE' : 'OPS')) : null;
+        threads.value.unshift({ thread_id: threadId.value, user_id: uid, title: text.slice(0, 40), project_key: key,
+                                meeting_id: mid[0] ? `${key}-${mid[2]}${mid[3]}` : null, updated: new Date().toISOString() });
+      }
+      const tid = threadId.value;
+      const here = () => me.value && me.value.user_id === uid && threadId.value === tid;   // 사용자·대화방을 바꿨으면 화면 갱신만 멈춤
+      log.value.push({ id: nextId++, kind: 'user', text }); input.value = ''; sending.value = true;
+      const steps = reactive({ id: nextId++, kind: 'steps', steps: [] }); log.value.push(steps); scroll(true);
+      const es = new EventSource(`/chat/stream?message=${encodeURIComponent(text)}&thread_id=${threadId.value}&user=${me.value.user_id}${force ? '&force=true' : ''}`);
+      let stream = null, attempt = null;
+      es.onmessage = ev => {
+        if (ev.data === '[DONE]') { es.close(); sending.value = false; if (me.value) { loadThreads(); loadNotes(); loadProjects(); if (selPrj.value) loadLedger(); loadAdmin(); } return; }
+        if (!here()) return;   // 답변은 서버가 원래 대화방에 저장한다
+        let e; try { e = JSON.parse(ev.data); } catch { return; }
+        if (e.type === 'AnswerToken') {
+          if (!stream || attempt !== e.attempt) { stream = reactive({ id: nextId++, kind: 'agent', text: '' }); log.value.push(stream); attempt = e.attempt; }
+          stream.text += e.delta; scroll(); return;
+        }
+        if (e.type === 'Error') { log.value.push({ id: nextId++, kind: 'agent', text: '오류: ' + e.message, err: true }); scroll(); return; }
+        if (e.type === 'AccessDenied') { log.value.push(reactive({ id: nextId++, kind: 'denied', targets: e.targets, sent: {} })); return; }
+        if (e.type === 'FinalAnswer') {
+          if (!stream) { stream = reactive({ id: nextId++, kind: 'agent', text: '' }); log.value.push(stream); }
+          stream.text = e.reply;
+          const deniedIdx = log.value.findIndex(x => x.kind === 'denied' && x.id > steps.id);
+          if (deniedIdx >= 0) log.value.push(log.value.splice(deniedIdx, 1)[0]);   // 요청 버튼은 답변 아래로
+          if (e.proposed?.length) log.value.push({ id: nextId++, kind: 'proposed', ids: e.proposed });
+          if (e.cached) log.value.push({ id: nextId++, kind: 'cached', q: text });
+          if (e.opinion) log.value.push(reactive({ id: nextId++, kind: 'opinion', op: e.opinion, sent: '' }));
+          stream = null; scroll(); return;
+        }
+        const f = STEP[e.type]; if (!f) return; const label = f(e); if (label) { steps.steps.push(label); scroll(); }
+      };
+      es.onerror = () => { es.close(); sending.value = false; };
+    }
+    async function requestAccess(item, t) {
+      const reason = prompt(`${t} 열람 사유`, '업무 확인'); if (reason === null) return;
+      await post('/access-requests', { user: me.value.user_id, target: t, reason }); item.sent[t] = true; loadNotes();
+    }
+    async function quickRequest(id) { await post('/access-requests', { user: me.value.user_id, target: id, reason: '원장 열람' }); reqSent[id] = true; loadNotes(); }
+    async function proposeOpinion(item) {
+      const r = await post('/proposals', { user: me.value.user_id, statement: item.op.statement, topic: item.op.topic });
+      item.sent = r.proposed; loadNotes(); loadAdmin();
+    }
+
+    async function decide(d, ok) {
+      let r;
+      if (ok) r = await post(`/decisions/${d.decision_id}/approve`, { user: me.value.user_id });
+      else { const reason = prompt('반려 사유', ''); if (reason === null) return; await post(`/decisions/${d.decision_id}/reject`, { user: me.value.user_id, reason }); }
+      admin.decisions = admin.decisions.filter(x => x.decision_id !== d.decision_id);
+      const roles = []; d.meetings.forEach(mid => { const a = acl.value.find(m => m.meeting_id === mid); if (a) roles.push(...a.roles); });
+      doneDec.value.unshift(reactive({ ...d, ok, open: false, sup: (r?.superseded || []).join(', '), roles: [...new Set(roles)] }));
+      loadNotes(); loadProjects(); if (selPrj.value) loadLedger();
+    }
+    async function toggleDecRole(d, role, on) {
+      for (const mid of d.meetings) await post('/admin/acl', { user: me.value.user_id, meeting_id: mid, role, on });
+      d.roles = on ? [...d.roles, role] : d.roles.filter(x => x !== role); loadAcl();
+    }
+    async function decideReq(r, ok) {
+      if (ok && r.duration === 'until' && !r.until) { alert('기한 날짜를 고르세요'); return; }
+      await post(`/access-requests/${r.id}/decide`, { user: me.value.user_id, approve: ok, scope: r.scope, duration: r.duration, until: r.until });
+      r.done = ok ? 'approved' : 'rejected'; loadNotes();
+    }
+    async function setAcl(m, role, on) { await post('/admin/acl', { user: me.value.user_id, meeting_id: m.meeting_id, role, on }); m.roles = on ? [...m.roles, role] : m.roles.filter(x => x !== role); loadMeetings(); }
+
+    async function loadRag() { ragCounts.value = await api('/rag/counts'); if (!ragRows.value.length) searchRag(); }
+    async function searchRag() { ragRows.value = (await api(`/rag/search?collection=${ragCol.value}&q=${encodeURIComponent(ragQ.value)}&filtered=${ragFiltered.value}`)).rows; }
+    const ragState = r => r.decision_id ? (r.status === 'proposed' ? '승인 대기' : r.active ? '유효' : r.status === 'rejected' ? '반려' : '대체됨')
+      : r.rule_id || r.doc_id ? (r.is_current ? '현행' : '구버전') : '원문';
+
+    function go(p) { page.value = p; popOpen.value = false; if (p === 'admin') { loadAdmin(); loadAcl(); } if (p === 'settings' && stab.value === 'rag') loadRag(); }
+    async function togglePop() { popOpen.value = !popOpen.value; if (popOpen.value && unread.value) { await post('/notifications/read', { user: me.value.user_id }); unread.value = 0; } }
+    async function toggleDrawer() {
+      drawer.value = !drawer.value;
+      if (drawer.value) { loadMeetings(); loadProjects(); }
+      else if (selPrj.value) { await setPrj(null); ledger.value = []; }   // 서랍을 닫으면 최신순으로 복귀
+    }
+    async function pickPrj(k) { await setPrj(selPrj.value === k ? null : k); loadLedger(); }
+    function openMeeting(m) {
+      drawer.value = false; setPrj(null);
+      send(`${m.meeting_id} ${m.domain === 'interview' ? '면접 요약해줘' : '회의 정리해줘'}`);
+    }
+    function month(d) { let m = calM.value + d, y = calY.value; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } calM.value = m; calY.value = y; }
+    const calCells = computed(() => {
+      const y = calY.value, m = calM.value, first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
+      const cells = []; for (let i = 0; i < first; i++) cells.push({ k: 'x' + i });
+      const today = new Date();
+      for (let d = 1; d <= days; d++) {
+        const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        cells.push({ k: iso, d, ms: meetings.value.filter(x => x.date === iso),
+                     today: today.getFullYear() === y && today.getMonth() + 1 === m && today.getDate() === d });
+      }
+      return cells;
+    });
+
+    (async () => {
+      const h = await api('/health'); version.value = h.version; build.value = h.build;
+      users.value = (await api('/users')).users;
+      // 바로가기 링크: ?user=kjh&thread=demo-1&prj=OPS&page=admin|settings (시연·캡처용)
+      const qs = new URLSearchParams(location.search);
+      const saved = qs.get('user') || ls.get('ledger_user');
+      if (saved && users.value.some(u => u.user_id === saved)) await login(saved);
+      if (me.value && qs.get('thread')) { const t = threads.value.find(x => x.thread_id === qs.get('thread')); if (t) await openThread(t); }
+      if (me.value && qs.get('page')) go(qs.get('page'));
+      if (me.value && qs.get('tab')) { atab.value = qs.get('tab'); if (qs.get('tab') === 'acl') loadAcl(); }
+      if (me.value && qs.get('prj')) { drawer.value = true; await loadMeetings(); await loadProjects(); await pickPrj(qs.get('prj')); }
+      if (me.value && qs.get('switch')) switchOpen.value = true;
+      if (me.value && qs.get('notes')) { popOpen.value = true; }
+      setInterval(loadNotes, 8000);
+    })();
+
+    return { switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+      drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
+      ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
+      login, newChat, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
+      loadAcl, loadRag, searchRag, go, togglePop, toggleDrawer, pickPrj, openMeeting, month };
+  },
+}).mount('#app');
+</script>
+</body>
+</html>

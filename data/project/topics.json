@@ -1,0 +1,27 @@
+{
+ "_note": "결정·문서·정책을 같은 주제로 묶는 키. 회의에서 새 주제가 나오면 new:<이름>으로 추가한다.",
+ "topics": {
+  "scope.core": "서비스 핵심 범위·기능 (진단, 취소 같은 기능 추가 포함)",
+  "routing": "질문 분류·경로 나누기",
+  "perf.latency": "응답 시간 기준",
+  "session.store": "대화 세션 저장소 (DB 선택 포함)",
+  "db.rdbms": "사내 표준 관계형 DB",
+  "answer.grounding": "답변 근거·환각 방지",
+  "schedule": "일정·마일스톤·운영 반영일",
+  "budget": "비용·예산",
+  "llm.external": "외부 LLM API 사용과 데이터 전송",
+  "llm.tiering": "작업별 모델 나눠 쓰기",
+  "realtime.transport": "화면과 서버 간 실시간 전송 방식 (SSE, WebSocket, 롱폴링)",
+  "tech.backend": "백엔드 프레임워크",
+  "mcp.deployment": "MCP 서버 배치 방식",
+  "agent.structure": "에이전트 구조 (멀티 에이전트 등)",
+  "meeting.retention": "회의 녹음·전사문 보관 기간",
+  "saas.new": "외부 SaaS 신규 도입",
+  "release": "운영 반영 절차",
+  "cache": "캐시 적용 범위",
+  "agent.reliability": "에이전트 안정성 장치 (재시도, 검증 노드, 권위 게이트)",
+  "interview.competency": "면접 역량 평가 항목",
+  "interview.question": "면접 질문의 적절성",
+  "interview.decision": "합격 여부 결정"
+ }
+}

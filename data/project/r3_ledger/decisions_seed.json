@@ -1,0 +1,150 @@
+{
+  "note": "결정 원장 시드. PRJ-CSBOT 회의 원문은 보존 기한(정책 SEC-02)이 지나 파기되어 R1에 없고, 원장의 인용문만 근거로 남아 있다.",
+  "decisions": [
+    {
+      "decision_id": "CSB-0001", "project_id": "PRJ-CSBOT", "topic": "realtime.transport",
+      "statement": "상담원 화면 실시간 알림은 WebSocket으로 한다.",
+      "rationale": "상담원 화면에 양방향 실시간 알림이 필요함",
+      "alternatives_rejected": ["Long Polling"],
+      "decided_by": "CSBOT PL", "approved_by": "아키텍처 위원회 (예외 W-002)",
+      "status": "approved", "effective_from": "2025-03-10", "superseded_by": "CSB-0004",
+      "evidence": [{"meeting_id": "CSB-M02", "seq": null, "quote": "상담원 화면은 웹소켓으로 양방향 알림을 붙입시다."}]
+    },
+    {
+      "decision_id": "CSB-0002", "project_id": "PRJ-CSBOT", "topic": "llm.external",
+      "statement": "상담 이력 원문을 외부 LLM API로 보내 요약한다.",
+      "rationale": "요약 품질",
+      "alternatives_rejected": [],
+      "decided_by": "CSBOT 개발팀", "approved_by": null,
+      "status": "rejected", "effective_from": null, "superseded_by": null,
+      "evidence": [{"meeting_id": "CSB-M04", "seq": null, "quote": "상담 이력을 외부 API로 보내 요약하면 품질이 훨씬 좋습니다."}],
+      "rejection_reason": "개인정보 외부 전송 금지 정책(SEC-01) 위반으로 보안 담당이 반려"
+    },
+    {
+      "decision_id": "CSB-0003", "project_id": "PRJ-CSBOT", "topic": "session.store",
+      "statement": "대화 이력은 Redis에 저장한다.",
+      "rationale": "응답 속도",
+      "alternatives_rejected": ["MySQL"],
+      "decided_by": "CSBOT PL", "approved_by": "CSBOT PL",
+      "status": "approved", "effective_from": "2025-04-01", "superseded_by": "CSB-0005",
+      "evidence": [{"meeting_id": "CSB-M03", "seq": null, "quote": "대화 이력은 레디스에 넣어서 빠르게 갑시다."}]
+    },
+    {
+      "decision_id": "CSB-0004", "project_id": "PRJ-CSBOT", "topic": "realtime.transport",
+      "statement": "WebSocket을 중단하고 Long Polling으로 전환한다.",
+      "rationale": "사내 프록시에서 WebSocket 연결이 주기적으로 끊겨 장애가 반복됨",
+      "alternatives_rejected": ["WebSocket 유지"],
+      "decided_by": "CSBOT PL", "approved_by": "CSBOT PM",
+      "status": "approved", "effective_from": "2025-08-20", "superseded_by": null,
+      "evidence": [{"meeting_id": "CSB-M09", "seq": null, "quote": "프록시에서 웹소켓이 계속 끊겨서 더는 못 쓰겠어요. 롱폴링으로 돌립니다."}]
+    },
+    {
+      "decision_id": "CSB-0005", "project_id": "PRJ-CSBOT", "topic": "session.store",
+      "statement": "대화 이력 저장소를 Redis에서 MySQL로 이전한다.",
+      "rationale": "Redis TTL 만료로 대화 이력이 유실되는 사고 발생",
+      "alternatives_rejected": ["Redis TTL 연장"],
+      "decided_by": "CSBOT PL", "approved_by": "CSBOT PM",
+      "status": "approved", "effective_from": "2025-09-15", "superseded_by": null,
+      "evidence": [{"meeting_id": "CSB-M10", "seq": null, "quote": "TTL 때문에 대화가 날아갔어요. 이력은 DB로 옮깁니다."}]
+    },
+
+    {
+      "decision_id": "OPS-0001", "project_id": "PRJ-OPSAI", "topic": "tech.backend",
+      "statement": "백엔드는 FastAPI, Agent 흐름은 LangGraph로 구현한다.",
+      "rationale": "비동기 처리, API 문서 자동 생성",
+      "alternatives_rejected": [],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-15", "superseded_by": null,
+      "evidence": [{"meeting_id": "OPS-M01", "seq": 3, "quote": "백엔드는 FastAPI로 가고 Agent 흐름은 랭 그래프로 짜는 걸로 하겠습니다."}]
+    },
+    {
+      "decision_id": "OPS-0002", "project_id": "PRJ-OPSAI", "topic": "mcp.deployment",
+      "statement": "MCP 서버는 백엔드가 자식 프로세스(stdio)로 띄운다.",
+      "rationale": "별도 서버 운영은 현 규모에 과함, 프로세스 격리",
+      "alternatives_rejected": ["백엔드 코드에 직접 통합", "원격 HTTP 서버"],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-15", "superseded_by": null,
+      "evidence": [{"meeting_id": "OPS-M01", "seq": 5, "quote": "도구 연결은 MCP로 하고, MCP 서버는 백엔드가 자식 프로세스로 띄워서 stdio로 붙이겠습니다."}]
+    },
+    {
+      "decision_id": "OPS-0003", "project_id": "PRJ-OPSAI", "topic": "realtime.transport",
+      "statement": "실시간 진행 표시는 Long Polling으로 시작한다.",
+      "rationale": "고객센터 챗봇과 같은 방식",
+      "alternatives_rejected": [],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-15", "superseded_by": "OPS-0007",
+      "evidence": [{"meeting_id": "OPS-M01", "seq": 10, "quote": "일단 고객센터 챗봇이랑 같게 롱폴링으로 시작하죠."}]
+    },
+    {
+      "decision_id": "OPS-0004", "project_id": "PRJ-OPSAI", "topic": "llm.external",
+      "statement": "기본 LLM은 사내 Ollama 모델을 쓰고 외부 API는 보안 승인 전까지 제외한다.",
+      "rationale": "운영 로그가 입력에 포함됨",
+      "alternatives_rejected": ["외부 LLM API"],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-15", "superseded_by": null,
+      "evidence": [{"meeting_id": "OPS-M01", "seq": 7, "quote": "운영 로그가 들어가니까 기본은 사내 Ollama 모델로 갑시다."}]
+    },
+    {
+      "decision_id": "OPS-0005", "project_id": "PRJ-OPSAI", "topic": "perf.latency",
+      "statement": "응답 시간 기준을 첫 진행 표시 2초 이내, 최종 답변 30초 이내로 변경한다.",
+      "rationale": "사내 모델로 조사·검증까지 5초는 불가능, 진행 표시가 보이면 기다릴 수 있음",
+      "alternatives_rejected": ["최종 답변 5초 유지"],
+      "decided_by": "정한결", "approved_by": "정한결",
+      "status": "approved", "effective_from": "2026-09-29", "superseded_by": null,
+      "evidence": [{"meeting_id": "OPS-M02", "seq": 4, "quote": "첫 진행 표시는 2초 안, 최종 답변은 30초 안으로 하고 요구사항정의서 개정할게요."}],
+      "r2_updates": [{"doc_id": "REQ", "from": "v1.0", "to": "v1.1"}]
+    },
+    {
+      "decision_id": "OPS-0006", "project_id": "PRJ-OPSAI", "topic": "agent.structure",
+      "statement": "Supervisor가 계획을 세우고 조사·작성을 하위 Agent에 위임한다.",
+      "rationale": "단계별 프롬프트 튜닝",
+      "alternatives_rejected": ["단일 ReAct Agent"],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-29", "superseded_by": null,
+      "evidence": [{"meeting_id": "OPS-M02", "seq": 5, "quote": "Agent 구조는 Supervisor가 계획 세우고 조사랑 작성을 하위 Agent한테 맡기는 방식으로 가겠습니다."}]
+    },
+    {
+      "decision_id": "OPS-0007", "project_id": "PRJ-OPSAI", "topic": "realtime.transport",
+      "statement": "실시간 전송을 Long Polling에서 SSE로 변경한다.",
+      "rationale": "단방향이면 충분, 사내 프록시 통과, Long Polling은 요청 누적",
+      "alternatives_rejected": ["WebSocket (CSBOT 프록시 끊김 사례, ARC-02 예외 승인 필요)", "Long Polling 유지"],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-29", "superseded_by": null,
+      "supersedes": "OPS-0003",
+      "evidence": [
+        {"meeting_id": "OPS-M02", "seq": 8, "quote": "실시간 전송은 SSE로 바꾸겠습니다. 서버에서 화면으로 한 방향이면 충분하고 사내 프록시도 그냥 통과해요."},
+        {"meeting_id": "OPS-M02", "seq": 9, "quote": "웹소켓은 아키텍처 원칙상 예외 승인도 받아야 해서 SSE가 낫습니다."}
+      ]
+    },
+    {
+      "decision_id": "OPS-0008", "project_id": "PRJ-OPSAI", "topic": "session.store",
+      "statement": "대화 이력은 PostgreSQL에 저장한다.",
+      "rationale": "CSBOT Redis TTL 유실 사례, 사내 표준 RDBMS(ARC-01)",
+      "alternatives_rejected": ["Redis"],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-29", "superseded_by": null,
+      "evidence": [{"meeting_id": "OPS-M02", "seq": 11, "quote": "대화 이력은 PostgreSQL에 저장하는 걸로 하겠습니다. 사내 표준이기도 하고요."}]
+    },
+    {
+      "decision_id": "OPS-0009", "project_id": "PRJ-OPSAI", "topic": "routing",
+      "statement": "맨 앞에서 질문을 simple/complex로 라우팅한다.",
+      "rationale": "인사 등 가벼운 질문이 무거운 흐름을 타지 않게",
+      "alternatives_rejected": ["항상 전체 파이프라인"],
+      "decided_by": "서지후", "approved_by": "서지후",
+      "status": "approved", "effective_from": "2026-09-29", "superseded_by": null,
+      "evidence": [{"meeting_id": "OPS-M02", "seq": 13, "quote": "맨 앞에서 simple이랑 complex로 라우팅하는 걸로 하죠."}]
+    },
+    {
+      "decision_id": "OPS-0010", "project_id": "PRJ-OPSAI", "topic": "llm.tiering",
+      "statement": "분류는 작은 모델, 작성은 큰 모델로 나누는 모델 티어링을 적용한다.",
+      "rationale": "비용 절감",
+      "alternatives_rejected": [],
+      "decided_by": "노영오 (제안)", "approved_by": null,
+      "status": "proposed", "effective_from": null, "superseded_by": null,
+      "evidence": [
+        {"meeting_id": "OPS-M02", "seq": 14, "quote": "비용 줄이려면 분류는 작은 모델, 작성은 큰 모델로 나누는 것도 제안드려요."},
+        {"meeting_id": "OPS-M02", "seq": 15, "quote": "모델 티어링은 좋은데 품질 영향을 먼저 봐야 해요."}
+      ]
+    }
+  ]
+}

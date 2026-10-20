@@ -1,0 +1,51 @@
+{
+ "documents": [
+  {
+   "doc_id": "REQ",
+   "title": "요구사항정의서",
+   "doc_version": "v1.1",
+   "file": "요구사항정의서_v1.1.md",
+   "is_current": true,
+   "updated_at": "2026-10-02",
+   "change_note": "OPS-0005 반영: 응답 시간 기준 변경"
+  },
+  {
+   "doc_id": "REQ",
+   "title": "요구사항정의서",
+   "doc_version": "v1.0",
+   "file": "요구사항정의서_v1.0.md",
+   "is_current": false,
+   "updated_at": "2026-09-08",
+   "change_note": "최초 작성"
+  },
+  {
+   "doc_id": "ARCH",
+   "title": "아키텍처 개요서",
+   "doc_version": "v1.0",
+   "file": "아키텍처개요서_v1.0.md",
+   "is_current": true,
+   "updated_at": "2026-10-02",
+   "change_note": "OPS-M01·OPS-M02 결정 반영"
+  },
+  {
+   "doc_id": "GLOSSARY",
+   "title": "프로젝트 용어집",
+   "doc_version": "v1.0",
+   "file": "용어집.md",
+   "is_current": true,
+   "updated_at": "2026-10-02",
+   "change_note": "STT 오인식 사례 포함"
+  },
+  {
+   "doc_id": "JD-BE",
+   "title": "직무기술서 백엔드",
+   "doc_version": "v1.0",
+   "file": "직무기술서_백엔드.md",
+   "is_current": true,
+   "updated_at": "2026-10-10",
+   "change_note": "면접 루브릭",
+   "project_id": "HIRE-BE",
+   "domain": "interview"
+  }
+ ]
+}

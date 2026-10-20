@@ -1,0 +1,87 @@
+{
+  "note": "시험 회의 OPS-M03~OPS-M05의 정답 결정·할 일·충돌, 추가 의견과 근거 질의 정답. 판단 기준 시점은 각 회의 날짜.",
+  "meetings": {
+    "OPS-M03": {
+      "decisions": [
+        {"id": "G03-D1", "topic": "answer.validation", "statement": "작성 뒤 검증 노드를 두고 불합격 시 재작성은 최대 1회", "evidence_seq": [3], "decided_by": "서지후", "authority_ok": true},
+        {"id": "G03-D2", "topic": "agent.gate", "statement": "needs_analysis와 작업 목록 불일치는 권위 게이트로 코드에서 걸러냄", "evidence_seq": [5], "decided_by": "서지후", "authority_ok": true},
+        {"id": "G03-D3", "topic": "error.retry", "statement": "타임아웃만 재시도하도록 with_retry로 공통화, 다른 오류는 즉시 실패", "evidence_seq": [7], "decided_by": "서지후", "authority_ok": true}
+      ],
+      "not_decisions": [
+        {"topic": "cache", "evidence_seq": [8, 9, 10], "why": "캐시는 결론 없이 다음 회의로 미룸 (미결)"},
+        {"topic": "llm.tiering", "evidence_seq": [11, 12], "why": "결과 공유 후 결정, 아직 확정 아님"}
+      ],
+      "action_items": [
+        {"id": "G03-A1", "owner": "장상민", "due": "2026-10-10", "statement": "with_retry 공통화", "evidence_seq": [13, 14]},
+        {"id": "G03-A2", "owner": "장상민", "due": "2026-10-13", "statement": "캐시 후보 정리", "evidence_seq": [14, 15]},
+        {"id": "G03-A3", "owner": "노영오", "due": "2026-10-13", "statement": "평가 데이터셋 30문항", "evidence_seq": [16, 17]}
+      ],
+      "conflicts": [],
+      "stt_terms": [
+        {"seq": 4, "raw": "리즈 애널리시스", "fixed": "needs_analysis"},
+        {"seq": 5, "raw": "버니게이트", "fixed": "권위 게이트"}
+      ]
+    },
+    "OPS-M04": {
+      "decisions": [
+        {"id": "G04-D1", "topic": "realtime.transport", "statement": "실시간 전송을 WebSocket으로 변경", "evidence_seq": [3, 4], "decided_by": "서지후", "authority_ok": false},
+        {"id": "G04-D2", "topic": "schedule", "statement": "운영 반영을 2주 연기", "evidence_seq": [6, 7], "decided_by": "서지후", "authority_ok": false},
+        {"id": "G04-D3", "topic": "llm.external", "statement": "실제 운영 로그를 외부 LLM API에 넣어 품질 비교", "evidence_seq": [8, 9], "decided_by": "서지후", "authority_ok": false},
+        {"id": "G04-D4", "topic": "cache", "statement": "캐시는 런북 문서에만 적용, 모니터링 조회는 매번 새로", "evidence_seq": [10, 11], "decided_by": "서지후", "authority_ok": true}
+      ],
+      "action_items": [
+        {"id": "G04-A1", "owner": "장상민", "due": "2026-10-17", "statement": "웹소켓 전환 설계", "evidence_seq": [12, 13], "blocked_by": "G04-D1 충돌"},
+        {"id": "G04-A2", "owner": "한소율", "due": "2026-10-20", "statement": "운영 로그로 외부 LLM 비교", "evidence_seq": [14, 15], "blocked_by": "G04-D3 정책 위반"},
+        {"id": "G04-A3", "owner": "장상민", "due": "2026-10-17", "statement": "런북 캐시 적용", "evidence_seq": [16]}
+      ],
+      "conflicts": [
+        {"id": "G04-C1", "target": "G04-D1", "type": "past_decision", "against": ["OPS-0007"], "detail": "SSE로 정한 유효 결정과 모순"},
+        {"id": "G04-C2", "target": "G04-D1", "type": "past_project", "against": ["CSB-0004"], "detail": "과거 프로젝트에서 프록시 끊김으로 WebSocket을 포기한 사례 (참고)"},
+        {"id": "G04-C3", "target": "G04-D1", "type": "policy", "against": ["ARC-02"], "detail": "WebSocket은 아키텍처 위원회 예외 승인 필요. W-002는 다른 프로젝트·만료됨"},
+        {"id": "G04-C4", "target": "G04-D2", "type": "authority", "against": ["AUTH-03"], "detail": "2주 이상 지연은 본부장 승인. PL 단독 결정, PM도 불참"},
+        {"id": "G04-C5", "target": "G04-D2", "type": "baseline", "against": ["REQ-06"], "detail": "운영 반영 목표일 12/15 기준과 다름"},
+        {"id": "G04-C6", "target": "G04-D3", "type": "policy", "against": ["SEC-01"], "detail": "운영 로그 원문 외부 전송 금지. W-001은 마스킹 샘플·PoC 범위라 해당 안 됨"}
+      ],
+      "traps": [
+        {"seq": 5, "why": "롱폴링 → SSE 전환을 회상하는 발언. 대체된 OPS-0003과 비교해 충돌로 잡으면 오탐"}
+      ]
+    },
+    "OPS-M05": {
+      "decisions": [
+        {"id": "G05-D1", "topic": "perf.latency", "statement": "최종 답변 기준을 60초로 변경 (PM 승인, 정의서 개정)", "evidence_seq": [4], "decided_by": "정한결", "authority_ok": true},
+        {"id": "G05-D2", "topic": "session.store", "statement": "대화 저장 DB를 MySQL로 변경", "evidence_seq": [5, 6], "decided_by": "서지후", "authority_ok": false},
+        {"id": "G05-D3", "topic": "meeting.retention", "statement": "회의 원문은 90일 후 파기, 결정 근거 인용만 원장에 보존", "evidence_seq": [8], "decided_by": "정한결", "authority_ok": true},
+        {"id": "G05-D4", "topic": "llm.tiering", "statement": "분류·계획은 작은 모델, 작성·검증은 큰 모델로 확정 (OPS-0010 승인)", "evidence_seq": [10], "decided_by": "서지후", "authority_ok": true}
+      ],
+      "action_items": [
+        {"id": "G05-A1", "owner": "노영오", "due": "2026-10-24", "statement": "검증 2회 적용", "evidence_seq": [13, 14]},
+        {"id": "G05-A2", "owner": "장상민", "due": null, "statement": "MySQL 전환 검토", "evidence_seq": [15, 16], "issue": "기한 없음"},
+        {"id": "G05-A3", "owner": null, "due": null, "statement": "로그 마스킹 스크립트", "evidence_seq": [12], "issue": "담당자·기한 없음"}
+      ],
+      "conflicts": [
+        {"id": "G05-C1", "target": "G05-D1", "type": "change_approved", "against": ["OPS-0005", "REQ-03"], "detail": "유효 결정·기준 문서를 바꾸는 결정. PM 승인이 있어 위반은 아니고 OPS-0005 대체 + 요구사항정의서 개정 필요로 표시"},
+        {"id": "G05-C2", "target": "G05-D2", "type": "past_decision", "against": ["OPS-0008"], "detail": "PostgreSQL로 정한 유효 결정과 모순"},
+        {"id": "G05-C3", "target": "G05-D2", "type": "policy", "against": ["ARC-01"], "detail": "현행 정책 v3 표준은 PostgreSQL. MySQL 표준은 구 정책 v2라 근거가 될 수 없음, 아키텍처 위원회 승인 필요"}
+      ],
+      "traps": [
+        {"seq": 5, "why": "구 정책 v2(MySQL 표준)를 근거로 드는 발언. 구버전을 현행으로 보면 위반을 놓침"},
+        {"seq": 10, "why": "승인 대기였던 OPS-0010을 확정하는 결정. 충돌이 아니라 OPS-0010 승인으로 처리"}
+      ]
+    }
+  },
+  "opinions": [
+    {"id": "O1", "text": "운영 로그 원문을 외부 Claude API로 보내서 요약하면 어떨까요?", "expected": "conflict", "against": ["SEC-01", "OPS-0004", "CSB-0002"], "note": "W-001은 마스킹 샘플·PoC 범위라 해당 안 됨"},
+    {"id": "O2", "text": "대화 저장을 Redis로 바꾸면 더 빠르지 않을까요?", "expected": "conflict", "against": ["OPS-0008", "CSB-0005"], "note": "과거 프로젝트 TTL 유실로 기각된 대안의 재제안"},
+    {"id": "O3", "text": "마스킹한 로그 샘플 100건으로 외부 모델 품질 비교를 해 보면 어떨까요?", "expected": "allowed_with_waiver", "against": ["SEC-01"], "waiver": "W-001", "note": "예외 범위·기한 안"},
+    {"id": "O4", "text": "검증 노드 기준에 근거 인용 여부를 추가하면 어떨까요?", "expected": "no_conflict", "against": [], "note": "REQ-05와 같은 방향"},
+    {"id": "O5", "text": "실시간 전송을 다시 롱폴링으로 돌리면 어떨까요?", "expected": "conflict", "against": ["OPS-0007"], "note": "OPS-0003은 대체됨. OPS-0007과 충돌"}
+  ],
+  "questions": [
+    {"id": "Q1", "text": "실시간 전송을 SSE로 한 이유가 뭐였죠?", "expected_decision": "OPS-0007", "expected_evidence": [{"meeting_id": "OPS-M02", "seq": 8}]},
+    {"id": "Q2", "text": "대화 저장소는 왜 PostgreSQL이에요?", "expected_decision": "OPS-0008", "expected_evidence": [{"meeting_id": "OPS-M02", "seq": 11}]},
+    {"id": "Q3", "text": "Redis 캐시 쓰기로 했어요?", "expected_decision": null, "expected_state": "undecided", "expected_evidence": [{"meeting_id": "OPS-M03", "seq": 10}], "note": "OPS-M03 시점 미결. OPS-M04 이후 런북 캐시로 결정되었다면 그 결정을 답해야 함 (원장 상태에 따라)"},
+    {"id": "Q4", "text": "모델 티어링은 정해졌나요?", "expected_decision": "OPS-0010", "expected_state": "proposed", "note": "OPS-M05 처리·승인 전에는 승인 대기"},
+    {"id": "Q5", "text": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?", "expected_decision": "CSB-0004", "expected_evidence": [{"meeting_id": "CSB-M09", "seq": null}], "note": "원문은 파기, 원장 인용으로 답해야 함"},
+    {"id": "Q6", "text": "응답 시간 기준이 지금 몇 초예요?", "expected_decision": "OPS-0005", "note": "R2 현재 버전 v1.1과 일치(30초). v1.0의 5초로 답하면 오답"}
+  ]
+}

@@ -1,0 +1,32 @@
+{
+ "_note": "프로젝트 약자(key)는 번호의 머리글이다. 결정 = KEY-0001, 회의 = KEY-M01, 면접 = KEY-I01. 약자는 프로젝트를 만들 때 지정한다.",
+ "projects": [
+  {
+   "key": "OPS",
+   "project_id": "PRJ-OPSAI",
+   "name": "운영 장애 대응 AI",
+   "status": "진행",
+   "color": "#1f5fbf",
+   "lead": "정한결",
+   "bg": "#dce8fb"
+  },
+  {
+   "key": "CSB",
+   "project_id": "PRJ-CSBOT",
+   "name": "고객센터 챗봇",
+   "status": "종료",
+   "color": "#a85d00",
+   "lead": "CSBOT PL",
+   "bg": "#fbe8cc"
+  },
+  {
+   "key": "HBE",
+   "project_id": "HIRE-BE",
+   "name": "백엔드 경력 채용",
+   "status": "진행",
+   "color": "#1d7a43",
+   "lead": "정한결",
+   "bg": "#d9f1e2"
+  }
+ ]
+}

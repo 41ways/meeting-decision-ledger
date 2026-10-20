@@ -1,0 +1,61 @@
+{
+ "_note": "시연용 사용자. 역할(role): 인턴 < 팀원 < 담당자 < 팀장. 팀장만 결정·의견·열람 요청을 승인하고 관리자 콘솔을 본다. 로그인은 시연용(비밀번호 없음).",
+ "users": [
+  {
+   "user_id": "kjh",
+   "name": "정한결",
+   "role": "팀장",
+   "title": "PM",
+   "team": "AI플랫폼팀"
+  },
+  {
+   "user_id": "pdy",
+   "name": "서지후",
+   "role": "담당자",
+   "title": "PL · OPS 담당",
+   "team": "AI플랫폼팀"
+  },
+  {
+   "user_id": "lsj",
+   "name": "장상민",
+   "role": "팀원",
+   "title": "백엔드",
+   "team": "AI플랫폼팀"
+  },
+  {
+   "user_id": "cyn",
+   "name": "노영오",
+   "role": "팀원",
+   "title": "AI 개발",
+   "team": "AI플랫폼팀"
+  },
+  {
+   "user_id": "jmh",
+   "name": "김태림",
+   "role": "팀원",
+   "title": "보안",
+   "team": "정보보호팀"
+  },
+  {
+   "user_id": "hmc",
+   "name": "황민채",
+   "role": "팀원",
+   "title": "기획",
+   "team": "AI플랫폼팀"
+  },
+  {
+   "user_id": "hsy",
+   "name": "한소율",
+   "role": "팀원",
+   "title": "운영",
+   "team": "운영팀"
+  },
+  {
+   "user_id": "yhr",
+   "name": "윤하린",
+   "role": "인턴",
+   "title": "인턴",
+   "team": "AI플랫폼팀"
+  }
+ ]
+}
