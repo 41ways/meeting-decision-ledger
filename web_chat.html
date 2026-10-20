@@ -83,12 +83,12 @@ input, select, textarea { font: inherit; color: inherit; }
 .wide { max-width: 1000px; }
 
 /* 대화 */
-.hello { position: absolute; left: 0; right: 0; top: 17%; text-align: center; padding: 0 22px; }
+.hello { text-align: center; margin-bottom: 22px; }
 .hello h2 { font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 8px; letter-spacing: -.01em; }
 .hello p { color: var(--muted); margin-bottom: 18px; }
 .samples { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.samples button { text-align: left; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 14px; transition: border-color .15s, background .15s; }
-.samples button:hover { border-color: #9fb1c8; background: #f7f9fb; }
+.samples button { text-align: left; border: 0; background: #f6f7f9; border-radius: 10px; padding: 11px 14px; transition: background .15s; }
+.samples button:hover { background: #eceff3; }
 .samples small { display: block; color: var(--muted); font-size: 12px; }
 .mu { text-align: right; margin: 0 0 12px; }
 .mu span { display: inline-block; padding: 9px 14px; background: #eef1f5; color: var(--fg); border-radius: 12px; max-width: 80%; text-align: left; white-space: pre-wrap; }
@@ -110,37 +110,42 @@ input, select, textarea { font: inherit; color: inherit; }
 .act { display: flex; gap: 8px; flex-wrap: wrap; margin: -8px 0 16px; align-items: center; font-size: 13px; }
 .ma.err { background: #fdf3f1; border: 1px solid #e7b3aa; color: var(--warn); padding: 10px 12px; border-radius: 8px; }
 .composer { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 22px 26px; background: linear-gradient(rgba(255,255,255,0), #fff 30%); z-index: 3; }
-.composer.center { top: 32%; bottom: auto; background: none; }
+.composer.center { top: 50%; bottom: auto; transform: translateY(-55%); background: none; }
 .cbox { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #cfd6df; border-radius: 12px; box-shadow: 0 2px 10px rgba(20,35,60,.06);
   padding: 10px 10px 8px 14px; transition: border-color .15s, box-shadow .15s; }
 .cbox:focus-within { border-color: #9fb1c8; box-shadow: 0 2px 14px rgba(20,35,60,.10); }
 .cbox textarea { width: 100%; border: 0; outline: none; resize: none; font: inherit; font-size: 15px; line-height: 1.5; color: var(--fg); background: none; min-height: 26px; max-height: 180px; padding: 2px 0 6px; display: block; }
 .crow { display: flex; align-items: center; gap: 6px; }
-.crow .scope { flex: 1; min-width: 0; }
+.crow .grow { flex: 1; }
+.scope-out { max-width: 760px; margin: 6px auto 0; padding: 0 4px; }
 .send { width: 32px; height: 32px; border-radius: 8px; background: var(--navy); color: #fff; display: grid; place-items: center; flex: none; }
 .send svg { width: 17px; height: 17px; } .send:hover { background: var(--accent); } .send:disabled { background: #c9d1db; cursor: default; }
-.composer .samples { max-width: 760px; margin: 16px auto 0; }
-.scope { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; font-size: 12.5px; color: var(--muted); }
+.composer .samples { max-width: 760px; margin: 0 auto 14px; }
+.scope { display: flex; gap: 2px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); position: relative; }
+/* 범위 선택: 테두리 없는 글자형 (미니멀) */
+.scope select { -webkit-appearance: none; appearance: none; height: 28px; border: 0; border-radius: 6px; padding: 0 22px 0 8px; font-size: 12.5px; color: var(--muted); cursor: pointer;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%237a8594' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 7px center; }
+.scope select:hover { background-color: #f1f3f6; color: var(--fg); } .scope select:focus { outline: none; color: var(--fg); }
 .scope label { display: flex; gap: 6px; align-items: center; flex: none; }
-.scope select, .sel { -webkit-appearance: none; appearance: none; height: 30px; padding: 0 28px 0 10px; border: 1px solid var(--line2); border-radius: var(--r);
+.sel { -webkit-appearance: none; appearance: none; height: 30px; padding: 0 28px 0 10px; border: 1px solid var(--line2); border-radius: var(--r);
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234c5866' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center;
   font-size: 13px; color: var(--fg); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
-.scope select:hover, .sel:hover { border-color: #8e9bab; }
-.scope select:focus, .sel:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,78,140,.14); }
-.scope select:disabled, .sel:disabled { background-color: #f4f6f9; color: var(--muted); cursor: default; }
+.sel:hover { border-color: #8e9bab; }
+.sel:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,78,140,.14); }
+.sel:disabled { background-color: #f4f6f9; color: var(--muted); cursor: default; }
 input.sel { padding-right: 10px; background-image: none; cursor: text; }
 /* 입력창 안 모델 선택 (Claude처럼 보내기 왼쪽) */
 .in-model { -webkit-appearance: none; appearance: none; height: 30px; border: 0; border-radius: 6px; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234c5866' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
   padding: 0 24px 0 10px; font-size: 12.5px; color: var(--muted); cursor: pointer; width: auto; max-width: 170px; flex: none; field-sizing: content; }
 .in-model:hover { color: var(--fg); background-color: #f7f9fb; } .in-model:focus { outline: none; color: var(--fg); }
 /* 폭 고정: 고르는 회의 이름 길이에 따라 상자가 늘었다 줄었다 하지 않게 */
-.scope .s-prj { width: 150px; } .scope .s-mtg { width: 230px; text-overflow: ellipsis; }
+.scope .s-prj { width: 140px; } .scope .s-mtg { width: 260px; text-overflow: ellipsis; }
 /* 달력 아이콘: 투명한 날짜 입력을 아이콘 위에 겹쳐 누르면 달력이 뜬다 */
-.cal-pick { position: relative; width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; color: var(--muted); flex: none; cursor: pointer; }
+.cal-pick { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted); flex: none; cursor: pointer; }
 .cal-pick svg { width: 16px; height: 16px; pointer-events: none; } .cal-pick:hover { color: var(--accent); border-color: var(--accent); }
-.cal-pick.on { color: #fff; background: var(--accent); border-color: var(--accent); }
+.cal-pick:hover { background: #f1f3f6; } .cal-pick.on { color: var(--accent); background: #e3e9f2; }
 .scope { position: relative; }
-.mini { position: absolute; bottom: 36px; right: -4px; width: 268px; cursor: default; color: var(--fg); background: #fff; border: 1px solid var(--line2); border-radius: 4px;
+.mini { position: absolute; bottom: 34px; left: -120px; width: 268px; cursor: default; color: var(--fg); background: #fff; border: 1px solid var(--line2); border-radius: 4px;
   box-shadow: 0 10px 30px rgba(20,35,60,.18); z-index: 30; padding: 10px; animation: rise .15s ease-out; }
 .mini-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: var(--fg); font-size: 13px; }
 .mini-hd button { padding: 2px 8px; color: var(--muted); font-size: 15px; } .mini-hd button:hover { color: var(--accent); }
@@ -155,7 +160,7 @@ input.sel { padding-right: 10px; background-image: none; cursor: text; }
 .mini-ft { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12px; }
 .mini-ft button { color: var(--accent); font-size: 12px; }
 .scope select, .scope input { flex: none; min-width: 0; }
-.scope .s-clear { height: 30px; padding: 0 10px; font-size: 12.5px; color: var(--accent); border-radius: var(--r); } .scope .s-clear:hover { background: var(--sel); }
+.scope .s-clear { height: 28px; padding: 0 8px; font-size: 12.5px; color: var(--muted); border-radius: 6px; } .scope .s-clear:hover { background: #f1f3f6; color: var(--fg); }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
 /* 공통 버튼·표 */
@@ -359,10 +364,6 @@ tr.lock td { color: var(--muted); }
       <!-- 대화 -->
       <div class="page chat" v-show="page === 'chat'" ref="chatBox" @scroll.passive="onChatScroll">
         <div class="col">
-          <div class="hello" v-if="!log.length">
-            <h2>{{ me.name }}님, 무엇을 정리할까요?</h2>
-            <p>회의를 정리하면 결정·할 일을 근거와 함께 뽑고, 과거 결정·사내 정책과 충돌하는지 확인합니다.</p>
-          </div>
           <template v-for="item in log" :key="item.id">
             <div class="mu" v-if="item.kind === 'user'"><span>{{ item.text }}</span></div>
             <div class="steps-box" v-else-if="item.kind === 'steps' && item.steps.length">
@@ -516,10 +517,26 @@ tr.lock td { color: var(--muted); }
       </div>
 
       <div class="composer" v-show="page === 'chat'" :class="{ center: !log.length }">
+        <div class="hello" v-if="!log.length">
+          <h2>{{ me.name }}님, 무엇을 정리할까요?</h2>
+          <p>회의를 정리하면 결정·할 일을 근거와 함께 뽑고, 과거 결정·사내 정책과 충돌하는지 확인합니다.</p>
+        </div>
+        <div class="samples" v-if="!log.length">
+          <button v-for="s in samples" :key="s.q" @click="send(s.q)">{{ s.q }}<small>{{ s.d }}</small></button>
+        </div>
         <div class="cbox">
           <textarea ref="inputEl" v-model="input" rows="1" @input="autoGrow" @keydown.enter.exact.prevent="send()"
                     placeholder="회의 정리, 제안 검토, 결정 근거를 물어보세요 (Shift+Enter 줄바꿈)"></textarea>
           <div class="crow">
+            <span class="grow"></span>
+            <select class="in-model" v-model="modelKey" title="모델 조합">
+              <option v-for="p in presets" :key="p.key" :value="p.key" :disabled="!p.available">{{ p.key === 'auto' ? '자동' : p.label + ' · ' + (p.fast === p.quality ? p.quality : p.fast + '+' + p.quality) }}</option>
+            </select>
+            <button class="send" :disabled="sending || !input.trim()" @click="send()" title="보내기">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          </div>
+        </div>
+        <div class="scope-out">
         <div class="scope">
           <label>
             <select class="s-prj" title="프로젝트" v-model="scopePrj" @change="onScopePrj"><option value="">프로젝트 자동</option>
@@ -545,15 +562,6 @@ tr.lock td { color: var(--muted); }
 
           <button class="s-clear" v-if="scopePrj || scopeMtg || scopeDate" @click="scopePrj = ''; scopeMtg = ''; scopeDate = ''">해제</button>
             </div>
-            <select class="in-model" v-model="modelKey" title="모델 조합">
-              <option v-for="p in presets" :key="p.key" :value="p.key" :disabled="!p.available">{{ p.key === 'auto' ? '자동' : p.label + ' · ' + (p.fast === p.quality ? p.quality : p.fast + '+' + p.quality) }}</option>
-            </select>
-            <button class="send" :disabled="sending || !input.trim()" @click="send()" title="보내기">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-          </div>
-        </div>
-        <div class="samples" v-if="!log.length">
-          <button v-for="s in samples" :key="s.q" @click="send(s.q)">{{ s.q }}<small>{{ s.d }}</small></button>
         </div>
       </div>
       <div class="ver">v{{ version }} · {{ build }}</div>
@@ -636,7 +644,7 @@ const STEP = {
   RouteDecided: e => ({ meeting: '회의 정리', interview: '면접 요약', opinion: '의견 검토', question: '근거 질의', schedule: '일정 조회', chat: '일반 대화' })[e.route] + ' 경로',
   ScheduleAnswered: e => `회의 목록에서 ${e.range} 조회 — ${e.count}건`,
   PlanCreated: e => e.domain === 'interview' ? `계획: 질문·답변 ${e.competencies}쌍, 공정성 점검 ${e.items}건`
-    : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic} · 프로젝트 ${e.project} (${e.how})` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건`,
+    : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic} · 프로젝트 ${e.project} (${e.how})` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건${e.rechecked ? ` (누락 의심 ${e.rechecked}건 재확인)` : ''}`,
   GateApplied: e => !e.removed ? null : e.removed_seq ? `권위 게이트: 결정 아닌 후보 ${e.removed}건 제외 (발언 ${e.removed_seq.join(', ')})` : `권위 게이트: 근거로 못 쓰는 발언 ${e.removed}건 제외`,
   FairnessFlag: e => `공정성 점검 대상 [${e.seq}] → ${e.rule}`,
   DecisionFound: e => `결정 발견 [${e.seq}] ${e.decided_by}: ${e.statement}`,
@@ -644,7 +652,8 @@ const STEP = {
   ReplanCheck: e => e.is_sufficient ? null : '기준 부족 → 회의 원문에서 논의 추가 조사',
   ConflictChecked: e => `${({ ok: '문제없음', conflict: '충돌', change_approved: '기준 변경(승인됨)', needs_approval: '승인 필요' })[e.status]}: ${e.statement}${e.conflicts.length ? ' — ' + e.conflicts.join(' / ') : ''}`,
   DraftWritten: e => `답변 작성 (시도 ${e.attempt})`,
-  Validation: e => e.verdict.startsWith('합격') ? '검증 통과' : `검증 반려 → 다시 작성 (${e.problems.join(' ')})`,
+  Validation: e => (e.verdict.startsWith('합격') ? '검증 통과' : `검증 반려 → 다시 작성 (${e.problems.join(' ')})`)
+    + (e.judge && Object.keys(e.judge.scores || {}).length ? ` · 품질 심판 관련성 ${e.judge.scores.relevance}·근거 ${e.judge.scores.grounding}·완전성 ${e.judge.scores.completeness}·명확성 ${e.judge.scores.clarity}` : ''),
 };
 const api = (u, opt) => fetch(u, opt).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.detail || r.status); return j; });
 const post = (u, body) => api(u, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });

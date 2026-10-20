@@ -119,6 +119,7 @@ class LedgerState(TypedDict, total=False):
     scope_meeting: str        # 입력창 아래에서 고른 회의 (없으면 지정 안 함)
     history: list[dict]
     restricted: list[str]     # 열람 권한이 없어 가린 결정 ID
+    answer_sources: str       # 질의 답변에 쓴 근거 글 (품질 심판용)
     mode: str                 # meeting / interview / opinion / question / chat
     meeting_id: str
     meeting_date: str
@@ -376,6 +377,11 @@ EXTRACT_SCHEMA = {"type": "object", "properties": {
     "required": ["overview", "decisions", "action_items", "undecided"]}
 
 # 할 일 배정 표현 (기한·부탁). '~까지 해 주세요'는 '하겠습니다'가 섞여도 결정이 아니라 할 일로 본다
+RECHECK_SCHEMA = {"type": "object", "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {
+    "seq": {"type": "integer"}, "is_decision": {"type": "boolean"}, "statement": {"type": "string"},
+    "topic": {"type": "string"}, "proposal_seq": {"type": "integer"}}, "required": ["seq", "is_decision"]}}},
+    "required": ["items"]}
+
 ASSIGN = re.compile(r"까지|주세요|부탁")
 
 TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
@@ -518,15 +524,32 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
         "- undecided: 논의했지만 확정하지 않은 주제.\n"
         "- overview: 전체 흐름을 보고 topic(회의 주제 한 줄), discussion(논의한 내용 3~5개, 각 40자 이내), "
         "direction(앞으로의 방향 1~2문장)을 쓴다. 결정 목록을 반복하지 말고 왜 그 얘기가 나왔는지를 담는다.", user, EXTRACT_SCHEMA)
+    # 누락 재확인: 코드가 '결정?'으로 표시한 후보 중 모델이 어디에도 분류하지 않은 발언만 한 번 더 묻는다
+    # (이미 분류된 결과는 건드리지 않아 다른 결정을 흔들지 않는다 — Wave 7 replan과 같은 '부족하면 한 번 더')
+    classified = {x.get("seq") for k in ("decisions", "action_items", "undecided") for x in out.get(k, [])}
+    missed = [q for q, tag in marks.items() if "결정?" in tag and q not in classified]
+    recheck_usage = None
+    if missed:
+        ctx = "\n".join(f"[{x['seq']}] {x['speaker']}({x['role']}): {x['text']}"
+                        for x in segs if any(m - 2 <= x["seq"] <= m for m in missed))
+        rc, recheck_usage = await deps.quality_llm.json(
+            "아래 표시된 발언이 회의에서 무언가를 정한 '결정'인지 하나씩 판정한다. 진행 안내·질문·회상·보류는 결정이 아니다. "
+            "'그건 ~로 해요', '~로 걸러요'처럼 진행자가 방법을 단정하면 결정이다. 결정이면 statement(무엇을 어떻게, 25자 이내), "
+            "topic(주제 목록 키), proposal_seq(그 결정의 제안 발언, 없으면 같은 번호)를 쓴다.\n\n## 주제 목록\n" + topics,
+            f"## 판정할 발언 번호: {missed}\n\n## 앞 맥락 포함 발언\n{ctx}", RECHECK_SCHEMA, max_tokens=500)
+        for r in rc.get("items", []):
+            if r.get("is_decision") and r.get("seq") in missed and r.get("statement"):
+                out.setdefault("decisions", []).append({"seq": r["seq"], "proposal_seq": r.get("proposal_seq") or r["seq"],
+                                                        "statement": r["statement"], "topic": r.get("topic") or ""})
     mpid = KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)      # 회의 정리는 그 회의의 프로젝트가 기준
     items = [{**d, "decided_seq": d["seq"], "topic": await ensure_topic(deps, topic_key(d["topic"]), d["statement"]),
               "project": mpid} for d in out.get("decisions", [])]
     return {"segments": segs, "meeting_date": segs[0]["date"],
             "attendee_roles": sorted({s["role"] for s in segs}), "items": items,
             "action_items": out.get("action_items", []), "undecided": out.get("undecided", []),
-            "overview": out.get("overview") or {}, "usage": _usage(state, usage),
+            "overview": out.get("overview") or {}, "usage": _usage(state, usage, recheck_usage),
             "events": _ev(state, {"type": "PlanCreated", "items": len(items),
-                                  "action_items": len(out.get("action_items", []))})}
+                                  "action_items": len(out.get("action_items", [])), "rechecked": len(missed)})}
 
 
 # ---------------------------------------------------------------- 면접 전사문 (같은 그래프, plan·write만 도메인별)
@@ -800,6 +823,11 @@ def _after_replan(state: LedgerState) -> str:
 
 
 # ---------------------------------------------------------------- analysis
+JUDGE_ANSWER_SCHEMA = {"type": "object", "properties": {
+    "relevance": {"type": "integer"}, "grounding": {"type": "integer"}, "completeness": {"type": "integer"},
+    "clarity": {"type": "integer"}, "feedback": {"type": "string"}},
+    "required": ["relevance", "grounding", "completeness", "clarity", "feedback"]}
+
 JUDGE_SCHEMA = {"type": "object", "properties": {
     "checks": {"type": "array", "items": {"type": "object", "properties": {
         "ref": {"type": "string"}, "relation": {"type": "string", "enum": ["same", "different", "unrelated"]},
@@ -1188,6 +1216,7 @@ async def write_node(state: LedgerState, deps: LedgerDeps) -> dict:
            "events": _ev(state, {"type": "DraftWritten", "attempt": attempt, "length": len(draft)})}
     if state["mode"] == "question":
         out["restricted"] = restricted
+        out["answer_sources"] = sources        # 품질 심판이 답과 근거를 대조하는 데 쓴다
     return out
 
 
@@ -1207,6 +1236,7 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
     """
     attempts = state.get("validation_attempts", 0) + 1
     problems = []
+    judge = judge_usage = None
     if state["mode"] in ("meeting", "interview"):
         by_seq = {s["seq"]: s["text"] for s in state.get("segments", [])}
         for d in state.get("items", []) + state.get("competencies", []):
@@ -1228,11 +1258,27 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
             problems.append("승인 대기 결정이라는 점을 밝히세요.")
         if not ids and res["authority"] in ("none", "discussion") and "결정되지 않" not in state["draft"]:
             problems.append("유효한 결정이 없으니 '결정되지 않음'을 밝히세요.")
+        # 코드 검사를 통과했으면 LLM 심판(LLM-as-Judge)이 질문 대비 답의 품질을 4기준으로 채점 — 3점 미만이면 재작성
+        if not problems and attempts < 3:
+            short = state["draft"].split("\n\n### ")[0]          # 코드가 붙인 근거 블록은 빼고 모델이 쓴 답만
+            sc, judge_usage = await deps.fast_llm.json(
+                "질문에 대한 답을 근거와 비교해 1~5점으로 채점한다. relevance(질문에 바로 답하는가), grounding(근거에 있는 내용만 쓰는가), "
+                "completeness(결정 번호·상태 등 필요한 사실을 빠뜨리지 않는가), clarity(짧고 분명한가). 3점 미만인 기준이 있으면 feedback에 고칠 점 한 줄.",
+                f"## 질문\n{state['message']}\n\n## 근거\n{state.get('answer_sources', '')[:2500]}\n\n## 답\n{short}", JUDGE_ANSWER_SCHEMA, max_tokens=200)
+            scores = {k: sc.get(k) for k in ("relevance", "grounding", "completeness", "clarity") if isinstance(sc.get(k), int)}
+            judge = {"scores": scores, "feedback": sc.get("feedback", "")}
+            if scores and min(scores.values()) < 3:
+                problems.append(f"품질 심판: {sc.get('feedback') or '점수 미달'}")
     # 3회째에는 문제가 남아도 통과시킨다 — write ⇄ validate 무한 반복 방지
     ok = not problems or attempts >= 3
     verdict = "합격" if not problems else ("합격(최대 시도 도달)" if ok else "불합격")
+    ev = {"type": "Validation", "attempt": attempts, "verdict": verdict, "problems": problems}
+    if judge:
+        ev["judge"] = judge
     out = {"validation_attempts": attempts, "validation_feedback": None if ok else "\n".join(problems),
-           "events": _ev(state, {"type": "Validation", "attempt": attempts, "verdict": verdict, "problems": problems})}
+           "events": _ev(state, ev)}
+    if judge_usage:
+        out["usage"] = _usage(state, judge_usage)
     if problems and ok and state["mode"] == "question":
         # 3번 다시 써도 빠진 사실은 코드가 덧붙인다 (모델에게 맡기지 않는 마지막 안전장치)
         res = state["items"][0]["research"]

@@ -313,7 +313,9 @@ def score(run: dict) -> dict:
         "의견 판정 정확(%)": pct(o["verdict_ok"], o["total"]),
         "대체된 결정 인용(건)": m["stale_cited"] + o["stale_cited"],
         "근거 질의 정답(%)": pct(q["ok"], q["total"]),
-        "평균 처리 시간(초)": cost["avg_sec"], "LLM 호출 수": cost["llm_calls"], "토큰": cost["tokens"]}
+        "평균 처리 시간(초)": cost["avg_sec"], "LLM 호출 수": cost["llm_calls"], "토큰": cost["tokens"],
+        # 로컬 모델이라 실비용은 0원. 같은 토큰을 OpenAI gpt-4o-mini로 처리했다면 얼마인지 환산(입력·출력 혼합 단가 $0.3/1M 가정)
+        "비용 환산(USD, gpt-4o-mini)": round(cost["tokens"] * 0.3 / 1_000_000, 4)}
 
 
 def to_md(scores: dict) -> str:

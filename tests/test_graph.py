@@ -275,3 +275,34 @@ def test_user_scope_project_overrides_default():
     assert seen["project_id"] == "PRJ-CSBOT" and seen["meeting_id"] == "OPS-M03"
     st = run(graph.ainvoke({"message": "캐시는 어떻게 하기로 했어?", "events": []}))
     assert next(e for e in st["events"] if e["type"] == "PlanCreated")["how"].startswith("기본값")
+
+
+def test_answer_judge_low_score_triggers_rewrite():
+    st = {"mode": "question", "message": "SSE는 왜 골랐어?", "draft": "OPS-0007 때문입니다.", "events": [],
+          "answer_sources": "OPS-0007 ...", "items": [{"research": {"authority": "decision", "current": {"decision_id": "OPS-0007"}, "pending": []}}]}
+
+    class LowJudge(FakeLLM):
+        async def json(self, system, user, schema, **kw):
+            return {"relevance": 2, "grounding": 5, "completeness": 4, "clarity": 4, "feedback": "질문에 바로 답하지 않음"}, {"tokens": 1}
+
+    out = run(G.validate_node(st, deps=G.LedgerDeps(fast_llm=LowJudge(), quality_llm=LowJudge(), mcp=FakeMCP())))
+    assert out["validation_feedback"] and "품질 심판" in out["validation_feedback"]
+    assert out["events"][-1]["judge"]["scores"]["relevance"] == 2
+
+
+def test_missed_decision_candidate_is_rechecked():
+    class RecheckLLM(FakeLLM):
+        async def json(self, system, user, schema, **kw):
+            props = schema["properties"]
+            if "decisions" in props:      # 1차 추출: [4] 결정 후보를 빠뜨림
+                return {"overview": {"topic": "t", "discussion": [], "direction": ""}, "decisions": [],
+                        "action_items": [], "undecided": []}, {"tokens": 1}
+            if "items" in props and "is_decision" in str(schema):
+                return {"items": [{"seq": 4, "is_decision": True, "statement": "실시간 전송을 WebSocket으로 변경",
+                                   "topic": "realtime.transport", "proposal_seq": 3}]}, {"tokens": 1}
+            return await super().json(system, user, schema, **kw)
+
+    st = {"message": "M04 회의 정리해줘", "mode": "meeting", "meeting_id": "OPS-M04", "events": []}
+    out = run(G.plan_node(st, deps=G.LedgerDeps(fast_llm=RecheckLLM(), quality_llm=RecheckLLM(), mcp=FakeMCP())))
+    assert [d["decided_seq"] for d in out["items"]] == [4]
+    assert out["events"][-1]["rechecked"] >= 1

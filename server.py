@@ -556,6 +556,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
                         yield sse({**ev, "node": node_name})
                     if evs:
                         seen = len(evs)
+                        state["events"] = evs        # 답변 재사용 때 처리 과정을 그대로 다시 보여 주려고 보관
                     state.update({k: v for k, v in delta.items() if k != "events"})
         except Exception as e:     # LLM 서버 다운·MCP 오류 등 — 화면에 원인을 보여 주고 스트림을 정상 종료
             # 연결 계열 예외(ConnectError 등)는 원인이 대부분 Ollama 미실행이라 조치 안내로 바꾼다
