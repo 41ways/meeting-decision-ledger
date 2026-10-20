@@ -73,13 +73,13 @@ route ─┬ chat ────────────────────�
 | 노드 | 베이스(장애 진단) | 이 프로젝트 |
 |---|---|---|
 | route | chat / 파이프라인 분기 | 회의·면접·의견·질의·일정·잡담 (분명하면 규칙, 애매하면 LLM) |
-| plan | MCP Prompt + 태스크 분해 | MCP Prompt·Resource로 절차를 받고, 결정 후보는 코드가 표시 → LLM이 분류·요약 |
+| plan | MCP Prompt + 태스크 분해 | MCP Prompt·Resource로 절차를 받고, 결정 후보는 코드가 표시 → LLM이 분류·요약. 확정 표현이 있는데 분류되지 않은 후보는 한 번 더 묻는다(누락 재확인) |
 | gate | analysis 태스크 코드 제거 | 결정이 아닌 것(회상·보류) 제거, 인용·담당자·기한을 원문 대조로 확정 |
 | research | 병렬 조회 + 재시도 | 결정마다 현재 기준·권한·예외 조회 (MCP Tool, 병렬, 실패 격리) |
 | replan_check | 런북 없으면 재조사 | 기준이 없으면 R1 원문 논의 추가 조회 (1회) |
 | analysis | 비교 분석 | LLM은 기준마다 같음/다름만 → **코드 판정표**가 충돌 종류 결정 |
 | write | 고품질 모델 답변 | 보고서는 템플릿, 질의 답변만 LLM 토큰 스트리밍 |
-| validate | 길이 검사 → 재작성 | 인용 글자 일치, 답변에 결정 ID 표기. 최대 3회 |
+| validate | 길이 검사 → 재작성 | 코드 검사(인용 글자 일치, 결정 ID 표기) 뒤 질의 답변은 LLM 심판이 관련성·근거·완전성·명확성 1~5점, 3점 미만이면 재작성. 최대 3회 |
 | finalize | 최종 답변 | 문제없는 결정을 승인 대기로 원장 등록. **승인은 사람만** |
 
 LLM과 코드의 역할: **LLM은 요약·분류·"같은가 다른가"만, 무엇이 근거인지·지금 유효한 기준이 무엇인지·충돌 종류는 코드가 정한다.**
@@ -149,7 +149,7 @@ LLM과 코드의 역할: **LLM은 요약·분류·"같은가 다른가"만, 무�
 | Multi-Agent | 계획·역할 분리·체크 노드 (Supervisor 흐름) | 단일 StateGraph 안의 역할 노드형: plan(추출)·research(조회)·analysis(판정)·write(작성)·validate(검증)가 역할별 프롬프트·모델로 분리 |
 | MCP | Tool은 부를 때마다 달라지는 것, Resource는 거의 안 바뀌는 것, Prompt는 표준 절차 | 원장 검색·해석은 Tool, 정책 조항·기준 문서·주제 목록은 Resource, 추출·판정·면접 절차는 Prompt |
 | 권위 게이트 | LLM 판단을 그대로 믿지 말고 코드로 강제 | gate, 판정표, 권한 검사 |
-| Validator | 심사 후 재작성, 횟수 상한 | validate 최대 3회 |
+| Validator | 심사 후 재작성, 횟수 상한 | validate 최대 3회, 질의 답변은 LLM-as-Judge 점수까지 |
 | 재시도 | 일시 오류만 재시도 | `with_retry` (timeout만) |
 | 병렬·격리 | gather + 동시 실행 상한 + 부분 결과 | `gather_safe` (Semaphore 2, return_exceptions) |
 | 모델 티어링 | 작업별 모델 분리 | `fast_llm`/`quality_llm`/`chat_llm`, 입력창 모델 조합(자동·정확·빠름·가장 빠름), 조합별 그래프 미리 생성 |
@@ -335,7 +335,7 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 - 로그인은 시연용(비밀번호 없음). 실제 사내 도입 시 SSO 연동 필요
 - 계획 대비 변경: 진행 계획의 'LLM 심판 2단 검증'은 코드 검증 + 답변 품질 심판으로, 'LangSmith Dataset 비교'는 자체 평가 스크립트(`eval/run_eval.py`)로 대신했다
 - 모듈화: 그래프 노드 11개가 `agent/ledger_graph.py` 한 파일에 있다. 노드별 파일 분리는 제출 직전 회귀 위험 때문에 하지 않았다
-- 향후: LLM-as-Judge로 요약 품질 평가, LangSmith Dataset 연동, 회의 녹음 → 화자 분리 → 원장까지 이어지는 입력 파이프라인
+- 향후: LLM-as-Judge를 회의 요약 보고서까지 확대, LangSmith Dataset 연동, 회의 녹음 → 화자 분리 → 원장까지 이어지는 입력 파이프라인
 
 ### 면접 전사문 정리
 
