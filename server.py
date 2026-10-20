@@ -15,6 +15,7 @@ import os
 import re
 from contextlib import asynccontextmanager
 from dataclasses import replace
+from datetime import date
 from pathlib import Path
 
 import httpx
@@ -27,7 +28,8 @@ from fastapi.responses import FileResponse, StreamingResponse
 from langsmith import traceable
 from pydantic import BaseModel
 
-from agent.ledger_graph import LedgerDeps, build_ledger_graph, normalize_meeting_id
+from agent.enrich import _overlap
+from agent.ledger_graph import TODAY, LedgerDeps, build_ledger_graph, normalize_meeting_id
 from agent.session_store import SqliteSessionStore
 from ledger.access import AccessStore
 from ledger.calendar import build_calendar
@@ -66,6 +68,32 @@ class UserReq(BaseModel):
         user: 요청한 사용자 ID
     """
     user: str
+
+
+class EditReq(BaseModel):
+    """
+    승인 전 결정 수정 요청 본문
+    Attributes:
+        user:      요청한 사용자 ID (팀장)
+        statement: 고친 결정 문장 (비우면 그대로)
+        topic:     고친 주제 키 (비우면 그대로)
+    """
+    user: str
+    statement: str = ""
+    topic: str = ""
+
+
+class CloseReq(BaseModel):
+    """
+    미결 닫기 요청 본문
+    Attributes:
+        user:    요청한 사용자 ID (팀장)
+        item_id: 미결 항목 ID
+        reason:  닫는 사유
+    """
+    user: str
+    item_id: str
+    reason: str = ""
 
 
 class RejectReq(BaseModel):
@@ -704,8 +732,78 @@ async def admin_pending(user: str):
         pending.append({k: v for k, v in r.items() if k != "evidence"} | {
             "requested_by": requester,
             "source": src.get(did, {}).get("source", "원장"),
-            "meetings": sorted({e["meeting_id"] for e in r.get("evidence", [])})})
+            "meetings": sorted({e["meeting_id"] for e in r.get("evidence", [])}),
+            # 승인하면 대체될 결정 미리보기 — 주제가 틀리면 무관한 결정이 무효가 되므로 누르기 전에 보여 준다
+            "will_supersede": await app.state.deps.mcp.call("will_supersede", decision_id=did),
+            "quotes": [e.get("quote") for e in r.get("evidence", [])][:2]})
     return {"decisions": pending, "requests": acc.requests("pending"), "history": acc.requests(None)[:20]}
+
+
+@app.post("/decisions/{decision_id}/edit")
+async def edit_decision(decision_id: str, req: EditReq):
+    """
+    승인 전 결정의 문장·주제 수정 (팀장 전용) — 원장 품질을 올리는 가장 싼 방법
+    Args:
+        decision_id: 승인 대기 결정 ID
+        req:         수정 내용
+    Returns:
+        {"updated", "before"}
+    Raises:
+        HTTPException: 403 — 팀장이 아님 / 400 — 승인 대기 상태가 아님
+    """
+    lead_only(req.user)
+    try:
+        return await app.state.deps.mcp.call("update_proposed_decision", decision_id=decision_id,
+                                             actor=app.state.access.user(req.user)["name"],
+                                             statement=req.statement, topic=req.topic)
+    except Exception as e:  # pylint: disable=broad-exception-caught  # MCP 도구 오류 메시지를 그대로 전달
+        raise HTTPException(400, str(e)) from e
+
+
+@app.get("/open-items")
+async def open_items(user: str):
+    """
+    미결함 — 열린 미결과 경과일, 같은 회의의 후속 할 일 (팀장 전용)
+
+    후속 할 일의 기한이 지났거나 2주 넘게 열려 있으면 'stale'로 표시해 팀장에게 결정 여부를 묻는다.
+    침묵을 결정으로 보지 않기 위한 장치.
+    Args:
+        user: 요청한 사용자 ID
+    Returns:
+        {"items": [미결 + age_days, follow_up, stale]}
+    Raises:
+        HTTPException: 403 — 팀장이 아님
+    """
+    lead_only(user)
+    mcp, out, today = app.state.deps.mcp, [], date.fromisoformat(TODAY)
+    for o in await mcp.call("open_items", project_id=""):
+        acts = [a for a in await mcp.call("meeting_items", meeting_id=o["meeting_id"])
+                if a["kind"] == "action" and _overlap(a["statement"], o["statement"]) >= 1]
+        age = (today - date.fromisoformat(o["date"])).days if o.get("date") else 0
+        overdue = [a for a in acts if a.get("due") and a["due"] < TODAY]
+        out.append({**o, "age_days": age, "follow_up": [{"statement": a["statement"], "owner": a.get("owner"),
+                                                         "due": a.get("due")} for a in acts],
+                    "stale": bool(overdue) or age >= 14})
+    return {"items": out}
+
+
+@app.post("/open-items/close")
+async def close_open_item(req: CloseReq):
+    """
+    미결 닫기 (팀장 전용) — 회의 밖에서 정해졌거나 하지 않기로 한 것
+    Args:
+        req: 닫을 미결과 사유
+    Returns:
+        갱신된 미결 항목
+    Raises:
+        HTTPException: 403 — 팀장이 아님 / 400 — 열린 미결이 아님
+    """
+    lead_only(req.user)
+    try:
+        return await app.state.deps.mcp.call("close_open_item", item_id=req.item_id,
+                                             actor=app.state.access.user(req.user)["name"], reason=req.reason)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        raise HTTPException(400, str(e)) from e
 
 
 @app.post("/decisions/{decision_id}/approve")

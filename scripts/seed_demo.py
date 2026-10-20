@@ -175,6 +175,11 @@ def main():
                               "evidence": [{"meeting_id": "OPS-M04", "seq": q, "quote": m04[q]["text"]}
                                            for q in (10, 11)]})
         acc.record_proposal(did, "pdy", "OPS-M04")
+        # 회의 기록(process_meetings.py가 채운 OPS-M04 결정 후보)에 이 원장 번호를 잇는다 — 사안 흐름·미결 연결이 원장을 가리키게
+        from ledger.records import MeetingRecords  # pylint: disable=import-outside-toplevel
+        rec = MeetingRecords()
+        if rec.item("OPS-M04:decision:11"):
+            rec.link_decision("OPS-M04:decision:11", did, "서지후")
     # 열람 요청 1건 (인턴이 참석하지 않은 회의)
     acc.request_access("yhr", "OPS-M04", "온보딩 자료 정리")
     print(f"시드 완료: 대화방 {len(THREADS)}개, 승인 대기 1건, 열람 요청 1건")

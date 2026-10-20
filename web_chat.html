@@ -181,6 +181,9 @@ input.sel { padding-right: 10px; background-image: none; cursor: text; }
 .dd-txt small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dd-check { width: 15px; height: 15px; color: var(--accent); flex: none; }
 .dd-empty { padding: 10px; font-size: 12.5px; color: var(--muted); }
+.quote { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.sup-warn { font-size: 12px; color: #a35a00; background: #fff4e5; border-radius: 4px; padding: 3px 6px; margin-top: 4px; }
+tr.stale td { background: #fffaf2; }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
 /* 공통 버튼·표 */
@@ -458,6 +461,7 @@ tr.lock td { color: var(--muted); }
           <div class="ptabs">
             <button :class="{ on: atab === 'dec' }" @click="atab = 'dec'">결정·의견 승인<span class="cnt">{{ admin.decisions.length }}</span></button>
             <button :class="{ on: atab === 'req' }" @click="atab = 'req'">열람 요청<span class="cnt">{{ admin.requests.length }}</span></button>
+            <button :class="{ on: atab === 'open' }" @click="atab = 'open'; loadOpen()">미결<span class="cnt">{{ openItems.length }}</span></button>
             <button :class="{ on: atab === 'acl' }" @click="atab = 'acl'; loadAcl()">회의 접근 권한</button>
             <button :class="{ on: atab === 'his' }" @click="atab = 'his'">처리 이력</button>
           </div>
@@ -468,9 +472,12 @@ tr.lock td { color: var(--muted); }
               <tr v-if="!admin.decisions.length && !doneDec.length"><td colspan="5" class="muted">승인 대기 없음</td></tr>
               <tr v-for="d in admin.decisions" :key="d.decision_id">
                 <td class="mono">{{ d.decision_id }}</td>
-                <td>{{ d.statement }}<br><span class="muted" style="font-size:12px">{{ d.topic }} · {{ d.source }}</span></td>
+                <td>{{ d.statement }}<br><span class="muted" style="font-size:12px">{{ d.topic }} · {{ d.source }}</span>
+                  <div class="quote" v-for="(q, i) in d.quotes || []" :key="i">“{{ q }}”</div>
+                  <div class="sup-warn" v-if="d.will_supersede && d.will_supersede.length">승인하면 대체: <span v-for="x in d.will_supersede" :key="x.decision_id"><b class="mono">{{ x.decision_id }}</b> {{ x.statement }} </span></div></td>
                 <td>{{ d.requested_by }}</td><td class="mono">{{ d.meetings.join(', ') || '의견' }}</td>
-                <td><button class="btn pri" @click="decide(d, true)">승인</button> <button class="btn dng" @click="decide(d, false)">반려</button></td>
+                <td><button class="btn pri" @click="decide(d, true)">승인</button> <button class="btn dng" @click="decide(d, false)">반려</button>
+                  <button class="btn" style="margin-top:4px" @click="editDec(d)">수정</button></td>
               </tr>
               <tr v-for="d in doneDec" :key="'x' + d.decision_id">
                 <td class="mono">{{ d.decision_id }}</td><td>{{ d.statement }}
@@ -511,6 +518,21 @@ tr.lock td { color: var(--muted); }
               <tr v-for="m in acl" :key="m.meeting_id">
                 <td class="mono">{{ m.meeting_id }}</td><td>{{ m.title }}</td><td class="muted" style="font-size:12px">{{ m.attendees.join(', ') }}</td>
                 <td v-for="r in ['인턴', '팀원', '담당자']" :key="r"><input type="checkbox" :checked="m.roles.includes(r)" @change="setAcl(m, r, $event.target.checked)"></td>
+              </tr>
+            </table>
+          </div>
+          <div v-if="atab === 'open'">
+            <p class="note">회의에서 결론을 내지 않은 논의입니다. 말이 없다고 결정된 것으로 보지 않습니다. 후속 할 일 기한이 지났거나 2주 넘게 열려 있으면 '확인 필요'로 표시합니다. 회의 밖에서 정해졌거나 하지 않기로 했으면 여기서 닫습니다.</p>
+            <table>
+              <tr><th style="width:140px">회의</th><th style="width:120px">주제</th><th>미결 내용</th><th style="width:200px">후속 할 일</th><th style="width:80px">경과</th><th style="width:90px"></th></tr>
+              <tr v-if="!openItems.length"><td colspan="6" class="muted">열린 미결 없음</td></tr>
+              <tr v-for="o in openItems" :key="o.item_id" :class="{ stale: o.stale }">
+                <td class="mono">{{ o.meeting_id }}<br><span class="muted">{{ o.date }}</span></td>
+                <td class="mono">{{ o.topic || '—' }}</td>
+                <td>{{ o.statement }}<div class="quote" v-for="e in (o.evidence || []).slice(0, 1)" :key="e.seq">[{{ e.seq }}] {{ e.speaker }} “{{ e.quote }}”</div></td>
+                <td><div v-for="a in o.follow_up" :key="a.statement">{{ a.statement }} <span class="muted">{{ a.owner || '?' }} · {{ a.due || '기한 없음' }}</span></div><span v-if="!o.follow_up.length" class="muted">없음</span></td>
+                <td><span :class="o.stale ? 'st-wait' : ''">{{ o.age_days }}일{{ o.stale ? ' · 확인 필요' : '' }}</span></td>
+                <td><button class="btn" @click="closeOpen(o)">닫기</button></td>
               </tr>
             </table>
           </div>
@@ -933,8 +955,26 @@ createApp({
       if (me.value?.role !== '팀장') return;
       const j = await api(`/admin/pending?user=${me.value.user_id}`);
       admin.decisions = j.decisions; admin.requests = j.requests.map(r => ({ ...r, scope: 'user', duration: 'once', until: '', done: null })); admin.history = j.history;
+      loadOpen();
     }
     async function loadAcl() { acl.value = (await api(`/admin/acl?user=${me.value.user_id}`)).meetings; }
+    const openItems = ref([]);
+    async function loadOpen() { if (me.value?.role === '팀장') openItems.value = (await api(`/open-items?user=${me.value.user_id}`)).items; }
+    async function closeOpen(o) {
+      const reason = await ask({ title: '미결 닫기', message: `${o.meeting_id} '${o.statement}' — 결정 없이 닫는 사유를 적어 주세요 (예: 회의 밖에서 하지 않기로 함).`, input: '', placeholder: '사유', ok: '닫기' });
+      if (reason === null) return;
+      await post('/open-items/close', { user: me.value.user_id, item_id: o.item_id, reason });
+      loadOpen();
+    }
+    async function editDec(d) {
+      const st = await ask({ title: `${d.decision_id} 수정`, message: '승인 전에 결정 문장을 고칩니다. 원문 인용과 다르게 요약됐다면 여기서 바로잡으세요.', input: d.statement, ok: '다음' });
+      if (st === null) return;
+      const tp = await ask({ title: `${d.decision_id} 주제`, message: '주제 키가 맞는지 확인합니다. 주제가 틀리면 승인 때 엉뚱한 결정이 대체됩니다.', input: d.topic, ok: '저장' });
+      if (tp === null) return;
+      try { await post(`/decisions/${d.decision_id}/edit`, { user: me.value.user_id, statement: st.trim(), topic: tp.trim() }); }
+      catch (e) { await ask({ title: '수정 실패', message: String(e.message || e), cancel: null }); }
+      loadAdmin();
+    }
 
     async function login(uid) {
       me.value = users.value.find(u => u.user_id === uid); ls.set('ledger_user', uid);
@@ -1131,7 +1171,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,

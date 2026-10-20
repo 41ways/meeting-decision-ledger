@@ -301,6 +301,20 @@ class LedgerRAG:
         # 하한이 없으면 논의한 적 없는 주제에도 가장 가까운 발언이 '관련 논의'로 붙는다
         return [r for r in rows if min_score is None or r["_score"] >= min_score]
 
+    def delete_transcript(self, meeting_id: str) -> int:
+        """
+        회의 하나의 발언 색인 삭제 (보존 기한이 지난 원문 파기용)
+        Args:
+            meeting_id: 회의 ID
+        Returns:
+            지운 발언 수
+        """
+        col = self.col(R1)
+        ids = col.get(where={"meeting_id": meeting_id})["ids"]
+        if ids:
+            col.delete(ids=ids)
+        return len(ids)
+
     def topic_support(self, query: str, topic: str) -> float | None:
         """
         이 주제로 저장된 결정·기준 문서 중 질의와 가장 가까운 것의 유사도

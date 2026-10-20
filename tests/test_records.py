@@ -58,3 +58,27 @@ def test_forget_details_trims_open_items_but_keeps_decisions(rec):
     assert out == {"summary_cleared": True, "open_trimmed": 1}
     assert rec.item("OPS-M03:open:10")["statement"].startswith("(원문 파기")
     assert rec.item("OPS-M03:decision:3")["statement"] == "캐시는 런북 문서에만"
+
+
+def test_retention_dry_run_then_apply(tmp_path):
+    import json
+    import shutil
+    from scripts import retention                     # noqa: PLC0415
+    data = tmp_path / "data"
+    (data / "r1_meetings").mkdir(parents=True)
+    shutil.copy("data/project/users.json", data / "users.json")
+    for mid, day in (("OPS-M01", "2026-06-01"), ("OPS-M02", "2026-10-01")):
+        (data / "r1_meetings" / f"{mid}.json").write_text(json.dumps(
+            {"meeting_id": mid, "project_id": "PRJ-OPSAI", "date": day, "title": "t", "attendees": [], "segments": []}))
+    rec = MeetingRecords(tmp_path / "ledger.db")
+    rec.sync_meetings(data)
+    rec.save_meeting("OPS-M01", {"topic": "x", "lines": []}, [OPEN_M03], "v")
+    plan = retention.run(rec, data, "2026-10-20", 90, apply=False)
+    assert len(plan) == 1 and "OPS-M01" in plan[0] and "시험 실행" in plan[0]
+    assert (data / "r1_meetings" / "OPS-M01.json").exists()                  # 시험 실행은 지우지 않는다
+    retention.run(rec, data, "2026-10-20", 90, apply=True)
+    assert not (data / "r1_meetings" / "OPS-M01.json").exists() and (data / "r1_meetings" / "OPS-M02.json").exists()
+    m = rec.meeting("OPS-M01")
+    assert m["transcript_deleted"] == 1 and m["summary"] is None and m["date"] == "2026-06-01"   # 회의 정보는 남는다
+    assert rec.item("OPS-M01:open:10")["statement"].startswith("(원문 파기")
+    assert "지난 회의 없음" in retention.run(rec, data, "2026-10-20", 90, apply=True)[0]
