@@ -140,13 +140,13 @@ input.sel { padding-right: 10px; background-image: none; cursor: text; }
 .cal-pick svg { width: 16px; height: 16px; pointer-events: none; } .cal-pick:hover { color: var(--accent); border-color: var(--accent); }
 .cal-pick:hover { background: #f1f3f6; } .cal-pick.on { color: var(--accent); background: #e3e9f2; }
 .scope { position: relative; }
-.mini { position: absolute; bottom: 34px; left: -120px; width: 268px; cursor: default; color: var(--fg); background: #fff; border: 1px solid #dfe4ea; border-radius: 10px;
+.mini { position: absolute; top: 0; left: 36px; width: 268px; cursor: default; color: var(--fg); background: #fff; border: 1px solid #dfe4ea; border-radius: 10px;
   box-shadow: 0 10px 30px rgba(20,35,60,.18); z-index: 30; padding: 10px; animation: rise .15s ease-out; }
 .mini-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: var(--fg); font-size: 13px; }
 .mini-hd button { padding: 2px 8px; color: var(--muted); font-size: 15px; } .mini-hd button:hover { color: var(--accent); }
 .mini-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .mini-grid .mh { text-align: center; font-size: 11px; color: var(--muted); padding: 2px 0; } .mini-grid .mh.sun { color: #c0392b; } .mini-grid .mh.sat { color: #1f5fbf; }
-.mini-grid button { min-width: 0; height: 34px; border-radius: 6px; font-family: var(--mono); font-size: 12px; color: #a3acb8; position: relative; padding-bottom: 6px; }
+.mini-grid button { min-width: 0; height: 31px; border-radius: 6px; font-family: var(--mono); font-size: 12px; color: #a3acb8; position: relative; padding-bottom: 6px; }
 .mini-grid button.has { color: var(--navy); font-weight: 700; background: #dce5f1; cursor: pointer; } .mini-grid button.has:hover { background: #c7d5e8; }
 .mini-grid button.sel { background: var(--accent); color: #fff; } .mini-grid button.today { box-shadow: inset 0 0 0 1px var(--navy); }
 .mini-grid button:disabled { cursor: default; } .mini-grid button.blank { visibility: hidden; }
@@ -181,7 +181,6 @@ input.sel { padding-right: 10px; background-image: none; cursor: text; }
 .dd-txt small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dd-check { width: 15px; height: 15px; color: var(--accent); flex: none; }
 .dd-empty { padding: 10px; font-size: 12.5px; color: var(--muted); }
-.mini.down { bottom: auto; top: 34px; }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
 /* 공통 버튼·표 */
@@ -564,7 +563,7 @@ tr.lock td { color: var(--muted); }
             <span class="cal-pick" :class="{ on: scopeDate }" :title="scopeDate ? scopeDate + ' 회의만 보는 중' : '날짜로 회의 찾기'" @click.stop="openMini($event)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
               <!-- 작은 달력: 회의가 있는 날만 굵게 + 프로젝트 색 점, 없는 날은 누를 수 없음 -->
-              <div class="mini" :class="{ down: miniDown }" v-if="miniOpen" @click.stop>
+              <div class="mini" ref="miniEl" :style="miniPos" v-if="miniOpen" @click.stop>
                 <div class="mini-hd"><button @click="miniMove(-1)">‹</button><b>{{ miniY }}년 {{ miniM }}월</b><button @click="miniMove(1)">›</button></div>
                 <div class="mini-grid">
                   <span class="mh" v-for="(d, i) in '일월화수목금토'" :key="'h' + d" :class="{ sun: i === 0, sat: i === 6 }">{{ d }}</span>
@@ -801,15 +800,25 @@ createApp({
       label: p.key === 'auto' ? '자동' : p.label, short: p.key === 'auto' ? '자동' : p.label,
       sub: !p.available ? '모델이 설치되지 않음' : p.key === 'auto' ? '요청 종류에 맞춰 모델을 고릅니다'
         : (p.fast === p.quality ? p.quality : p.fast + ' + ' + p.quality) })));
-    const miniOpen = ref(false), miniDown = ref(false), miniY = ref(2026), miniM = ref(10);
+    const miniOpen = ref(false), miniPos = ref({ visibility: 'hidden' }), miniEl = ref(null), miniY = ref(2026), miniM = ref(10);
     document.addEventListener('click', () => { miniOpen.value = false; });
     function openMini(ev) {
       if (!miniOpen.value) {                 // 고른 날짜의 달, 없으면 가장 최근 회의가 있는 달부터
         const base = scopeDate.value || meetingDates.value[meetingDates.value.length - 1] || new Date().toISOString().slice(0, 10);
         miniY.value = +base.slice(0, 4); miniM.value = +base.slice(5, 7);
       }
-      miniDown.value = !!ev && window.innerHeight - ev.currentTarget.getBoundingClientRect().bottom > 330;   // 아래 공간이 넉넉하면 아래로
       miniOpen.value = !miniOpen.value;
+      if (miniOpen.value) { miniPos.value = { visibility: 'hidden' }; nextTick(placeMini); }
+    }
+    // 달력 위치: 아이콘 오른쪽. 아래 공간이 있으면 아이콘 높이부터 아래로, 없으면 입력창 위쪽 바깥으로 올려 입력창을 가리지 않는다
+    function placeMini() {
+      const pick = document.querySelector('.cal-pick'), box = document.querySelector('.cbox'), el = miniEl.value;
+      if (!pick || !box || !el) return;
+      const r = pick.getBoundingClientRect(), b = box.getBoundingClientRect(), w = el.offsetWidth, hgt = el.offsetHeight;
+      let left = r.width + 8;
+      if (r.right + 8 + w > window.innerWidth - 8) left = window.innerWidth - 8 - w - r.left;
+      const top = window.innerHeight - r.top - 8 >= hgt ? 0 : b.top - 8 - hgt - r.top;
+      miniPos.value = { left: left + 'px', top: top + 'px' };
     }
     function miniMove(d) { let m = miniM.value + d, y = miniY.value; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } miniM.value = m; miniY.value = y; }
     const miniCells = computed(() => {
@@ -1060,7 +1069,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { prjOpts, mtgOpts, modelOpts, miniDown, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
