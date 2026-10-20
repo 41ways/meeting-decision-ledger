@@ -393,4 +393,6 @@ OPS-M04 정리 한 번(59.9초)을 LangSmith에 기록한 화면. route → plan
 - [docs/base_analysis.md](docs/base_analysis.md) — 베이스 에이전트 실행 분석
 - [docs/plan.md](docs/plan.md) — 진행 계획
 - [docs/발표대본.md](docs/발표대본.md) — 5분 발표 대본과 예상 질문
+- [docs/설계_재구성안.md](docs/설계_재구성안.md) — 처음부터 다시 짠다면: 데이터·파이프라인·RAG·권한·운영 설계
+- [docs/오점_점검.md](docs/오점_점검.md) — 오점 점검 목록
 - [data/project/](data/project/) — 가상 프로젝트 데이터
