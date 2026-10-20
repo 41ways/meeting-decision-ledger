@@ -235,7 +235,9 @@ async def ai_alternatives(llm, items: list[dict]) -> dict | None:
         return None
     rows = []
     for n, d in targets:
-        rows.append(f"[{n}] 결정: {d['statement']}\n    목적(근거 발언): " + " / ".join(e["quote"] for e in d["evidence"])
+        # 의견 검토 항목은 근거 발언이 없다 — 의견 문장 자체가 목적
+        goal = " / ".join(e["quote"] for e in d.get("evidence", [])) or d["statement"]
+        rows.append(f"[{n}] 결정: {d['statement']}\n    목적(근거 발언): " + goal
                     + "\n    지켜야 할 기준:\n" + "\n".join(f"      - {t}" for t in _rule_texts(d)))
     out, usage = await llm.json(
         "충돌이 있는 결정마다, 근거 발언에 드러난 목적은 이루면서 '지켜야 할 기준'을 모두 지키는 대안을 하나씩 40자 이내로 쓴다. "
@@ -244,7 +246,7 @@ async def ai_alternatives(llm, items: list[dict]) -> dict | None:
     got = {x.get("i"): (x.get("alternative") or "").strip() for x in out.get("items", [])}
     for n, d in targets:
         alt = got.get(n, "")
-        src = " ".join(e["quote"] for e in d["evidence"]) + " " + d["statement"] + " " + " ".join(_rule_texts(d))
+        src = " ".join(e["quote"] for e in d.get("evidence", [])) + " " + d["statement"] + " " + " ".join(_rule_texts(d))
         if alt and not values_ok(alt, src) and not _repeats_change(alt, d):
             d.setdefault("suggestions", []).append({"text": alt, "ai": True})
     return usage

@@ -434,3 +434,23 @@ def test_meeting_result_is_saved_to_records_with_labels():
     assert saved["meeting_id"] == "OPS-M04" and kinds == {"decision", "action"}
     assert saved["items"][0]["label"] == "승인 대기" and "OPS-M04" in st["report"]["refs"]
     assert "참석 서지후(PL)" in st["final"]
+
+
+class OpinionLLM(FakeLLM):
+    async def json(self, system, user, schema, **kw):
+        if "mode" in schema["properties"]:
+            return {"mode": "opinion"}, {"tokens": 1}
+        if "topic" in schema["properties"] and "project" in schema["properties"]:
+            return {"topic": "realtime.transport", "project": "PRJ-OPSAI"}, {"tokens": 1}
+        if "items" in schema["properties"] and "alternative" in str(schema):
+            return {"items": [{"i": 0, "alternative": "SSE 유지, 멈춤은 별도 요청"}]}, {"tokens": 1}
+        return await super().json(system, user, schema, **kw)
+
+
+def test_opinion_conflict_gets_suggestions_without_evidence():
+    """의견 검토 항목은 근거 발언이 없어도 해결 제안·AI 대안이 붙는다 (평가 중 멈춘 회귀 방지)."""
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=OpinionLLM(), quality_llm=OpinionLLM(), mcp=FakeMCP()))
+    st = run(graph.ainvoke({"message": "실시간 전송을 다시 롱폴링으로 돌리면 어떨까요?", "events": []}))
+    item = st["items"][0]
+    assert item["review"]["status"] == "conflict" and item["label"] == "확인 필요"
+    assert any(s["ai"] for s in item["suggestions"]) and "해결 방향" in st["final"]
