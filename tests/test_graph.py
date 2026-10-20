@@ -168,7 +168,7 @@ class FakeLLM:
             return {"checks": [{"ref": "OPS-0007", "relation": "different", "reason": "SSE와 다름"}], "waivers": []}, {"tokens": 1}
         return {}, {"tokens": 1}
 
-    async def text(self, system, user, on_token=None):
+    async def text(self, system, user, on_token=None, **kw):
         return "안녕하세요", {"tokens": 1}
 
 
@@ -229,3 +229,33 @@ def test_schedule_question_answered_from_meeting_list():
     for q in ("지지난주 회의 몇 개야?", "저저번주 회의 몇개", "전전주 회의 몇 건", "2주 전 회의 몇 개야"):
         st = run(graph.ainvoke({"message": q, "events": []}))
         assert "(10-05~10-11)" in st["final"], (q, st["final"])
+
+
+def test_user_scope_project_overrides_default():
+    seen = {}
+
+    class ScopeMCP(FakeMCP):
+        async def call(self, name, **a):
+            if name == "resolve_current":
+                seen["project_id"] = a.get("project_id")
+                return {"topic": "cache", "authority": "none", "current": None, "rules": [], "baseline": [],
+                        "pending": [], "advisory": [], "notes": []}
+            if name == "search_transcript":
+                seen["meeting_id"] = a.get("meeting_id")
+                return []
+            return await super().call(name, **a)
+
+    class TopicLLM(FakeLLM):
+        async def json(self, system, user, schema, **kw):
+            if "topic" in schema["properties"]:
+                return {"topic": "cache", "project": "PRJ-OPSAI"}, {"tokens": 1}
+            return await super().json(system, user, schema, **kw)
+
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=TopicLLM(), quality_llm=TopicLLM(), mcp=ScopeMCP()))
+    st = run(graph.ainvoke({"message": "캐시는 어떻게 하기로 했어?", "events": [], "scope_project": "CSB",
+                            "scope_meeting": "OPS-M03"}))
+    plan = next(e for e in st["events"] if e["type"] == "PlanCreated")
+    assert plan["project"] == "CSB" and plan["how"] == "직접 지정"
+    assert seen["project_id"] == "PRJ-CSBOT" and seen["meeting_id"] == "OPS-M03"
+    st = run(graph.ainvoke({"message": "캐시는 어떻게 하기로 했어?", "events": []}))
+    assert next(e for e in st["events"] if e["type"] == "PlanCreated")["how"].startswith("기본값")

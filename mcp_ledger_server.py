@@ -176,9 +176,10 @@ def topic_candidates(text: str, k: int = 3) -> list[dict]:
 
 
 @mcp.tool()
-def resolve_current(text: str, topic: str = "") -> dict:
-    """주제에 대해 지금 유효한 기준을 우선순위(R4 > R3 유효 결정 > R2 현행 > R1 논의)로 해석해 돌려준다."""
-    return resolver.resolve(text, topic or None).to_dict()
+def resolve_current(text: str, topic: str = "", project_id: str = "") -> dict:
+    """주제에 대해 지금 유효한 기준을 우선순위(R4 > R3 유효 결정 > R2 현행 > R1 논의)로 해석해 돌려준다.
+    project_id를 주면 그 프로젝트가 판단 기준이 되고 다른 프로젝트 결정은 참고(advisory)로 돌아간다."""
+    return resolver.resolve(text, topic or None, project_id or None).to_dict()
 
 
 @mcp.tool()
@@ -188,9 +189,9 @@ def check_authority(topic: str, decided_by_role: str, attendee_roles: list[str])
 
 
 @mcp.tool()
-def check_waiver(rule_id: str, on_date: str) -> dict:
+def check_waiver(rule_id: str, on_date: str, project_id: str = "") -> dict:
     """해당 날짜에 유효한 정책 예외(waiver)를 확인한다. 예외는 정책을 바꾸지 않고, 범위 판단은 별도로 필요하다."""
-    return resolver.check_waiver(rule_id, "", on_date)
+    return resolver.check_waiver(rule_id, "", on_date, project_id or None)
 
 
 # ---------------- Resource: R4 정책 조항, R2 현행 문서 ----------------

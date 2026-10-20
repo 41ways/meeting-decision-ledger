@@ -159,9 +159,9 @@ async def thread_messages(thread_id: str):
 
 
 # ---------------------------------------------------------------- 채팅
-def precheck(user: str, message: str) -> str | None:
+def precheck(user: str, message: str, scope_meeting: str = "") -> str | None:
     """회의·면접 정리 요청이면 열람 권한부터 본다. 막히면 안내문을 돌려준다."""
-    mid = normalize_meeting_id(message)
+    mid = normalize_meeting_id(message) or scope_meeting
     if not mid or not re.search(r"정리|요약|추출|처리|분석", message):
         return None
     m = app.state.meetings.get(mid)
@@ -174,16 +174,16 @@ SUMMARY_WORDS = re.compile(r"(?:[A-Z]{3}-)?[MI]\d{2}|회의|면접|정리|요약
 FRESH = re.compile(r"다시|새로|재생성|최신")
 
 
-def cache_key(user: str, message: str) -> str | None:
+def cache_key(user: str, message: str, project: str = "", meeting: str = "") -> str | None:
     """같은 요청이면 같은 키. 회의·면접 정리는 대상 회의로(사람 무관), 질문·의견은 사용자별 문장으로.
     정리 요청에 대상 말고 다른 말이 붙어 있으면(추가 요청) 키를 만들지 않아 새로 처리한다."""
     if FRESH.search(message):
         return None
-    mid = normalize_meeting_id(message)
+    mid = normalize_meeting_id(message) or meeting
     if mid and re.search(r"정리|요약|추출", message):
         return None if SUMMARY_WORDS.sub("", message) else f"summary:{mid}"
     norm = re.sub(r"[\s.,!?~]", "", message)
-    return f"ask:{user}:{norm}" if norm else None
+    return f"ask:{user}:{project or 'auto'}:{meeting or '-'}:{norm}" if norm else None   # 범위가 다르면 다른 요청
 
 
 def project_key_of(result: dict) -> str | None:
@@ -229,7 +229,8 @@ async def chat(req: ChatRequest):
 
 
 @app.get("/chat/stream")
-async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh", force: bool = False):
+async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh", force: bool = False,
+                      project: str = "", meeting: str = ""):
     """노드가 끝날 때마다 새 이벤트를, 답변 작성 중에는 토큰을 'data: {json}\\n\\n'으로 보낸다."""
     deps = app.state.deps
 
@@ -241,20 +242,20 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             yield sse({"type": "Error", "message": "입력이 비어 있습니다."})
             yield "data: [DONE]\n\n"
             return
-        denied = precheck(user, message)
+        denied = precheck(user, message, meeting)
         if denied:
             yield sse({"type": "AccessDenied", "targets": [denied]})
             yield sse({"type": "FinalAnswer", "reply": f"{denied} 열람 권한이 없습니다. 아래에서 열람 요청을 보내면 팀장이 승인합니다."})
             yield "data: [DONE]\n\n"
             return
         # 대화방과 질문은 시작할 때 바로 저장 — 답변 도중 사용자를 바꾸거나 창을 닫아도 대화방이 남는다
-        mid = normalize_meeting_id(message) if re.search(r"정리|요약|추출|처리|분석", message) else ""
+        mid = (normalize_meeting_id(message) or meeting) if re.search(r"정리|요약|추출|처리|분석", message) else ""
         app.state.access.touch_thread(thread_id, user, message, mid.split("-")[0] if mid else None, mid or None)
         history = deps.session_store.load(thread_id)
         deps.session_store.append(thread_id, "user", message)
 
         # 같은 요청 재사용: 원장·정책·문서·원문이 그대로면 저장된 답을 돌려준다
-        key = None if force else cache_key(user, message)
+        key = None if force else cache_key(user, message, project, meeting)
         fp = await deps.mcp.call("ledger_fingerprint")
         hit = app.state.access.cache_get(key, fp) if key else None
         if hit:
@@ -271,7 +272,8 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
         seen, state = 0, {}
         try:
             async for mode, payload in app.state.graph.astream(
-                    {"message": message, "user_id": user, "history": history, "events": []},
+                    {"message": message, "user_id": user, "history": history, "events": [],
+                     "scope_project": project, "scope_meeting": meeting},
                     stream_mode=["updates", "custom"]):
                 if mode == "custom":
                     yield sse(payload)

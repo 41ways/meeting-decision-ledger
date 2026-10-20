@@ -86,6 +86,8 @@ def test_cache_key_same_target_and_extra_request():
     assert k("kjh", "M04 정리해줘 할 일만") is None              # 추가 요청은 새로 처리
     assert k("kjh", "M04 다시 정리해줘") is None
     assert k("kjh", "SSE는 왜 골랐어?") != k("yhr", "SSE는 왜 골랐어?")   # 질문은 권한이 달라 사용자별
+    assert k("kjh", "캐시는 어떻게 했어?") != k("kjh", "캐시는 어떻게 했어?", "CSB")   # 범위가 다르면 다른 요청
+    assert k("kjh", "정리해줘", "", "OPS-M04") == "summary:OPS-M04"           # 회의를 고르고 '정리해줘'만 써도 같은 요청
 
 
 def test_once_grant_is_used_up_on_actual_open(acc):

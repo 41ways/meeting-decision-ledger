@@ -38,6 +38,10 @@ _PRJ_FILE = Path(__file__).resolve().parent.parent / "data" / "project" / "proje
 # 프로젝트 이름표 (질문 대상 프로젝트 고르기·표시용). 약자·이름은 projects.json 한 곳에서 관리
 PROJECTS = {p["project_id"]: f"{p['name']}({'현재' if p['status'] == '진행' else '과거'} 프로젝트, {p['key']})"
             for p in json.loads(_PRJ_FILE.read_text())["projects"] if p["key"] != "HBE"}
+_PRJ_ALL = json.loads(_PRJ_FILE.read_text())["projects"]
+KEY_TO_PID = {p["key"]: p["project_id"] for p in _PRJ_ALL}
+PID_TO_KEY = {v: k for k, v in KEY_TO_PID.items()}
+DEFAULT_PID = "PRJ-OPSAI"
 MEETING_ID = re.compile(r"\b(?:([A-Z]{3})-)?([MI])(\d{2})\b")   # OPS-M04, HBE-I01, 또는 줄여서 M04·I01
 
 
@@ -80,6 +84,8 @@ class LedgerDeps:
 class LedgerState(TypedDict, total=False):
     message: str
     user_id: str
+    scope_project: str        # 입력창 아래에서 사용자가 고른 프로젝트 약자 (없으면 자동)
+    scope_meeting: str        # 입력창 아래에서 고른 회의 (없으면 지정 안 함)
     history: list[dict]
     restricted: list[str]     # 열람 권한이 없어 가린 결정 ID
     mode: str                 # meeting / interview / opinion / question / chat
@@ -138,7 +144,7 @@ ROUTE_SCHEMA = {"type": "object", "properties": {"mode": {"type": "string",
 async def route_node(state: LedgerState, deps: LedgerDeps) -> dict:
     """Wave 5 — 쿼리 라우팅. 분명한 경우는 규칙으로, 애매하면 저비용 모델이 고른다."""
     msg = state["message"]
-    mid = normalize_meeting_id(msg)
+    mid = normalize_meeting_id(msg) or (state.get("scope_meeting") or "")
     usage = None
     if SCHEDULE_Q.search(msg) and re.search(r"회의|면접|일정|미팅", msg) and not re.search(r"정리|요약|추출", msg):
         mode = "schedule"
@@ -225,7 +231,7 @@ async def chat_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
     hist = "\n".join(f"{h['role']}: {h['content']}" for h in (state.get("history") or [])[-6:])
     writer = get_stream_writer()
     reply, usage = await deps.fast_llm.text(
-        "너는 회의 결정 원장 Agent다. 한두 문장으로 답한다. 할 수 있는 일: 회의록 정리('OPS-M04 회의 정리해줘'), "
+        "너는 회의 요약·결정 정리 비서다. 한두 문장으로 답한다. 할 수 있는 일: 회의록 정리('OPS-M04 회의 정리해줘'), "
         "제안 검토('Redis로 바꾸면 어때?'), 과거 결정 근거 질의('SSE는 왜 골랐어?'), 일정 질문('이번 주 회의 몇 개야?'). "
         "회의·결정·일정에 관한 사실은 이 대화에서 지어내지 말고, 위 기능으로 다시 물어보라고 안내한다.",
         f"{hist}\nuser: {state['message']}", on_token=lambda p: writer({"type": "AnswerToken", "delta": p}))
@@ -272,9 +278,17 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             + "\n\n문장이 어느 프로젝트 이야기인지도 고른다 (언급이 없으면 현재 프로젝트).\n" + projects,
             state["message"], TOPIC_SCHEMA)
         topic = (out.get("topic") or "new:unknown").removeprefix("new:")
-        item = {"statement": state["message"], "topic": topic, "project": out.get("project") or "PRJ-OPSAI"}
+        # 판단 기준 프로젝트: 사용자가 고른 것 > 질문에서 판단한 것 > 기본값(OPS). 어떻게 정했는지 화면에 남긴다
+        if state.get("scope_project") in KEY_TO_PID:
+            pid, how = KEY_TO_PID[state["scope_project"]], "직접 지정"
+        elif out.get("project") and out["project"] != DEFAULT_PID:
+            pid, how = out["project"], "질문에서 판단"
+        else:
+            pid, how = DEFAULT_PID, "기본값 — 질문에 프로젝트 언급 없음"
+        item = {"statement": state["message"], "topic": topic, "project": pid}
         return {"items": [item], "usage": _usage(state, usage),
-                "events": _ev(state, {"type": "PlanCreated", "items": 1, "topic": topic})}
+                "events": _ev(state, {"type": "PlanCreated", "items": 1, "topic": topic,
+                                      "project": PID_TO_KEY.get(pid, pid), "how": how})}
 
     if state["mode"] == "interview":
         return await plan_interview(state, deps)
@@ -327,7 +341,9 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
         "- undecided: 논의했지만 확정하지 않은 주제.\n"
         "- overview: 전체 흐름을 보고 topic(회의 주제 한 줄), discussion(논의한 내용 3~5개, 각 40자 이내), "
         "direction(앞으로의 방향 1~2문장)을 쓴다. 결정 목록을 반복하지 말고 왜 그 얘기가 나왔는지를 담는다.", user, EXTRACT_SCHEMA)
-    items = [{**d, "decided_seq": d["seq"], "topic": d["topic"].removeprefix("new:")} for d in out.get("decisions", [])]
+    mpid = KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)      # 회의 정리는 그 회의의 프로젝트가 기준
+    items = [{**d, "decided_seq": d["seq"], "topic": d["topic"].removeprefix("new:"), "project": mpid}
+             for d in out.get("decisions", [])]
     return {"segments": segs, "meeting_date": segs[0]["date"],
             "attendee_roles": sorted({s["role"] for s in segs}), "items": items,
             "action_items": out.get("action_items", []), "undecided": out.get("undecided", []),
@@ -467,16 +483,19 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
     async def one(item: dict) -> dict:
         if item.get("research"):                       # 이미 조사한 항목 — replan이 요청한 R1 조회만 추가
             if item.get("need_transcript") and "discussion" not in item:
-                return {**item, "discussion": await deps.mcp.call("search_transcript", query=item["statement"], k=4)}
+                return {**item, "discussion": await deps.mcp.call("search_transcript", query=item["statement"], k=4,
+                                                                  meeting_id=state.get("scope_meeting") or "")}
             return item
-        res = await deps.mcp.call("resolve_current", text=item["statement"], topic=item["topic"])
+        res = await deps.mcp.call("resolve_current", text=item["statement"], topic=item["topic"],
+                                  project_id=item.get("project") or "")
         if item.get("rule_hint") and item["rule_hint"] not in {r["rule_id"] for r in res.get("rules", [])}:
             rule = json.loads(await deps.mcp.resource(f"policy://current/{item['rule_hint']}"))   # 규칙이 지목한 조항은 직접 가져온다
             res = {**res, "rules": [*res.get("rules", []), rule]}
         on = state.get("meeting_date") or deps.today
         waivers = []
         for r in res.get("rules", []):
-            waivers += (await deps.mcp.call("check_waiver", rule_id=r["rule_id"], on_date=on))["active_waivers"]
+            waivers += (await deps.mcp.call("check_waiver", rule_id=r["rule_id"], on_date=on,
+                                            project_id=item.get("project") or ""))["active_waivers"]
         auth = None
         if state["mode"] == "meeting":
             auth = await deps.mcp.call("check_authority", topic=AUTH_TOPIC.get(item["topic"], "tech.stack"),
@@ -720,8 +739,8 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
     cur_id = res["current"]["decision_id"] if res["authority"] == "decision" else None
     pend = {p["decision_id"] for p in res.get("pending", [])}
     decs = ([res["current"]] if cur_id else []) + res.get("pending", []) + res.get("advisory", [])
-    asked = item.get("project", "PRJ-OPSAI")
-    if asked != "PRJ-OPSAI":      # 과거 프로젝트를 물으면 그 프로젝트 결정을 먼저 (현재 결정은 참고로 뒤에)
+    asked = item.get("project", DEFAULT_PID)
+    if asked != DEFAULT_PID:      # 다른 프로젝트를 물으면 그 프로젝트 결정을 먼저 (나머지는 참고로 뒤에)
         decs = [d for d in decs if d["project_id"] == asked] + [d for d in decs if d["project_id"] != asked]
         L.append(f"질문 대상: {PROJECTS.get(asked, asked)}")
     for d in decs:
@@ -822,7 +841,7 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
         res = item["research"]
         ids = ([res["current"]["decision_id"]] if res["authority"] == "decision" else []) + \
               [p["decision_id"] for p in res.get("pending", [])]
-        if item.get("project", "PRJ-OPSAI") != "PRJ-OPSAI":
+        if item.get("project", DEFAULT_PID) != DEFAULT_PID:
             ids = [a["decision_id"] for a in res.get("advisory", []) if a["project_id"] == item["project"]] or ids
         if ids and not any(i in state["draft"] for i in ids):
             problems.append(f"근거 결정 ID({', '.join(ids)})를 답변에 밝히세요.")

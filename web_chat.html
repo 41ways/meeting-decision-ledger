@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>결정 원장</title>
+<title>회의 요약 · 결정 정리 비서</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -26,7 +26,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .app { display: grid; grid-template-columns: var(--sb) minmax(0, 1fr); height: 100vh; overflow: hidden; }
 /* 좌측 */
 .side { display: flex; flex-direction: column; background: var(--side); border-right: 1px solid var(--line); min-height: 0; }
-.brand { height: 52px; background: var(--navy); color: #fff; padding: 8px 16px; display: flex; flex-direction: column; justify-content: center; }
+.brand { height: 52px; background: var(--navy); color: #fff; padding: 8px 16px; display: flex; flex-direction: column; justify-content: center; text-align: left; width: 100%; cursor: pointer; }
 .brand b { font-size: 15px; letter-spacing: -.01em; }
 .brand small { color: #a9b7ca; font-size: 11px; }
 .newchat { margin: 12px 12px 8px; padding: 8px 10px; text-align: left; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; font-weight: 500; }
@@ -106,6 +106,9 @@ input, select, textarea { font: inherit; color: inherit; }
 .composer input { flex: 1; border: 0; background: none; padding: 12px; outline: none; }
 .composer button { padding: 0 18px; border-left: 1px solid var(--line); color: var(--accent); font-weight: 700; }
 .composer button:disabled { color: var(--line2); }
+.scope { max-width: 800px; margin: 6px auto 0; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.scope label { display: flex; gap: 6px; align-items: center; }
+.scope select { padding: 3px 6px; border: 1px solid var(--line2); border-radius: var(--r); background: #fff; font-size: 12.5px; color: var(--fg); max-width: 240px; }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
 /* 공통 버튼·표 */
@@ -182,6 +185,22 @@ tr.lock td { color: var(--muted); }
 .search select { border: 0; border-left: 1px solid var(--line); background: #fff; padding: 0 8px; }
 .search button { padding: 0 14px; border-left: 1px solid var(--line); color: var(--accent); font-weight: 500; }
 
+/* 대화상자 */
+.dlg-back { position: fixed; inset: 0; background: rgba(20,28,38,.38); display: grid; place-items: center; z-index: 60; animation: fade .15s ease-out; }
+.dlg { width: 400px; max-width: calc(100% - 32px); background: #fff; border: 1px solid var(--line2); border-radius: 4px;
+  box-shadow: 0 18px 50px rgba(20,35,60,.28); animation: rise .18s cubic-bezier(.2,.7,.2,1); overflow: hidden; }
+.dlg-hd { background: var(--navy); color: #fff; padding: 12px 18px; font-weight: 700; font-size: 14.5px; }
+.dlg-hd.danger { background: var(--navy); }   /* 머리줄은 항상 남색, 위험 동작은 버튼만 빨강 */
+.dlg-bd { padding: 16px 18px 6px; }
+.dlg-bd p { margin-bottom: 10px; color: var(--fg); white-space: pre-wrap; }
+.dlg-bd input { width: 100%; padding: 9px 10px; border: 1px solid var(--line2); border-radius: var(--r); outline: none; margin-bottom: 10px; }
+.dlg-bd input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,78,140,.15); }
+.dlg-ft { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 18px 14px; border-top: 1px solid var(--line); background: #f7f9fb; }
+.dlg-ft .btn { padding: 7px 16px; }
+.btn.dng-pri { background: var(--warn); color: #fff; border-color: var(--warn); }
+.btn.dng-pri:hover { background: #8e2111; color: #fff; }
+@keyframes fade { from { opacity: 0; } } @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+
 /* 로그인 */
 .login { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 50; }
 .login .card { width: 440px; max-width: calc(100% - 32px); background: #fff; border: 1px solid var(--line); }
@@ -197,7 +216,7 @@ tr.lock td { color: var(--muted); }
   <!-- 로그인 (시연용: 비밀번호 없음) -->
   <div class="login" v-if="!me">
     <div class="card">
-      <div class="hd"><b>결정 원장</b><small>SKALA 사내 포털 · 시연용 로그인</small></div>
+      <div class="hd"><b>회의 요약 · 결정 정리 비서</b><small>SKALA 사내 포털 · 시연용 로그인</small></div>
       <div class="bd">
         <p class="note">사용자를 고르면 그 역할의 권한으로 들어갑니다.</p>
         <div class="users">
@@ -210,9 +229,24 @@ tr.lock td { color: var(--muted); }
     </div>
   </div>
 
+  <!-- 확인·입력 대화상자: 브라우저 기본 창 대신 화면 가운데 -->
+  <div class="dlg-back" v-if="dlg.open" @click.self="dlgClose(null)" @keydown.esc="dlgClose(null)">
+    <div class="dlg" role="dialog" aria-modal="true">
+      <div class="dlg-hd" :class="{ danger: dlg.danger }">{{ dlg.title }}</div>
+      <div class="dlg-bd">
+        <p v-if="dlg.message">{{ dlg.message }}</p>
+        <input v-if="dlg.input !== null" ref="dlgInput" v-model="dlg.input" :placeholder="dlg.placeholder" @keyup.enter="dlgClose(dlg.input)">
+      </div>
+      <div class="dlg-ft">
+        <button class="btn" v-if="dlg.cancel" @click="dlgClose(null)">{{ dlg.cancel }}</button>
+        <button class="btn" :class="dlg.danger ? 'dng-pri' : 'pri'" @click="dlgClose(dlg.input !== null ? dlg.input : true)">{{ dlg.ok }}</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app" v-if="me">
     <aside class="side">
-      <div class="brand"><b>결정 원장</b><small>SKALA · Decision Ledger</small></div>
+      <button class="brand" title="새 대화 홈으로" @click="goHome"><b>회의 요약 · 결정 정리 비서</b><small>SKALA · Decision Ledger</small></button>
       <button class="newchat" @click="newChat">+ 새 대화</button>
       <div class="sorthint"><span>{{ selPrj ? '관련순' : '최신순' }}</span><b>{{ selPrj }}</b></div>
       <div class="threads" ref="threadBox">
@@ -423,6 +457,15 @@ tr.lock td { color: var(--muted); }
 
       <div class="composer" v-show="page === 'chat'">
         <div class="box"><input v-model="input" @keyup.enter="send()" placeholder="회의 정리(OPS-M04 회의 정리해줘), 제안 검토, 결정 근거 질문"><button :disabled="sending" @click="send()">보내기</button></div>
+        <div class="scope">
+          <label>프로젝트
+            <select v-model="scopePrj" @change="scopeMtg = ''"><option value="">자동 (언급 없으면 OPS)</option>
+              <option v-for="p in projects" :key="p.key" :value="p.key">{{ p.key }} · {{ p.name }}</option></select></label>
+          <label>회의
+            <select v-model="scopeMtg"><option value="">지정 안 함</option>
+              <option v-for="m in scopeMeetings" :key="m.meeting_id" :value="m.meeting_id">{{ m.meeting_id }} · {{ m.title.slice(0, 18) }}</option></select></label>
+          <span class="muted" v-if="scopeMtg">"정리해줘"만 써도 이 회의를 정리합니다</span>
+        </div>
       </div>
       <div class="ver">v{{ version }} · {{ build }}</div>
 
@@ -482,7 +525,7 @@ const STEP = {
   RouteDecided: e => ({ meeting: '회의 정리', interview: '면접 요약', opinion: '의견 검토', question: '근거 질의', schedule: '일정 조회', chat: '일반 대화' })[e.route] + ' 경로',
   ScheduleAnswered: e => `회의 목록에서 ${e.range} 조회 — ${e.count}건`,
   PlanCreated: e => e.domain === 'interview' ? `계획: 질문·답변 ${e.competencies}쌍, 공정성 점검 ${e.items}건`
-    : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic}` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건`,
+    : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic} · 프로젝트 ${e.project} (${e.how})` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건`,
   GateApplied: e => !e.removed ? null : e.removed_seq ? `권위 게이트: 결정 아닌 후보 ${e.removed}건 제외 (발언 ${e.removed_seq.join(', ')})` : `권위 게이트: 근거로 못 쓰는 발언 ${e.removed}건 제외`,
   FairnessFlag: e => `공정성 점검 대상 [${e.seq}] → ${e.rule}`,
   DecisionFound: e => `결정 발견 [${e.seq}] ${e.decided_by}: ${e.statement}`,
@@ -505,7 +548,18 @@ createApp({
     const drawer = ref(false), selPrj = ref(null), projects = ref([]), meetings = ref([]), ledger = ref([]), reqSent = reactive({});
     const calY = ref(2026), calM = ref(10);
     const admin = reactive({ decisions: [], requests: [], history: [] }), doneDec = ref([]), atab = ref('dec'), acl = ref([]);
+    const dlg = reactive({ open: false, title: '', message: '', input: null, placeholder: '', ok: '확인', cancel: '취소', danger: false });
+    const dlgInput = ref(null);
+    let dlgResolve = null;
+    function ask(o) {                       // 확인·입력 대화상자. 취소면 null
+      Object.assign(dlg, { open: true, title: '', message: '', input: null, placeholder: '', ok: '확인', cancel: '취소', danger: false }, o);
+      nextTick(() => dlgInput.value?.focus());
+      return new Promise(res => { dlgResolve = res; });
+    }
+    function dlgClose(v) { dlg.open = false; dlgResolve?.(v); dlgResolve = null; }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && dlg.open) dlgClose(null); });
     const switchOpen = ref(false); document.addEventListener('click', () => { switchOpen.value = false; });
+    const scopePrj = ref(''), scopeMtg = ref('');
     const stab = ref('rag'), ragCounts = ref({}), ragQ = ref('실시간 전송 방식'), ragCol = ref('r3'), ragFiltered = ref(true), ragRows = ref([]);
     let nextId = 0;
     const samples = [
@@ -530,6 +584,7 @@ createApp({
       if (d.toDateString() === now.toDateString()) return '오늘 ' + hm;
       return `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, '0')} ${hm}`;
     };
+    const scopeMeetings = computed(() => meetings.value.filter(m => m.can_view && (!scopePrj.value || m.meeting_id.startsWith(scopePrj.value + '-'))));
     const titleText = computed(() => page.value === 'admin' ? '관리자 콘솔' : page.value === 'settings' ? '설정'
       : (threads.value.find(t => t.thread_id === threadId.value) || {}).title || '새 대화');
     const titleSub = computed(() => {
@@ -589,10 +644,14 @@ createApp({
       await Promise.all([loadThreads(), loadNotes(), loadMeetings(), loadProjects(), loadAdmin()]);
     }
     async function removeThread(t) {
-      if (!confirm(`'${t.title}' 대화를 삭제할까요? 되돌릴 수 없습니다.`)) return;
+      if (!await ask({ title: '대화 삭제', message: `'${t.title}' 대화를 삭제할까요?\n삭제한 대화는 되돌릴 수 없습니다.`, ok: '삭제', danger: true })) return;
       await api(`/threads/${t.thread_id}?user=${me.value.user_id}`, { method: 'DELETE' });
       threads.value = threads.value.filter(x => x.thread_id !== t.thread_id);
       if (threadId.value === t.thread_id) newChat();
+    }
+    function goHome() {                     // 타이틀: 새 대화 홈 (메뉴·알림·선택 범위도 닫음)
+      newChat(); popOpen.value = false; switchOpen.value = false;
+      if (drawer.value) toggleDrawer();
     }
     function newChat() { threadId.value = null; log.value = []; page.value = 'chat'; }
     async function openThread(t) {
@@ -631,7 +690,7 @@ createApp({
       const here = () => me.value && me.value.user_id === uid && threadId.value === tid;   // 사용자·대화방을 바꿨으면 화면 갱신만 멈춤
       log.value.push({ id: nextId++, kind: 'user', text }); input.value = ''; sending.value = true;
       const steps = reactive({ id: nextId++, kind: 'steps', steps: [] }); log.value.push(steps); scroll(true);
-      const es = new EventSource(`/chat/stream?message=${encodeURIComponent(text)}&thread_id=${threadId.value}&user=${me.value.user_id}${force ? '&force=true' : ''}`);
+      const es = new EventSource(`/chat/stream?message=${encodeURIComponent(text)}&thread_id=${threadId.value}&user=${me.value.user_id}${force ? '&force=true' : ''}&project=${scopePrj.value}&meeting=${scopeMtg.value}`);
       let stream = null, attempt = null;
       es.onmessage = ev => {
         if (ev.data === '[DONE]') { es.close(); sending.value = false; if (me.value) { loadThreads(); loadNotes(); loadProjects(); if (selPrj.value) loadLedger(); loadAdmin(); } return; }
@@ -658,7 +717,8 @@ createApp({
       es.onerror = () => { es.close(); sending.value = false; };
     }
     async function requestAccess(item, t) {
-      const reason = prompt(`${t} 열람 사유`, '업무 확인'); if (reason === null) return;
+      const reason = await ask({ title: `${t} 열람 요청`, message: '팀장에게 보낼 열람 사유를 적어 주세요.', input: '업무 확인', placeholder: '열람 사유', ok: '요청 보내기' });
+      if (reason === null) return;
       await post('/access-requests', { user: me.value.user_id, target: t, reason }); item.sent[t] = true; loadNotes();
     }
     async function quickRequest(id) { await post('/access-requests', { user: me.value.user_id, target: id, reason: '원장 열람' }); reqSent[id] = true; loadNotes(); }
@@ -670,7 +730,11 @@ createApp({
     async function decide(d, ok) {
       let r;
       if (ok) r = await post(`/decisions/${d.decision_id}/approve`, { user: me.value.user_id });
-      else { const reason = prompt('반려 사유', ''); if (reason === null) return; await post(`/decisions/${d.decision_id}/reject`, { user: me.value.user_id, reason }); }
+      else {
+        const reason = await ask({ title: `${d.decision_id} 반려`, message: '요청자에게 알림으로 전달됩니다.', input: '', placeholder: '반려 사유 (선택)', ok: '반려', danger: true });
+        if (reason === null) return;
+        await post(`/decisions/${d.decision_id}/reject`, { user: me.value.user_id, reason });
+      }
       admin.decisions = admin.decisions.filter(x => x.decision_id !== d.decision_id);
       const roles = []; d.meetings.forEach(mid => { const a = acl.value.find(m => m.meeting_id === mid); if (a) roles.push(...a.roles); });
       doneDec.value.unshift(reactive({ ...d, ok, open: false, sup: (r?.superseded || []).join(', '), roles: [...new Set(roles)] }));
@@ -681,7 +745,7 @@ createApp({
       d.roles = on ? [...d.roles, role] : d.roles.filter(x => x !== role); loadAcl();
     }
     async function decideReq(r, ok) {
-      if (ok && r.duration === 'until' && !r.until) { alert('기한 날짜를 고르세요'); return; }
+      if (ok && r.duration === 'until' && !r.until) { await ask({ title: '기한 날짜 필요', message: '직접 입력을 고르면 달력에서 열람 기한을 정해야 합니다.', ok: '확인', cancel: '' }); return; }
       await post(`/access-requests/${r.id}/decide`, { user: me.value.user_id, approve: ok, scope: r.scope, duration: r.duration, until: r.until });
       r.done = ok ? 'approved' : 'rejected'; loadNotes();
     }
@@ -733,10 +797,10 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { scopePrj, scopeMtg, scopeMeetings, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
-      login, newChat, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
+      login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
       loadAcl, loadRag, searchRag, go, togglePop, toggleDrawer, pickPrj, openMeeting, month };
   },
 }).mount('#app');

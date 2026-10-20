@@ -61,7 +61,9 @@ class Resolver:
         cands = self.topic_candidates(text, k=1)
         return cands[0]["topic"] if cands else ""
 
-    def resolve(self, text: str, topic: str | None = None) -> Resolution:
+    def resolve(self, text: str, topic: str | None = None, project_id: str | None = None) -> Resolution:
+        """project_id: 판단 기준 프로젝트 (사용자가 지정하지 않으면 기본 프로젝트). 다른 프로젝트 결정은 참고로만."""
+        pid = project_id or self.project_id
         topic = topic or self.topic_of(text)
         res = Resolution(topic=topic, authority="none")
 
@@ -69,15 +71,15 @@ class Resolver:
         res.rules = [r for r in self.rag.search_rules(text, k=3) if r["_score"] >= 0.45]
 
         # R3: 같은 topic의 결정 — 원천은 SQLite (벡터 DB는 후보 찾기용)
-        same = self.store.decisions(project_id=self.project_id, topic=topic) if topic else []
+        same = self.store.decisions(project_id=pid, topic=topic) if topic else []
         active = [d for d in same if d["is_active"]]
         res.pending = [d for d in same if d["status"] == "proposed"]
         others = [d for d in self.store.decisions(topic=topic)
-                  if d["project_id"] != self.project_id and d["is_active"]] if topic else []
+                  if d["project_id"] != pid and d["is_active"]] if topic else []
         res.advisory = others
 
         # R2: 현행 버전 조항
-        res.baseline = [b for b in self.rag.search_baseline(text, k=3)
+        res.baseline = [b for b in self.rag.search_baseline(text, project_id=pid, k=3)
                         if b.get("topic") == topic or b["_score"] >= 0.6]
 
         if active:
@@ -94,7 +96,7 @@ class Resolver:
             res.current = res.baseline[0]
             res.authority = "baseline"
         else:
-            res.discussion = self.rag.search_transcript(text, project_id=self.project_id, k=3)
+            res.discussion = self.rag.search_transcript(text, project_id=pid, k=3)
             res.authority = "discussion" if res.discussion else "none"
             res.notes.append("유효한 결정·기준 문서 없음 — 원문 논의만 있음 (미결정)")
         if res.pending:
@@ -117,7 +119,7 @@ class Resolver:
         return {"ok": ok, "rule": f"{r['rule_id']}@{r['policy_version']}", "approver": r["approver_role"],
                 "threshold": r["threshold"], "reason": r["text"]}
 
-    def check_waiver(self, rule_id: str, scope_text: str, on: str) -> dict:
-        ws = self.store.active_waivers(rule_id, self.project_id, on)
+    def check_waiver(self, rule_id: str, scope_text: str, on: str, project_id: str | None = None) -> dict:
+        ws = self.store.active_waivers(rule_id, project_id or self.project_id, on)
         return {"rule_id": rule_id, "on": on, "active_waivers": ws,
                 "note": "예외는 정책을 바꾸지 않는다. 범위가 맞는지는 별도 판단 필요" if ws else "유효한 예외 없음"}
