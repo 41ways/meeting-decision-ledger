@@ -7,16 +7,31 @@ from mcp.client.stdio import stdio_client
 ROOT = Path(__file__).resolve().parent.parent
 
 async def main():
+    """
+    MCP 서버를 stdio 자식 프로세스로 띄워 노출 목록과 대표 Tool·Resource·Prompt 호출 결과를 출력
+
+    대표 사례: 현재 결정 해석(resolve_current), 결정 권한(check_authority), 정책 예외(check_waiver),
+    원문 발언 조회(get_segments, 원문이 파기된 CS-M09 포함), 현행 정책 Resource, 충돌 검토 Prompt.
+    """
     params = StdioServerParameters(command=sys.executable, args=[str(ROOT / "mcp_ledger_server.py")])
     async with stdio_client(params) as (r, w):
         async with ClientSession(r, w) as s:
             await s.initialize()
             print("Tools:", [t.name for t in (await s.list_tools()).tools])
+            # MCP SDK 버전에 따라 필드 이름이 snake_case/camelCase로 달라 둘 다 받는다
             rt = await s.list_resource_templates()
             items = getattr(rt, "resource_templates", None) or getattr(rt, "resourceTemplates", [])
             print("Resource templates:", [getattr(t, "uri_template", None) or getattr(t, "uriTemplate", None) for t in items])
             print("Prompts:", [p.name for p in (await s.list_prompts()).prompts])
             async def call(name, args):
+                """
+                Tool 하나를 호출하고 텍스트 응답을 JSON이면 파싱
+                Args:
+                    name: Tool 이름
+                    args: Tool 인자
+                Returns:
+                    JSON 객체·배열이면 파싱 결과, 아니면 원문 텍스트
+                """
                 res = await s.call_tool(name, args)
                 txt = res.content[0].text if res.content else ""
                 return json.loads(txt) if txt.startswith(("{","[")) else txt

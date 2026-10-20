@@ -1,7 +1,8 @@
 """결정 원장 Agent 그래프 — 베이스(all_total_vue의 agent/graph.py)와 같은 노드 이름·순서를 쓴다.
 
-route ─┬ chat ─────────────────────────────────────────────── chat_answer
-       └ meeting / opinion / question
+route ─┬ chat ─────────────────────────────────────────────── chat_answer → END
+       ├ schedule ─────────────────────────────────────────── schedule_answer → END  (LLM 없이 회의 목록으로 답함)
+       └ meeting / interview / opinion / question
             → plan → gate → research ⇄ replan_check → analysis → write ⇄ validate → finalize
 
 노드         | 베이스(장애 진단)          | 이 프로젝트
@@ -36,6 +37,7 @@ from langsmith import traceable
 TODAY = "2026-10-20"
 _PRJ_FILE = Path(__file__).resolve().parent.parent / "data" / "project" / "projects.json"
 # 프로젝트 이름표 (질문 대상 프로젝트 고르기·표시용). 약자·이름은 projects.json 한 곳에서 관리
+# HBE(면접 전사문)는 결정 질의 대상 프로젝트가 아니라서 이름표에서 뺀다
 PROJECTS = {p["project_id"]: f"{p['name']}({'현재' if p['status'] == '진행' else '과거'} 프로젝트, {p['key']})"
             for p in json.loads(_PRJ_FILE.read_text())["projects"] if p["key"] != "HBE"}
 _PRJ_ALL = json.loads(_PRJ_FILE.read_text())["projects"]
@@ -46,7 +48,15 @@ MEETING_ID = re.compile(r"\b(?:([A-Z]{3})-)?([MI])(\d{2})\b")   # OPS-M04, HBE-I
 
 
 def normalize_meeting_id(msg: str) -> str:
-    """'M04'처럼 약자를 빼고 써도 받는다 (회의는 OPS, 면접은 HBE가 기본)."""
+    """
+    메시지 속 회의·면접 ID를 '약자-M04' 형태로 정규화
+
+    'M04'처럼 약자를 빼고 써도 받는다 (회의는 OPS, 면접은 HBE가 기본).
+    Args:
+        msg: 사용자 메시지
+    Returns:
+        정규화한 ID (예: 'OPS-M04'). ID가 없으면 빈 문자열
+    """
     m = MEETING_ID.search(msg)
     if not m:
         return ""
@@ -60,6 +70,17 @@ CHAIR_ROLES = ("PM", "PL")      # 진행자급의 단정 발언('코드에서 �
 
 
 def is_decision_utterance(seg: dict) -> bool:
+    """
+    발언이 결정(확정) 발언인지 규칙으로 판별
+
+    보류 표현이 있으면 확정 표현이 섞여 있어도 결정이 아니다.
+    보류 표현이 없으면 확정 표현이 있거나 진행자(PM·PL) 발언일 때 결정으로 본다.
+    Args:
+        seg: 회의 발언 (text·role 포함)
+    Returns:
+        결정 발언이면 True
+    """
+    # 보류를 먼저 본다 — '아직 확정은 아닙니다'에도 '확정'이 들어 있어 CONFIRM만 보면 결정으로 잡힌다
     if NOT_CONFIRM.search(seg["text"]):
         return False
     return bool(CONFIRM.search(seg["text"])) or seg["role"] in CHAIR_ROLES
@@ -71,7 +92,11 @@ AUTH_TOPIC = {"schedule": "schedule", "budget": "budget", "perf.latency": "scope
 
 @dataclass
 class LedgerDeps:
-    """Wave 13 — 의존성 주입. 노드는 이것만 보고 동작한다 (테스트에서 가짜로 갈아 끼움)."""
+    """
+    그래프 노드가 쓰는 외부 의존성 묶음
+
+    Wave 13 — 의존성 주입. 노드는 이것만 보고 동작한다 (테스트에서 가짜로 갈아 끼움).
+    """
     fast_llm: Any              # Wave 10a — 분류·주제 선택
     quality_llm: Any           # Wave 10a — 추출·충돌 판정·답변 작성
     mcp: Any                   # Wave 2  — 결정 원장 MCP 서버
@@ -83,6 +108,11 @@ class LedgerDeps:
 
 
 class LedgerState(TypedDict, total=False):
+    """
+    그래프 상태. 노드는 바꿀 키만 dict로 돌려주고 LangGraph가 합친다
+
+    total=False라서 경로에 따라 채워지지 않는 키가 있다 (chat 경로는 items 없음 등).
+    """
     message: str
     user_id: str
     scope_project: str        # 입력창 아래에서 사용자가 고른 프로젝트 약자 (없으면 자동)
@@ -110,31 +140,68 @@ class LedgerState(TypedDict, total=False):
 
 
 def _ev(state, *evs) -> list[dict]:
+    """
+    기존 이벤트 목록 뒤에 새 이벤트를 붙인 새 목록 생성
+
+    상태의 events를 직접 바꾸지 않고 새 리스트를 돌려준다 (노드 반환값으로 덮어쓰는 방식).
+    Args:
+        state: 현재 그래프 상태
+        *evs: 추가할 이벤트 dict들
+    Returns:
+        누적 이벤트 목록
+    """
     return state.get("events", []) + list(evs)
 
 
 async def gather_safe(coros, fallback, limit: int = 2):
-    """병렬 실행 + 에러 격리 — 한 건이 실패해도 나머지 결과로 보고서를 만든다 (실패분은 fallback).
-    limit: 로컬 LLM 동시 호출 상한. 무제한 gather는 Ollama 대기열만 길어진다."""
+    """
+    코루틴 병렬 실행 + 에러 격리
+
+    한 건이 실패해도 나머지 결과로 보고서를 만든다 (실패분은 fallback).
+    Args:
+        coros: 실행할 코루틴 목록
+        fallback: (순번, 예외) -> 대체 결과. 실패한 건에만 호출
+        limit: 로컬 LLM 동시 호출 상한. 무제한 gather는 Ollama 대기열만 길어진다
+    Returns:
+        입력 순서대로 정렬된 결과 목록 (실패분은 fallback 결과)
+    """
     sem = asyncio.Semaphore(limit)
 
     async def run(c):
+        """
+        세마포어 안에서 코루틴 하나 실행
+        Args:
+            c: 실행할 코루틴
+        Returns:
+            코루틴 결과
+        """
         async with sem:
             return await c
+    # return_exceptions=True — 예외를 결과 자리에 받아야 순번별로 fallback을 끼울 수 있다
     results = await asyncio.gather(*(run(c) for c in coros), return_exceptions=True)
     return [fallback(i, r) if isinstance(r, Exception) else r for i, r in enumerate(results)]
 
 
 def _usage(state, *us) -> dict:
+    """
+    LLM 호출 수·토큰 사용량 누적
+    Args:
+        state: 현재 그래프 상태 (기존 usage)
+        *us: LLM 호출별 사용량 dict. None은 LLM을 부르지 않은 경우라 건너뛴다
+    Returns:
+        누적한 usage dict (llm_calls, tokens)
+    """
     u = dict(state.get("usage") or {"llm_calls": 0, "tokens": 0})
     for x in us:
         if x:
+            # extra_calls — 한 노드 안에서 추가로 부른 호출(예외 범위 문항)을 한 usage에 합쳐 온 경우
             u["llm_calls"] += 1 + x.get("extra_calls", 0)
             u["tokens"] += x.get("tokens", 0)
     return u
 
 
 # ---------------------------------------------------------------- route
+# 일정 질문 판별: 상대 주(이번·지난·N주 전), 상대 날짜(오늘·어제), 월, 개수('몇 개') 표현
 SCHEDULE_Q = re.compile(r"(이번|지난|지지난|저번|저저번|다음|다다음)\s*주|전전?주|\d+\s*주\s*(전|후|뒤)|오늘|내일|어제|이번\s*달|지난\s*달|다음\s*달|\d{1,2}월|몇\s*(개|건|번)|언제\s*있")
 
 ROUTE_SCHEMA = {"type": "object", "properties": {"mode": {"type": "string",
@@ -143,16 +210,31 @@ ROUTE_SCHEMA = {"type": "object", "properties": {"mode": {"type": "string",
 
 @traceable(name="route_node")
 async def route_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 5 — 쿼리 라우팅. 분명한 경우는 규칙으로, 애매하면 저비용 모델이 고른다."""
+    """
+    요청 종류(mode)를 고르는 라우팅 노드
+
+    Wave 5 — 쿼리 라우팅. 분명한 경우는 규칙으로, 애매하면 저비용 모델이 고른다.
+    Args:
+        state: 그래프 상태 (message, scope_meeting 사용)
+        deps: 의존성 (fast_llm)
+    Returns:
+        mode, meeting_id, usage, events(RouteDecided) 갱신
+    """
     msg = state["message"]
+    # 메시지에 ID가 없으면 입력창에서 고른 회의를 쓴다
     mid = normalize_meeting_id(msg) or (state.get("scope_meeting") or "")
     usage = None
+    # 규칙 순서가 우선순위 — 일정 > 회의 정리 > 의견 > 질의. 앞 규칙이 더 좁은 조건이다
+    # 일정: 기간 표현 + 회의·면접 단어. '지난주 회의 정리해줘'는 일정이 아니라 회의 정리라서 정리·요약 단어가 있으면 제외
     if SCHEDULE_Q.search(msg) and re.search(r"회의|면접|일정|미팅", msg) and not re.search(r"정리|요약|추출", msg):
         mode = "schedule"
+    # 회의 정리: 회의 ID가 있고 정리 동사가 있을 때만. ID만 있는 질문('M04에서 왜 바꿨어?')은 질의로 넘긴다
     elif mid and re.search(r"정리|요약|추출|처리|분석", msg):
         mode = "interview" if "-I" in mid else "meeting"
+    # 의견: 제안·권유 어미 ('바꾸면 어때?', '하자')
     elif re.search(r"어떨까|어때|바꾸면|바꾸자|하자|쓰면|쓰자|제안|넣자", msg):
         mode = "opinion"
+    # 질의: 과거 결정의 이유·시점·주체를 묻는 표현
     elif re.search(r"왜|언제|누가|정해졌|하기로|했어요\?|했나|이유|몇 초|어떻게 됐", msg):
         mode = "question"
     else:
@@ -165,11 +247,23 @@ async def route_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 
 def _range(msg: str, today: str) -> tuple[str, str, str]:
-    """질문 속 기간 표현을 날짜 구간으로. 주는 월~일 기준."""
+    """
+    질문 속 기간 표현을 날짜 구간으로 변환
+
+    주는 월~일 기준. 기간 표현이 없으면 이번 주.
+    Args:
+        msg: 사용자 메시지
+        today: 기준 날짜 (YYYY-MM-DD)
+    Returns:
+        (시작일, 종료일, 화면 표시용 이름표) — 날짜는 ISO 문자열
+    Examples:
+        today가 2026-10-20(화)이고 '지난주 회의'면 ('2026-10-12', '2026-10-18', '지난주')
+    """
     from datetime import date, timedelta
     t = date.fromisoformat(today)
     mon = t - timedelta(days=t.weekday())
     # 주 단위: '지지난주·저저번주·전전주' = 2주 전, '다다음 주' = 2주 뒤, 'N주 전/후'는 숫자대로 (월~일 기준)
+    # '지지난'·'다다음'을 '지난'·'다음'보다 먼저 검사해야 한다 ('지지난주'에도 '지난주'가 들어 있음)
     weeks = None
     if m := re.search(r"(\d+)\s*주\s*(전|후|뒤)", msg):
         weeks = -int(m.group(1)) if m.group(2) == "전" else int(m.group(1))
@@ -192,9 +286,11 @@ def _range(msg: str, today: str) -> tuple[str, str, str]:
     elif "어제" in msg:
         a = b = t - timedelta(days=1); label = "어제"
     elif m := re.search(r"(\d{1,2})월", msg):
+        # 월말 = 다음 달 1일 - 1일. 12월은 다음 해 1월 1일에서 뺀다
         mm = int(m.group(1)); a = date(t.year, mm, 1)
         b = (date(t.year + (mm == 12), mm % 12 + 1, 1) - timedelta(days=1)); label = f"{mm}월"
     elif re.search(r"(이번|지난|다음)\s*달", msg):
+        # 현재 구현은 '지난 달'·'다음 달'도 이번 달 구간으로 계산한다
         a = t.replace(day=1); b = (a.replace(month=a.month % 12 + 1) - timedelta(days=1)); label = "이번 달"
     else:
         a, b, label = mon, mon + timedelta(days=6), "이번 주"
@@ -203,8 +299,18 @@ def _range(msg: str, today: str) -> tuple[str, str, str]:
 
 @traceable(name="schedule_answer_node")
 async def schedule_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """일정 질문은 LLM 없이 회의 목록(MCP Tool)으로 코드가 답한다 — 지어낼 여지가 없다."""
+    """
+    일정 질문에 회의 목록으로 답하는 노드
+
+    일정 질문은 LLM 없이 회의 목록(MCP Tool)으로 코드가 답한다 — 지어낼 여지가 없다.
+    Args:
+        state: 그래프 상태 (message 사용)
+        deps: 의존성 (mcp, today)
+    Returns:
+        final(일정 목록 답변), events(ScheduleAnswered, Finalize) 갱신
+    """
     a, b, label = _range(state["message"], deps.today)
+    # ISO 날짜 문자열은 사전순 비교가 곧 날짜 비교
     ms = [m for m in await deps.mcp.call("list_meetings") if a <= m["date"] <= b]
     q = state["message"]
     if re.search(r"면접", q):
@@ -219,6 +325,7 @@ async def schedule_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
     detail = f" (회의 {len(ms) - n_int}건, 면접 {n_int}건)" if kind == "일정은" and ms else ""
     span = f"{a[5:]}~{b[5:]}" if a != b else a[5:]
     head = f"{label}({span}) {kind} {len(ms)}건입니다{detail}."
+    # 참석자에서 지원자는 뺀다 (면접 지원자 이름을 일정 답변에 노출하지 않음)
     lines = [head] + [f"- {m['meeting_id']} · {m['date'][5:]}({days[date.fromisoformat(m['date']).weekday()]}) {m['title']}"
                       f" · 참석 {', '.join(x for x in m['attendees'] if not x.startswith('지원자'))}" for m in sorted(ms, key=lambda x: x["date"])]
     return {"final": "\n".join(lines),
@@ -228,7 +335,18 @@ async def schedule_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 @traceable(name="chat_answer_node")
 async def chat_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 5 direct 경로 — 세션 히스토리 기반 짧은 응답 (Wave 12 세션)."""
+    """
+    일반 대화 응답 노드
+
+    Wave 5 direct 경로 — 세션 히스토리 기반 짧은 응답 (Wave 12 세션).
+    회의·결정 사실은 지어내지 않고 기능 사용법으로 안내한다.
+    Args:
+        state: 그래프 상태 (message, history 사용)
+        deps: 의존성 (chat_llm, 없으면 fast_llm)
+    Returns:
+        final(응답), usage, events(Finalize) 갱신
+    """
+    # 최근 6개만 — 작은 모델의 문맥을 짧게 유지
     hist = "\n".join(f"{h['role']}: {h['content']}" for h in (state.get("history") or [])[-6:])
     writer = get_stream_writer()
     reply, usage = await (deps.chat_llm or deps.fast_llm).text(
@@ -257,6 +375,7 @@ EXTRACT_SCHEMA = {"type": "object", "properties": {
         "seq": {"type": "integer"}, "subject": {"type": "string"}}, "required": ["seq", "subject"]}}},
     "required": ["overview", "decisions", "action_items", "undecided"]}
 
+# 할 일 배정 표현 (기한·부탁). '~까지 해 주세요'는 '하겠습니다'가 섞여도 결정이 아니라 할 일로 본다
 ASSIGN = re.compile(r"까지|주세요|부탁")
 
 TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
@@ -264,14 +383,35 @@ TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
 
 
 def topic_key(raw: str | None) -> str:
-    """모델이 주제 목록 줄을 통째로 돌려줘도('session.store: 대화 세션 저장소') 키만 남긴다. 키가 틀리면 원장 조회가 빈다."""
+    """
+    모델이 돌려준 주제 문자열에서 주제 키만 추출
+
+    모델이 주제 목록 줄을 통째로 돌려줘도('session.store: 대화 세션 저장소') 키만 남긴다. 키가 틀리면 원장 조회가 빈다.
+    Args:
+        raw: 모델이 고른 주제 문자열 (None 가능)
+    Returns:
+        주제 키. 키 형식이 아니면 빈 문자열
+    Examples:
+        topic_key('session.store: 대화 세션 저장소') -> 'session.store'
+        topic_key('new:<영문 소문자>') -> ''
+    """
     t = (raw or "").strip().removeprefix("new:").split(":")[0].strip()
     # 작은 모델은 지시문 예시('<영문 소문자>')를 그대로 따라 쓰기도 한다 → 키 형식이 아니면 버리고 검색 후보로 대신
     return t if re.fullmatch(r"[a-z][a-z0-9_.]*", t) else ""
 
 
 async def ensure_topic(deps: "LedgerDeps", topic: str, text: str) -> str:
-    """주제 키가 비었으면 임베딩 검색 1순위 주제로 채운다 (LLM 선택이 실패했을 때의 대비책)."""
+    """
+    빈 주제 키를 임베딩 검색 1순위 주제로 보충
+
+    LLM 선택이 실패했을 때의 대비책.
+    Args:
+        deps: 의존성 (mcp)
+        topic: topic_key로 정리한 주제 키 (빈 문자열 가능)
+        text: 검색에 쓸 문장
+    Returns:
+        주제 키. 검색 결과도 없으면 'unknown'
+    """
     if topic:
         return topic
     cands = await deps.mcp.call("topic_candidates", text=text, k=1)
@@ -279,13 +419,31 @@ async def ensure_topic(deps: "LedgerDeps", topic: str, text: str) -> str:
 
 
 def _lines(segs: list[dict]) -> str:
+    """
+    발언 목록을 '[번호] 화자(역할): 내용' 줄로 직렬화
+    Args:
+        segs: 회의·면접 발언 목록
+    Returns:
+        줄바꿈으로 이은 전사문 문자열
+    """
     return "\n".join(f"[{s['seq']}] {s['speaker']}({s['role']}): {s['text']}" for s in segs)
 
 
 @traceable(name="plan_node")
 async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 4 — 계획. MCP Prompt가 표준 절차를, MCP Resource가 주제 목록·용어집을 깔아준다.
-    회의 정리면 결정 후보를 뽑아 '검토할 항목'으로 만든다. LLM은 발언 번호만 고르고 인용문은 쓰지 않는다."""
+    """
+    검토할 항목(items)을 만드는 계획 노드
+
+    Wave 4 — 계획. MCP Prompt가 표준 절차를, MCP Resource가 주제 목록·용어집을 깔아준다.
+    회의 정리면 결정 후보를 뽑아 '검토할 항목'으로 만든다. LLM은 발언 번호만 고르고 인용문은 쓰지 않는다.
+    의견·질의는 메시지 1건을 항목으로 만들고 주제·프로젝트를 정한다. 면접은 plan_interview로 넘긴다.
+    Args:
+        state: 그래프 상태 (mode, message, meeting_id, scope_project 사용)
+        deps: 의존성 (mcp, fast_llm, quality_llm)
+    Returns:
+        의견·질의: items(1건), usage, events(PlanCreated) 갱신
+        회의: segments, meeting_date, attendee_roles, items, action_items, undecided, overview, usage, events 갱신
+    """
     topics = await deps.mcp.resource("ledger://topics")
     if state["mode"] not in ("meeting", "interview"):
         projects = "\n".join(f"{k}: {v}" for k, v in PROJECTS.items())
@@ -315,6 +473,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
     procedure = await deps.mcp.prompt("extract_decisions_prompt", meeting_id=state["meeting_id"])
     glossary = await deps.mcp.resource("project-doc://GLOSSARY/current")
     # 후보는 규칙으로 먼저 찾는다 — 확정 표현(결정), 기한·부탁 표현(할 일), 보류 표현(미결). LLM은 후보를 분류·요약한다
+    # 배정 표현이 있으면 결정 후보에서 빼고 할 일 후보로만 표시 (gate와 같은 기준)
     marks = {}
     for sg in segs:
         tag = ("결정?" if is_decision_utterance(sg) and not ASSIGN.search(sg["text"]) else "") \
@@ -332,12 +491,14 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
     for q in keep:
         if q not in by_seq:
             continue
+        # 번호가 끊기면 '…'로 생략을 표시 — 모델이 떨어진 발언을 이어진 대화로 읽지 않게
         if prev is not None and q != prev + 1:
             lines.append("  …")
         x = by_seq[q]
         lines.append(f"[{q}] {x['speaker']}({x['role']}): {x['text']}" + (f"   ← {marks[q]}" if q in marks else ""))
         prev = q
     sent = " ".join(by_seq[q]["text"] for q in keep if q in by_seq)
+    # 용어집 표에서 보낸 발언에 실제로 나온 오인식(3번째 열 'STT 오인식 예')이 있는 줄만 넣는다. 머리글 줄은 제외
     gl_rows = [r for r in glossary.splitlines() if r.startswith("| ") and not r.startswith("| 표준")
                and any(w.strip() and w.strip() in sent for w in r.split("|")[3].split(","))]
     # 회의 요약용 전체 흐름: 모든 발언을 앞 40자만 (결정 추출은 아래 후보 발언 원문으로)
@@ -380,8 +541,18 @@ PASS_CALL = re.compile(r"(합격|불합격)(으로|시키| 처리).*(하죠|합�
 
 
 async def plan_interview(state: LedgerState, deps: LedgerDeps) -> dict:
-    """면접 전사문 정리: 질문 요약·답변 요약 쌍은 LLM(발언 번호 포함), 공정성 점검 후보는 규칙.
-    점수·합격 여부는 내지 않는다."""
+    """
+    면접 전사문 계획 노드
+
+    질문 요약·답변 요약 쌍은 LLM(발언 번호 포함), 공정성 점검 후보는 규칙.
+    점수·합격 여부는 내지 않는다.
+    Args:
+        state: 그래프 상태 (meeting_id 사용)
+        deps: 의존성 (mcp, quality_llm)
+    Returns:
+        segments, meeting_date, attendee_roles, items(공정성 점검 후보), competencies(질문·답변 쌍),
+        action_items·undecided(빈 목록), usage, events(PlanCreated) 갱신
+    """
     segs = await deps.mcp.call("get_segments", meeting_id=state["meeting_id"])
     if not segs:
         return {"items": [], "segments": [], "events": _ev(state, {"type": "PlanCreated", "items": 0, "reason": "원문 없음"})}
@@ -393,8 +564,10 @@ async def plan_interview(state: LedgerState, deps: LedgerDeps) -> dict:
         f"## 표준 절차\n{procedure}\n\n## 면접 {state['meeting_id']}\n{_lines(segs)}", COMP_SCHEMA)
     items = []
     for sg in segs:
+        # 공정성 점검은 면접관 발언만 대상 (지원자가 스스로 가족 얘기를 해도 위반이 아니다)
         if sg["role"] != "면접관":
             continue
+        # 한 발언에 둘 다 걸리면 금지 질문(FAIR-01)으로만 올린다
         if PRIVATE_Q.search(sg["text"]):
             items.append({"statement": f"면접관 질문: {sg['text']}", "topic": "interview.question",
                           "decided_seq": sg["seq"], "rule_hint": "FAIR-01"})
@@ -410,16 +583,38 @@ async def plan_interview(state: LedgerState, deps: LedgerDeps) -> dict:
 
 # ---------------------------------------------------------------- gate
 def _cite(by_seq: dict, seqs) -> list[dict]:
+    """
+    발언 번호 목록으로 원문 인용 목록 생성
+
+    인용문은 모델 출력이 아니라 원문에서 그대로 채운다. 원문에 없는 번호는 버린다.
+    Args:
+        by_seq: 발언 번호 -> 발언 dict
+        seqs: 인용할 발언 번호들 (중복·None 허용)
+    Returns:
+        번호순으로 정렬한 인용 목록 (meeting_id, seq, speaker, role, quote)
+    """
     return [{"meeting_id": by_seq[q]["meeting_id"], "seq": q, "speaker": by_seq[q]["speaker"],
              "role": by_seq[q]["role"], "quote": by_seq[q]["text"]} for q in sorted(set(seqs)) if q in by_seq]
 
 
 @traceable(name="gate_node")
 async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 6 — 권위 게이트. 모델이 뽑았어도 코드 기준에 안 맞으면 버린다.
+    """
+    모델이 뽑은 결정·할 일·미결을 코드 기준으로 거르는 권위 게이트
+
+    Wave 6 — 권위 게이트. 모델이 뽑았어도 코드 기준에 안 맞으면 버린다.
     - 확정 발언(decided_seq)이 원문에 없거나, 확정 표현도 진행자(PM·PL) 발언도 아니면 결정이 아니다 (회상·제안 차단)
     - '아직 확정은 아닙니다' 같은 보류 표현, 할 일 배정 발언은 결정에서 뺀다
-    - 인용문은 원문에서 코드가 채운다 → 인용 조작이 구조적으로 불가능"""
+    - 인용문은 원문에서 코드가 채운다 → 인용 조작이 구조적으로 불가능
+    할 일은 담당자·기한을 원문과 대조해 지어낸 값을 비운다. 의견·질의는 그대로 통과.
+    Args:
+        state: 그래프 상태 (mode, segments, items, competencies, action_items, undecided, meeting_date 사용)
+        deps: 의존성 (이 노드에서는 쓰지 않음)
+    Returns:
+        회의: items(통과한 결정 + 인용), action_items, undecided, events(GateApplied, DecisionFound) 갱신
+        면접: items(공정성 후보 + 인용), competencies(근거 검증), events(GateApplied, FairnessFlag) 갱신
+        그 외: events(GateApplied)만 갱신
+    """
     if state["mode"] == "interview":
         by_seq = {s["seq"]: s for s in state["segments"]}
         items = [{**i, "decided_by": by_seq[i["decided_seq"]]["speaker"], "decided_by_role": "면접관",
@@ -442,11 +637,13 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
     kept, removed, seen = [], [], set()
     for d in state["items"]:
         seg = by_seq.get(d.get("decided_seq"))
+        # 버리는 조건: 원문에 없는 번호 / 결정 발언 아님 / 배정 발언 / 같은 발언을 두 결정으로 중복 추출
         if not seg or not is_decision_utterance(seg) or ASSIGN.search(seg["text"]) or d["decided_seq"] in seen:
             removed.append(d.get("decided_seq"))
             continue
         seen.add(d["decided_seq"])
         q, p = d["decided_seq"], d.get("proposal_seq")      # 근거 = 제안 발언(3발언 이내) + 확정 발언
+        # 제안 번호가 확정 발언보다 뒤거나 너무 멀면 모델이 잘못 짚은 것으로 보고 확정 발언만 남긴다
         ev = ([p] if isinstance(p, int) and q - 3 <= p < q else []) + [q]
         kept.append({**d, "decided_by": seg["speaker"], "decided_by_role": seg["role"], "evidence": _cite(by_seq, ev)})
     year = state["meeting_date"][:4]
@@ -456,10 +653,13 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
         nxt = by_seq.get(q + 1) if isinstance(q, int) else None
         prv = by_seq.get(q - 1) if isinstance(q, int) else None
         ow = a.get("owner") or ""
+        # 바로 앞뒤 발언이 담당자 본인 것이면 근거에 넣는다 (자청 '제가 할게요' / 수락 '네 하겠습니다').
+        # 화자 비교는 이름 앞 3자 — 모델이 이름 뒤에 직함·괄호를 붙여 써도 맞춘다
         ev = ([q - 1] if prv and ow and prv["speaker"].startswith(ow[:3]) else []) + [q] \
             + ([q + 1] if nxt and ow and nxt["speaker"].startswith(ow[:3]) else [])
         said = " ".join(by_seq[x]["text"] for x in ev if x in by_seq)
         due = a.get("due")
+        # 모델이 null을 문자열로 쓰는 경우를 None으로 통일
         if isinstance(due, str) and due.strip().lower() in ("null", "none", "없음", ""):
             due = None
         if due and re.match(r"\d{4}-\d{2}-\d{2}$", due):
@@ -467,19 +667,23 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
             if f"{int(due[8:])}일" not in said:      # 원문에 없는 기한은 지어낸 것 → 비운다
                 due = None
         # 기한 정정: 배정 뒤 2발언 안에 진행자·담당자가 같은 일을 다른 날짜로 다시 말하면 나중 말이 기한
+        # '같은 일'은 할 일 문장의 2자 이상 단어가 그 발언에 하나라도 나오는지로 판단
         words = re.findall(r"[가-힣A-Za-z]{2,}", a.get("statement") or "")
         for x in (q + 1, q + 2) if isinstance(q, int) else ():
             s = by_seq.get(x)
             if not s or not any(w in s["text"] for w in words):
                 continue
+            # 정정 권한: 진행자(PM·PL) 또는 담당자 본인만. 다른 참석자의 날짜 언급은 기한을 바꾸지 않는다
             if s["role"] not in CHAIR_ROLES and not (ow and s["speaker"].startswith(ow[:3])):
                 continue
+            # '11월 3일' 또는 '3일' — 월이 없으면 회의가 열린 달
             if m := re.search(r"(?:(\d{1,2})월\s*)?(\d{1,2})일", s["text"]):
                 month = int(m.group(1) or state["meeting_date"][5:7])
                 due = f"{year}-{month:02d}-{int(m.group(2)):02d}"
                 ev = sorted({*ev, x})
         owner = re.sub(r"\s*\(.*\)", "", a["owner"]).strip() if a.get("owner") else None
         speakers = {by_seq[x]["speaker"] for x in ev if x in by_seq}
+        # 이름 끝 2자로 원문을 찾는다 — 회의에서는 '민수 씨'처럼 성을 빼고 부르는 경우가 많다
         if owner and owner[-2:] not in said and owner not in speakers:
             owner = None                              # 원문에 이름도 없고 본인 발언도 아니면 지어낸 담당자
         req = by_seq.get(q) if isinstance(q, int) else None
@@ -489,6 +693,7 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
     undecided = [{**u, "evidence": _cite(by_seq, [u.get("seq")])} for u in state.get("undecided", [])]
     evs = [{"type": "DecisionFound", "statement": d["statement"], "seq": d["decided_seq"],
             "decided_by": d["decided_by"]} for d in kept]
+    # 원문 근거가 하나도 없는 할 일·미결(존재하지 않는 번호)은 보고서에서 뺀다
     return {"items": kept, "action_items": [a for a in actions if a["evidence"]],
             "undecided": [u for u in undecided if u["evidence"]],
             "events": _ev(state, {"type": "GateApplied", "removed": len(removed), "removed_seq": removed}, *evs)}
@@ -497,9 +702,26 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
 # ---------------------------------------------------------------- research
 @traceable(name="research_node")
 async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 10b 병렬 + Wave 9 재시도(LedgerMCP.call) + Wave 2 Tool 호출.
-    항목마다 '지금 유효한 기준'을 MCP Tool로 묻는다. R4 > R3 > R2 > R1 해석은 서버(resolve_current)가 한다."""
+    """
+    항목마다 현재 유효한 기준·예외·권한을 조회하는 노드
+
+    Wave 10b 병렬 + Wave 9 재시도(LedgerMCP.call) + Wave 2 Tool 호출.
+    항목마다 '지금 유효한 기준'을 MCP Tool로 묻는다. R4 > R3 > R2 > R1 해석은 서버(resolve_current)가 한다.
+    replan_check 뒤 다시 들어오면 이미 조사한 항목은 건너뛰고 R1 원문 조회만 추가한다.
+    Args:
+        state: 그래프 상태 (mode, items, meeting_date, attendee_roles, scope_meeting 사용)
+        deps: 의존성 (mcp, today)
+    Returns:
+        items(research, waivers, authority_check, discussion 추가), events(TaskCompleted) 갱신
+    """
     async def one(item: dict) -> dict:
+        """
+        항목 하나 조사
+        Args:
+            item: 검토 항목
+        Returns:
+            research·waivers·authority_check(재조사면 discussion)를 붙인 항목
+        """
         if item.get("research"):                       # 이미 조사한 항목 — replan이 요청한 R1 조회만 추가
             if item.get("need_transcript") and "discussion" not in item:
                 return {**item, "discussion": await deps.mcp.call("search_transcript", query=item["statement"], k=4,
@@ -507,22 +729,27 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
             return item
         res = await deps.mcp.call("resolve_current", text=item["statement"], topic=item["topic"],
                                   project_id=item.get("project") or "")
+        # 면접 공정성 후보는 plan 규칙이 조항을 지목했으므로, 검색에서 빠졌어도 그 조항을 판정에 넣는다
         if item.get("rule_hint") and item["rule_hint"] not in {r["rule_id"] for r in res.get("rules", [])}:
             rule = json.loads(await deps.mcp.resource(f"policy://current/{item['rule_hint']}"))   # 규칙이 지목한 조항은 직접 가져온다
             res = {**res, "rules": [*res.get("rules", []), rule]}
+        # 예외 유효 여부는 회의 날짜 기준 — 지난 회의는 그때 살아 있던 예외로 판단 (의견·질의는 오늘)
         on = state.get("meeting_date") or deps.today
         waivers = []
         for r in res.get("rules", []):
             waivers += (await deps.mcp.call("check_waiver", rule_id=r["rule_id"], on_date=on,
                                             project_id=item.get("project") or ""))["active_waivers"]
         auth = None
+        # 권한 확인은 회의 결정만 — 누가 정했는지(decided_by_role)가 있어야 권한표와 대조할 수 있다
         if state["mode"] == "meeting":
             auth = await deps.mcp.call("check_authority", topic=AUTH_TOPIC.get(item["topic"], "tech.stack"),
                                        decided_by_role=item["decided_by_role"],
                                        attendee_roles=state["attendee_roles"])
         return {**item, "research": res, "waivers": waivers, "authority_check": auth}
 
+    # 재조사 이벤트와 첫 조사 이벤트를 구분하려고 호출 전 상태를 기억한다
     before = [bool(i.get("research")) for i in state["items"]]
+    # 조회 실패 항목은 authority='none'으로 채워 다음 노드가 '기준 없음'으로 처리하게 한다
     items = await gather_safe([one(i) for i in state["items"]],
                               lambda n, e: {**state["items"][n], "research": {"topic": state["items"][n]["topic"],
                                             "authority": "none", "notes": [f"조회 실패: {e!r}"]}})
@@ -536,10 +763,22 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 @traceable(name="replan_check_node")
 async def replan_check_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 7 — 수집이 충분한가. 유효한 결정·기준 문서가 없는 항목은 회의 원문(R1) 논의를 추가 조회한다 (1회)."""
+    """
+    수집 결과가 충분한지 확인하는 재계획 노드
+
+    Wave 7 — 수집이 충분한가. 유효한 결정·기준 문서가 없는 항목은 회의 원문(R1) 논의를 추가 조회한다 (1회).
+    Args:
+        state: 그래프 상태 (items, replan_rounds 사용)
+        deps: 의존성 (이 노드에서는 쓰지 않음)
+    Returns:
+        충분: events(ReplanCheck, is_sufficient=True)만 갱신
+        부족: items(need_transcript 표시), replan_rounds(+1), events(ReplanCheck, is_sufficient=False) 갱신
+    """
     rounds = state.get("replan_rounds", 0)
+    # 이미 원문 조회를 요청한 항목은 다시 세지 않는다 (같은 공백으로 반복 진입 방지)
     gaps = [n for n, i in enumerate(state["items"])
             if i["research"]["authority"] in ("none", "discussion") and not i.get("need_transcript")]
+    # 재조사는 1회 상한 — 원문에도 없으면 더 돌아도 결과가 같다
     if not gaps or rounds >= 1:
         return {"events": _ev(state, {"type": "ReplanCheck", "round": rounds, "is_sufficient": True})}
     items = [{**i, "need_transcript": True} if n in gaps else i for n, i in enumerate(state["items"])]
@@ -549,6 +788,14 @@ async def replan_check_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 
 def _after_replan(state: LedgerState) -> str:
+    """
+    replan_check 다음 노드 선택
+    Args:
+        state: 그래프 상태 (events 사용)
+    Returns:
+        'analysis'(충분) 또는 'research'(재조사)
+    """
+    # 판단 결과를 상태 키로 따로 두지 않고 replan_check가 마지막에 남긴 이벤트를 읽는다
     return "analysis" if state["events"][-1].get("is_sufficient") else "research"
 
 
@@ -570,12 +817,22 @@ JUDGE_SYSTEM = (
 
 
 def _sources(item: dict) -> list[dict]:
-    """판정에 넣을 '지금 유효한 기준' 목록 — 대체된 결정·구 정책은 resolve_current 단계에서 이미 빠져 있다."""
+    """
+    판정에 넣을 '지금 유효한 기준' 목록 생성
+
+    대체된 결정·구 정책은 resolve_current 단계에서 이미 빠져 있다.
+    종류(kind): decision(현재 결정), baseline(기준 문서), policy(정책), pending(승인 대기), advisory(다른 프로젝트).
+    Args:
+        item: research 결과가 붙은 검토 항목
+    Returns:
+        기준 목록 (ref, kind, text)
+    """
     res, out = item["research"], []
     if res["authority"] == "decision":
         c = res["current"]
         out.append({"ref": c["decision_id"], "kind": "decision", "text": f"{c['statement']} (이유: {c.get('rationale')})"})
     for b in res.get("baseline", []):
+        # 기준 문서는 절 번호(section 첫 단어)를 ref로 쓴다. 본문은 200자로 잘라 프롬프트 길이를 줄인다
         out.append({"ref": b["section"].split()[0], "kind": "baseline",
                     "text": f"{b['doc_id']} {b['doc_version']} {b['text'][:200]}"})
     for r in res.get("rules", []):
@@ -590,12 +847,22 @@ def _sources(item: dict) -> list[dict]:
 
 
 def decide(item: dict, checks: list[dict], waiver_covers: dict) -> dict:
-    """판정표 (코드) — LLM이 고른 same/different를 충돌 종류로 바꾼다.
+    """
+    LLM 관계 판정을 충돌 종류로 바꾸는 판정표 (코드)
+
+    LLM이 고른 same/different를 충돌 종류로 바꾼다.
     정책 different              → policy 충돌. 범위가 맞는 유효 예외가 있으면 '예외 적용'
     권한표 위반(check_authority) → authority 충돌 (LLM 판단과 무관하게 코드가 추가)
     결정·기준 문서 different     → 권한자가 정했거나 범위가 맞는 예외가 있고, 다른 충돌이 없으면 '기준 변경(승인됨)', 아니면 충돌
     다른 프로젝트 different      → 참고 (충돌 아님)
-    승인 대기 결정 same          → 그 결정을 확정하는 발언 (원장 승인 대상)"""
+    승인 대기 결정 same          → 그 결정을 확정하는 발언 (원장 승인 대상)
+    Args:
+        item: research 결과가 붙은 검토 항목 (waivers, authority_check 포함)
+        checks: LLM 판정 목록 (ref, relation, reason)
+        waiver_covers: 예외 ID -> 예외 범위 안이면 True
+    Returns:
+        review dict (status: ok/conflict/change_approved, conflicts, changes, confirms, waiver_applied, notes)
+    """
     srcs = {s["ref"]: s for s in _sources(item)}
     rel = {}
     for c in checks:
@@ -608,14 +875,17 @@ def decide(item: dict, checks: list[dict], waiver_covers: dict) -> dict:
     for ref, c in rel.items():
         if c["relation"] != "different" or srcs[ref]["kind"] != "policy":
             continue
+        # 예외는 그 정책 조항(rule_id)에 걸린 것만 충돌을 면제한다
         w = next((w for w in item.get("waivers", [])
                   if w["rule_id"] == ref and waiver_covers.get(w["waiver_id"])), None)
         if not w:
             conflicts.append({"type": "policy", "against": [ref], "detail": c["reason"]})
     auth = item.get("authority_check")
+    # 명시적 False만 위반. 권한 규칙이 없는 주제는 ok=True·rule=None으로 와서 위반도 권한자 결정도 아님
     if auth and auth.get("ok") is False:
         conflicts.append({"type": "authority", "against": [auth["rule"].split("@")[0]],
                           "detail": f"승인 권한자 {auth['approver']} — {auth['reason']}"})
+    # 권한표 조항(rule)을 근거로 통과했을 때만 '권한자 결정'으로 인정
     authorized = bool(auth and auth.get("ok") and auth.get("rule")) or bool(waiver_applied)  # 예외 승인도 승인
     changes = []
     confirms = [ref for ref, c in rel.items() if srcs[ref]["kind"] == "pending" and c["relation"] == "same"]
@@ -625,11 +895,13 @@ def decide(item: dict, checks: list[dict], waiver_covers: dict) -> dict:
             continue
         if kind == "advisory":
             conflicts.append({"type": "past_project", "against": [ref], "detail": c["reason"]})
+        # 정책·권한 충돌이 하나라도 있으면 권한자 결정이어도 기준 변경으로 인정하지 않는다
         elif authorized and not [x for x in conflicts if x["type"] != "past_project"]:
             changes.append(ref)
         else:
             conflicts.append({"type": "past_decision" if kind == "decision" else "baseline",
                               "against": [ref], "detail": c["reason"]})
+    # 다른 프로젝트 참고(past_project)는 표시만 하고 상태를 conflict로 만들지 않는다
     blocking = [c for c in conflicts if c["type"] != "past_project"]
     status = "conflict" if blocking else ("change_approved" if changes else "ok")
     return {"status": status, "conflicts": conflicts, "changes": changes, "confirms": confirms,
@@ -639,11 +911,27 @@ def decide(item: dict, checks: list[dict], waiver_covers: dict) -> dict:
 
 @traceable(name="analysis_node")
 async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """충돌 판정. LLM은 기준마다 같은지·다른지만 고르고, 충돌 종류는 코드 판정표(decide)가 정한다.
-    질의는 판정 없이 통과. MCP Prompt(conflict_review_prompt)의 절차를 판정표로 코드화했다."""
+    """
+    항목별 충돌 판정 노드
+
+    LLM은 기준마다 같은지·다른지만 고르고, 충돌 종류는 코드 판정표(decide)가 정한다.
+    질의는 판정 없이 통과. MCP Prompt(conflict_review_prompt)의 절차를 판정표로 코드화했다.
+    Args:
+        state: 그래프 상태 (mode, items 사용)
+        deps: 의존성 (quality_llm: 관계 판정, fast_llm: 예외 범위 판단)
+    Returns:
+        items(review 추가), usage, events(ConflictChecked) 갱신. 질의·항목 없음이면 events(AnalysisSkipped)만
+    """
     if state["mode"] == "question" or not state.get("items"):
         return {"events": _ev(state, {"type": "AnalysisSkipped"})}
     async def judge(item):
+        """
+        항목 하나의 기준 관계와 예외 범위를 판정
+        Args:
+            item: research 결과가 붙은 검토 항목
+        Returns:
+            (review를 붙인 항목, 사용량 dict 또는 None)
+        """
         srcs = _sources(item)
         if not srcs:                              # 비교할 기준이 없으면 LLM을 부르지 않는다
             return {**item, "review": decide(item, [], {})}, None
@@ -662,10 +950,12 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
             raw = re.search(r"그대로|원문|실제 운영 로그|실제 로그", item["statement"] + " " + said)
             # 코드 가드: 예외 범위가 '마스킹' 한정인데 원문 표현이 있으면 모델 판단과 상관없이 예외 불가
             covers[w["waiver_id"]] = bool(ans.get("covers")) and not ("마스킹" in w["scope"] and raw)
+            # 추가 호출 사용량을 판정 호출 usage에 합쳐 _usage가 한 번에 세게 한다
             usage = {**usage, "tokens": usage.get("tokens", 0) + u.get("tokens", 0),
                      "extra_calls": usage.get("extra_calls", 0) + 1}
         return {**item, "review": decide(item, out.get("checks", []), covers)}, usage
 
+    # 판정이 실패한 항목은 '문제없음'으로 넘기지 않고 '승인 필요'로 사람에게 돌린다
     results = await gather_safe([judge(i) for i in state["items"]],
                                 lambda n, e: ({**state["items"][n], "review": {"status": "needs_approval", "conflicts": [],
                                                "changes": [], "waiver_applied": None,
@@ -683,6 +973,15 @@ STATUS_KO = {"ok": "문제없음", "conflict": "충돌", "change_approved": "기
 
 
 def render_meeting(state: LedgerState) -> str:
+    """
+    회의 정리 보고서를 템플릿으로 작성
+
+    숫자·ID·인용이 모델을 거치지 않도록 구조화 결과를 그대로 마크다운으로 옮긴다.
+    Args:
+        state: 그래프 상태 (meeting_id, meeting_date, overview, items, action_items, undecided 사용)
+    Returns:
+        회의 요약·결정·할 일·미결 논의 마크다운
+    """
     L = [f"## {state['meeting_id']} 회의 정리 ({state.get('meeting_date', '')})", ""]
     ov = state.get("overview") or {}
     if ov:
@@ -706,6 +1005,7 @@ def render_meeting(state: LedgerState) -> str:
             L.append(f"   - 예외 적용: {r['waiver_applied']}")
     L += ["", "### 할 일"]
     for a in state.get("action_items", []):
+        # gate가 비운 담당자·기한은 '?'와 경고로 드러낸다 (빈칸을 지어내지 않음)
         miss = [k for k in ("owner", "due") if not a.get(k)]
         warn = f"  ⚠ {'·'.join(miss)} 없음" if miss else ""
         L.append(f"- {a['statement']} — 담당 {a.get('owner') or '?'} / 기한 {a.get('due') or '?'}{warn} "
@@ -717,6 +1017,15 @@ def render_meeting(state: LedgerState) -> str:
 
 
 def render_interview(state: LedgerState) -> str:
+    """
+    면접 요약 보고서를 템플릿으로 작성
+
+    질문·답변 요약 쌍과 공정성 점검 결과만 쓴다. 평가·합격 여부는 쓰지 않는다.
+    Args:
+        state: 그래프 상태 (meeting_id, meeting_date, competencies, items 사용)
+    Returns:
+        질문·답변 요약과 공정성 점검 마크다운
+    """
     L = [f"## {state['meeting_id']} 면접 요약 ({state.get('meeting_date', '')})", "", "### 질문·답변 요약"]
     for n, c in enumerate(state.get("competencies", []), 1):
         aseq = ", ".join(str(e["seq"]) for e in c["evidence"]) or "—"
@@ -734,8 +1043,16 @@ def render_interview(state: LedgerState) -> str:
 
 
 def render_opinion(item: dict) -> str:
+    """
+    의견 검토 결과를 템플릿으로 작성
+    Args:
+        item: review가 붙은 의견 항목
+    Returns:
+        검토 결과·충돌·예외·참고 마크다운
+    """
     r = item["review"]
     blocking = [c for c in r["conflicts"] if c["type"] != "past_project"]
+    # 예외가 적용되고 막는 충돌이 없으면 '문제없음' 대신 '예외 범위 안에서 가능'으로 조건을 드러낸다
     verdict = ("예외 범위 안에서 가능" if r.get("waiver_applied") and not blocking
                else STATUS_KO.get(r["status"], r["status"]))
     L = [f"**검토 결과: {verdict}** (주제 {item['topic']})"]
@@ -747,13 +1064,31 @@ def render_opinion(item: dict) -> str:
 
 
 def _bullets(text: str | None) -> list[str]:
+    """
+    쉼표·가운뎃점·세미콜론으로 이어 쓴 문장을 항목 목록으로 분리
+    Args:
+        text: 원장의 rationale 같은 문자열 (None 가능)
+    Returns:
+        공백을 정리한 항목 목록 (빈 항목 제외)
+    """
     return [t.strip() for t in re.split(r",\s*|·|;", text or "") if t.strip()]
 
 
 async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
                             restricted: list | None = None) -> tuple[str, str]:
-    """질의 근거를 두 가지로 만든다: LLM에 줄 근거 글, 답변 아래에 코드가 그대로 붙일 근거 블록(원장 데이터 그대로).
-    유효 결정 → 원장의 근거 발언을 원문에서 다시 꺼낸다 (원문 파기면 원장 인용)."""
+    """
+    질의 답변용 근거 생성
+
+    질의 근거를 두 가지로 만든다: LLM에 줄 근거 글, 답변 아래에 코드가 그대로 붙일 근거 블록(원장 데이터 그대로).
+    유효 결정 → 원장의 근거 발언을 원문에서 다시 꺼낸다 (원문 파기면 원장 인용).
+    Args:
+        item: research 결과가 붙은 질의 항목
+        deps: 의존성 (mcp, can_view)
+        user_id: 열람 권한 확인에 쓸 사용자 ID. 비어 있으면 권한 확인 생략
+        restricted: 열람 권한이 없어 가린 결정 ID를 담을 리스트 (호출자가 넘기면 여기에 추가)
+    Returns:
+        (LLM용 근거 글, 답변 아래 붙일 근거 블록)
+    """
     res, L, B = item["research"], [f"권위 출처: {item['research']['authority']}"], []
     cur_id = res["current"]["decision_id"] if res["authority"] == "decision" else None
     pend = {p["decision_id"] for p in res.get("pending", [])}
@@ -765,6 +1100,7 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
     for d in decs:
         full = await deps.mcp.call("get_decision", decision_id=d["decision_id"])
         did = full["decision_id"]
+        # 권한 확인은 LLM 근거 글을 만들기 전에 — 내용이 프롬프트에 들어가면 답변으로 새어 나갈 수 있다
         if deps.can_view and user_id and not deps.can_view(user_id, full):
             L.append(f"[{did}] 열람 권한 없음 — 내용 비공개 (열람 요청 필요)")
             B.append(f"### {did} · 열람 권한 없음\n열람 요청이 승인되면 내용을 볼 수 있습니다.")
@@ -775,6 +1111,7 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
         L.append(f"[{did}] 상태 {full['status']} · 프로젝트 {pname} · 시행 {full.get('effective_from')} · 결정 "
                  f"{full.get('decided_by')}: {full['statement']} / 이유: {full.get('rationale')} "
                  f"/ 기각한 대안: {', '.join(full.get('alternatives_rejected') or [])}")
+        # 표시 꼬리표 우선순위: 승인 대기 > 현재 유효 > 질문한 프로젝트 > 다른 프로젝트 참고
         tag = ("승인 대기 · 아직 권위 없음" if did in pend else "현재 유효" if did == cur_id
                else "질문한 프로젝트" if full["project_id"] == asked else f"다른 프로젝트 참고 · {pname.split('(')[0]}")
         blk = [f"### {did} · {full['statement'].rstrip('.')}",
@@ -787,6 +1124,7 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
         for e in full.get("evidence", []):
             seg = (await deps.mcp.call("get_segments", meeting_id=e["meeting_id"], seq_from=e["seq"], seq_to=e["seq"])
                    if e.get("seq") else [])
+            # 원문이 남아 있으면 원문을, 보존 기한이 지나 파기됐으면 원장에 저장된 인용을 쓴다
             if seg:
                 L.append(f"  원문 {e['meeting_id']} [{e.get('seq')}]: \"{seg[0]['text']}\"")
                 blk += ["", f"원문 · {e['meeting_id']} [{e['seq']}] {seg[0]['speaker']}", f"> {seg[0]['text']}"]
@@ -815,8 +1153,17 @@ ANSWER_SYSTEM = (
 
 @traceable(name="write_node")
 async def write_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 8 / 10a — 작성. 회의·의견은 구조화 결과를 템플릿으로(숫자·ID가 바뀌지 않게),
-    질의 답변만 고품질 모델이 토큰 스트리밍으로 쓴다. 반려되면 피드백을 받아 다시 쓴다."""
+    """
+    모드별 답변 초안 작성 노드
+
+    Wave 8 / 10a — 작성. 회의·의견은 구조화 결과를 템플릿으로(숫자·ID가 바뀌지 않게),
+    질의 답변만 고품질 모델이 토큰 스트리밍으로 쓴다. 반려되면 피드백을 받아 다시 쓴다.
+    Args:
+        state: 그래프 상태 (mode, items, segments, message, validation_feedback 등)
+        deps: 의존성 (quality_llm, mcp)
+    Returns:
+        draft, usage, events(DraftWritten) 갱신. 질의면 restricted(가린 결정 ID)도 갱신
+    """
     attempt = state.get("validation_attempts", 0) + 1
     usage = None
     if state["mode"] in ("meeting", "interview") and not state.get("segments"):
@@ -830,6 +1177,7 @@ async def write_node(state: LedgerState, deps: LedgerDeps) -> dict:
     else:
         restricted: list[str] = []
         sources, blocks = await _question_sources(state["items"][0], deps, state.get("user_id", ""), restricted)
+        # 재작성 때는 validate가 남긴 반려 사유를 프롬프트에 붙여 같은 실수를 고치게 한다
         fb = f"\n\n## 이전 답변 반려 사유\n{state['validation_feedback']}" if state.get("validation_feedback") else ""
         writer = get_stream_writer()
         draft, usage = await deps.quality_llm.text(
@@ -845,8 +1193,18 @@ async def write_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 @traceable(name="validate_node")
 async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """Wave 8 — 코드 기준 검증 (모델에게 '맞냐'고 묻지 않는다). 최대 3회.
-    회의: 인용이 원문과 글자까지 같은가 / 질의: 결정 ID, '승인 대기', '결정되지 않음'을 밝혔는가."""
+    """
+    초안을 코드 기준으로 검증하는 노드
+
+    Wave 8 — 코드 기준 검증 (모델에게 '맞냐'고 묻지 않는다). 최대 3회.
+    회의: 인용이 원문과 글자까지 같은가 / 질의: 결정 ID, '승인 대기', '결정되지 않음'을 밝혔는가.
+    Args:
+        state: 그래프 상태 (mode, draft, items, competencies, segments, validation_attempts 사용)
+        deps: 의존성 (이 노드에서는 쓰지 않음)
+    Returns:
+        validation_attempts, validation_feedback(통과면 None), events(Validation) 갱신.
+        질의가 3회째에도 불합격이면 draft에 빠진 사실을 덧붙여 갱신
+    """
     attempts = state.get("validation_attempts", 0) + 1
     problems = []
     if state["mode"] in ("meeting", "interview"):
@@ -858,8 +1216,10 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
     elif state["mode"] == "question":
         item = state["items"][0]
         res = item["research"]
+        # 답변에 반드시 나와야 할 결정 ID: 현재 유효 결정 + 승인 대기 결정
         ids = ([res["current"]["decision_id"]] if res["authority"] == "decision" else []) + \
               [p["decision_id"] for p in res.get("pending", [])]
+        # 다른 프로젝트를 물었으면 그 프로젝트의 결정 ID가 기준 (없으면 위 목록 유지)
         if item.get("project", DEFAULT_PID) != DEFAULT_PID:
             ids = [a["decision_id"] for a in res.get("advisory", []) if a["project_id"] == item["project"]] or ids
         if ids and not any(i in state["draft"] for i in ids):
@@ -868,6 +1228,7 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
             problems.append("승인 대기 결정이라는 점을 밝히세요.")
         if not ids and res["authority"] in ("none", "discussion") and "결정되지 않" not in state["draft"]:
             problems.append("유효한 결정이 없으니 '결정되지 않음'을 밝히세요.")
+    # 3회째에는 문제가 남아도 통과시킨다 — write ⇄ validate 무한 반복 방지
     ok = not problems or attempts >= 3
     verdict = "합격" if not problems else ("합격(최대 시도 도달)" if ok else "불합격")
     out = {"validation_attempts": attempts, "validation_feedback": None if ok else "\n".join(problems),
@@ -887,17 +1248,34 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 
 def _after_validate(state: LedgerState) -> str:
+    """
+    validate 다음 노드 선택
+    Args:
+        state: 그래프 상태 (validation_feedback 사용)
+    Returns:
+        'finalize'(통과) 또는 'write'(반려 사유가 있어 재작성)
+    """
     return "finalize" if state.get("validation_feedback") is None else "write"
 
 
 @traceable(name="finalize_node")
 async def finalize_node(state: LedgerState, deps: LedgerDeps) -> dict:
-    """최종 답변. 옵션이 켜져 있으면 문제없는 결정을 '승인 대기'로 원장에 올린다 (승인은 사람만)."""
+    """
+    최종 답변과 보고서를 확정하는 노드
+
+    옵션이 켜져 있으면 문제없는 결정을 '승인 대기'로 원장에 올린다 (승인은 사람만).
+    Args:
+        state: 그래프 상태 (mode, draft, items, overview, action_items, undecided, restricted 사용)
+        deps: 의존성 (mcp, propose_to_ledger)
+    Returns:
+        final(최종 답변), report(구조화 결과·원장 제안 ID), events(Finalize) 갱신
+    """
     proposed = []
     if deps.propose_to_ledger and state["mode"] == "meeting":
         for d in state["items"]:
             if d["review"].get("confirms"):          # 기존 승인 대기 결정을 확정하는 발언 → 새로 올리지 않고 그 결정을 승인 대상으로
                 proposed += d["review"]["confirms"]
+            # 충돌·승인 필요 결정은 원장에 올리지 않는다
             elif d["review"]["status"] in ("ok", "change_approved"):
                 r = await deps.mcp.call("propose_decision", statement=d["statement"], topic=d["topic"],
                                         decided_by=d["decided_by"],
@@ -911,17 +1289,41 @@ async def finalize_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
 
 def _after_plan(state: LedgerState) -> str:
-    """원문이 없는 회의·면접(파기됐거나 잘못된 ID)은 조사 없이 바로 안내문 작성으로."""
+    """
+    plan 다음 노드 선택
+
+    원문이 없는 회의·면접(파기됐거나 잘못된 ID)은 조사 없이 바로 안내문 작성으로.
+    Args:
+        state: 그래프 상태 (mode, segments 사용)
+    Returns:
+        'write'(원문 없음) 또는 'gate'
+    """
     if state["mode"] in ("meeting", "interview") and not state.get("segments"):
         return "write"
     return "gate"
 
 
 def _after_route(state: LedgerState) -> str:
+    """
+    route 다음 노드 선택
+    Args:
+        state: 그래프 상태 (mode 사용)
+    Returns:
+        'chat_answer', 'schedule_answer', 또는 'plan'(meeting·interview·opinion·question)
+    """
     return {"chat": "chat_answer", "schedule": "schedule_answer"}.get(state["mode"], "plan")   # interview도 plan 경로
 
 
 def build_ledger_graph(deps: LedgerDeps):
+    """
+    결정 원장 LangGraph 그래프 조립·컴파일
+
+    노드 함수에 deps를 partial로 묶어 등록하고 조건부 간선으로 루프(research ⇄ replan_check, write ⇄ validate)를 만든다.
+    Args:
+        deps: 모든 노드가 공유할 의존성
+    Returns:
+        컴파일된 그래프 (ainvoke·astream으로 실행)
+    """
     g = StateGraph(LedgerState)
     node = lambda fn: partial(fn, deps=deps)   # Wave 13 — 명시적 의존성 주입
     for name, fn in [("route", route_node), ("chat_answer", chat_answer_node), ("schedule_answer", schedule_answer_node), ("plan", plan_node),

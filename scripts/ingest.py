@@ -18,6 +18,11 @@ from ledger.store import LedgerStore      # noqa: E402
 
 
 def main() -> None:
+    """
+    시드 데이터를 SQLite 원장·정책에 넣고 Chroma RAG 4종(R1 회의 원문, R2 문서, R3 결정, R4 정책)을 새로 적재
+
+    Chroma는 reset 후 전부 다시 넣는다. 문서·정책은 current_only=False로 구버전까지 포함한다.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--domain", default="meeting")
     ap.add_argument("--data", default=str(ROOT / "data" / "project"))
@@ -34,10 +39,11 @@ def main() -> None:
     for f in sorted((data / "r1_meetings").glob("*.json")):    # 회의(M*)·면접(I*) 전사문 — domain으로 구분
         t = json.loads(f.read_text())
         n1 += rag.ingest_transcript(t, t.get("domain", args.domain))
-    project_id = "PRJ-OPSAI"
+    project_id = "PRJ-OPSAI"         # manifest에 project_id가 없는 문서의 기본 프로젝트
     manifest = json.loads((data / "r2_docs" / "manifest.json").read_text())["documents"]
     n2 = 0
     for d in store.documents(current_only=False):
+        # 같은 doc_id라도 버전마다 manifest 항목이 따로 있어 (doc_id, doc_version)으로 찾는다
         m = next((x for x in manifest if x["doc_id"] == d["doc_id"] and x["doc_version"] == d["doc_version"]), {})
         n2 += rag.ingest_baseline_doc((data / "r2_docs" / d["file"]).read_text(), d,
                                       m.get("project_id", project_id), m.get("domain", args.domain))

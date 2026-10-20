@@ -144,6 +144,11 @@ THREADS = [
 
 
 def main():
+    """
+    시연용 대화방·승인 대기 결정·열람 요청을 넣는다 (하드코딩 목업)
+
+    access.db의 모든 행과 session.db의 demo-* 대화를 지운 뒤 다시 넣는다. 원장(LedgerStore)은 비우지 않는다.
+    """
     acc, sess, ledger = AccessStore(), SqliteSessionStore(), LedgerStore()
     acc.reset()
     with sqlite3.connect(ROOT / "session.db") as c:
@@ -154,12 +159,14 @@ def main():
             sess.append(tid, "user", q)
             sess.append(tid, "assistant", a)
         acc.touch_thread(tid, uid, title, key, mid)
+        # touch_thread는 갱신 시각을 지금으로 찍는다. 목록에 시간차가 보이게 THREADS의 '몇 시간 전'으로 되돌린다
         acc.conn.execute("UPDATE threads SET updated=? WHERE thread_id=?",
                          ((now - timedelta(hours=hours_ago)).isoformat(timespec="seconds"), tid))
     acc.conn.commit()
 
     # 승인 대기 1건 (서지후가 M04 정리에서 올린 런북 캐시 결정) — 원장에는 proposed로
     m04 = {s["seq"]: s for s in json.loads((ROOT / "data/project/r1_meetings/OPS-M04.json").read_text())["segments"]}
+    # 이미 cache 주제 결정이 있으면 다시 올리지 않는다 (재실행 시 중복 방지)
     if not any(d["topic"] == "cache" for d in ledger.decisions(project_id="PRJ-OPSAI")):
         did = ledger.propose({"project_id": "PRJ-OPSAI", "topic": "cache", "statement": "캐시 적용 범위를 런북 문서로 제한",
                               "rationale": "모니터링 수치는 계속 바뀌어 캐시하면 옛 값이 나옴", "alternatives_rejected": ["자주 묻는 질문 Redis 캐시"],
