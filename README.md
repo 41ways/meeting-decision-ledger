@@ -36,7 +36,7 @@ LLM 단독이나 단순 RAG로는 이 상황을 놓치거나, 이미 대체된 �
 | RAG | Chroma(컬렉션 4개, cosine) + SQLite(원장·정책·예외의 진실의 원천) |
 | LLM | Ollama `qwen3:8b`·`qwen3:0.6b` (think off). 입력창에서 모델 조합 선택: **자동**(기본 — 회의 정리·질의·검토는 8b, 일반 대화는 0.6b, 일정 질문은 모델 없이) / 정확(전부 8b) / 빠름(분류 0.6b + 작성 8b) / 가장 빠름(전부 0.6b). `LLM_BACKEND=openai`로 OpenAI 전환 가능 |
 | 임베딩 | Ollama `qwen3-embedding:4b` (로컬) |
-| 실행 추적 | LangSmith `@traceable` (노드·LLM·MCP 호출, `.env`에 키를 넣으면 기록) |
+| 실행 추적 | LangSmith `@traceable` (노드·LLM·MCP 호출, `.env`에 키를 넣으면 기록, 아래 7.4) |
 | 테스트 | pytest 40개 (가짜 LLM·MCP 주입, 실모델 없이 실행) |
 | 개발 기기 | MacBook (Apple Silicon), macOS |
 
@@ -157,7 +157,7 @@ LLM과 코드의 역할: **LLM은 요약·분류·"같은가 다른가"만, 무�
 | 세션·캐시 | 상태는 외부 저장소, 비용 절감 | SQLite `session.db`, 같은 요청 재사용(원장·정책·원문 지문이 같을 때) |
 | 의존성 주입 | 숨은 의존 제거, 테스트 가능 | `LedgerDeps` + partial, 가짜 LLM·MCP 테스트 |
 | HITL | 되돌리기 어려운 행동 전 사람 승인 | 원장 승인 버튼 |
-| LangSmith | 노드별 trace | `@traceable`로 노드·LLM·MCP 호출을 연결해 둠 (`.env`에 키를 넣으면 기록) |
+| LangSmith | 노드별 trace | `@traceable`로 노드·LLM·MCP 호출을 연결. OPS-M04 한 번에 노드 43·MCP 도구 18·LLM 7개 기록 (7.4) |
 
 ## 5. 주요 구현 기능
 
@@ -279,6 +279,16 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 ```bash
 .venv/bin/python -m pytest -q tests
 ```
+
+### 7.4 LangSmith 실행 추적
+
+OPS-M04 정리 한 번(59.9초)을 LangSmith에 기록한 화면. route → plan → gate → research → … 순서로 노드가 펼쳐지고, 노드 안에서 부른 MCP Resource·Prompt·Tool과 로컬 LLM 호출이 시간과 함께 남는다.
+
+![LangSmith 트레이스](docs/images/langsmith_trace.jpg)
+
+- 한 번 실행에 기록된 것: 노드·분기 43개, MCP 호출 18개, LLM 호출 7개
+- 느린 곳이 바로 보인다: plan 34.6초 중 결정 후보 분류 LLM 한 번이 32.1초. 처리 시간을 줄이려면 이 호출의 입력(후보 발언 수)을 줄여야 한다는 근거가 됐다
+- 토큰 수는 0으로 찍힌다. Ollama 호출을 직접 감싼 함수라 토큰 집계를 LangSmith에 넘기지 않기 때문 (토큰은 `eval/run_eval.py`가 따로 센다)
 
 ## 8. Before / After 실측
 
