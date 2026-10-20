@@ -236,13 +236,29 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 | 열람 승인 | 정한결이 관리자 콘솔에서 '이 사람만'으로 승인 | 윤하린에게 "열람 요청이 승인되었습니다", 이후 OPS-M04 열람 가능 |
 | 결정 승인 | 서지후가 정리한 M04의 OPS-0011(런북 캐시)을 정한결이 승인 | 서지후에게 "승인 요청이 승인되었습니다", 정한결에게 "OPS-0011 승인했습니다", 확인 → 열람 범위 체크 |
 
-| 처리 과정 (SSE 단계 표시) | 의견 검토·근거 질의 |
+| 첫 화면 — 프로젝트·회의·모델은 입력창 아래에서 | 회의 선택 메뉴 (날짜 달력 아이콘 옆) |
 |---|---|
-| ![](docs/images/m04_steps.jpg) | ![](docs/images/opinion_question.jpg) |
+| ![](docs/images/home.jpg) | ![](docs/images/scope_menu.jpg) |
 
-| 관리자 콘솔 — 승인 후 열람 범위 | 팀장 알림 |
+| 의견 검토 — 과거 결정·과거 프로젝트와 충돌 | 근거 질의 — 결정·이유·기각 대안·원문 |
 |---|---|
-| ![](docs/images/admin_approve.jpg) | ![](docs/images/notify_lead.jpg) |
+| ![](docs/images/opinion_question.jpg) | ![](docs/images/question_answer.jpg) |
+
+| 면접 전사문 — 질문·답변 요약, 공정성 점검 | 일정 달력 — 회의 상세 |
+|---|---|
+| ![](docs/images/i01_interview.jpg) | ![](docs/images/meeting_detail.jpg) |
+
+| 관리자 콘솔 — 결정·의견 승인 | 관리자 콘솔 — 열람 요청 (범위·기간) |
+|---|---|
+| ![](docs/images/admin_approve.jpg) | ![](docs/images/admin_requests.jpg) |
+
+| 회의 접근 권한 (역할별) | 팀장 알림 |
+|---|---|
+| ![](docs/images/admin_acl.jpg) | ![](docs/images/notify_lead.jpg) |
+
+| 설정 — RAG 저장소 보기 | 사용자 선택 (역할별 시연) |
+|---|---|
+| ![](docs/images/settings_rag.jpg) | ![](docs/images/login.jpg) |
 
 ### 7.2 오류·예외 상황 테스트
 
