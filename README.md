@@ -374,4 +374,5 @@ OPS-M04 정리 한 번(59.9초)을 LangSmith에 기록한 화면. route → plan
 - [docs/adr.md](docs/adr.md) — 설계 결정 기록 (트레이드오프)
 - [docs/base_analysis.md](docs/base_analysis.md) — 베이스 에이전트 실행 분석
 - [docs/plan.md](docs/plan.md) — 진행 계획
+- [docs/발표대본.md](docs/발표대본.md) — 5분 발표 대본과 예상 질문
 - [data/project/](data/project/) — 가상 프로젝트 데이터
