@@ -424,6 +424,7 @@ tr.lock td { color: var(--muted); }
           <div class="ptabs">
             <button :class="{ on: stab === 'rag' }" @click="stab = 'rag'; loadRag()">RAG 저장소</button>
             <button :class="{ on: stab === 'num' }" @click="stab = 'num'">프로젝트·번호 규칙</button>
+            <button :class="{ on: stab === 'model' }" @click="stab = 'model'; loadModels()">모델</button>
           </div>
           <div v-if="stab === 'rag'">
             <div class="rag">
@@ -448,6 +449,24 @@ tr.lock td { color: var(--muted); }
                 <td>{{ (r.statement || r.text || '').slice(0, 160) }}</td>
               </tr>
             </table>
+          </div>
+          <div v-if="stab === 'model'">
+            <p class="note">역할마다 모델을 따로 고릅니다 (모델 티어링). 큰 모델은 정확하지만 느리고, 작은 모델은 빠르지만 추출·판정이 틀리기 쉽습니다.
+              바꾸면 서버를 끄지 않고 바로 적용되고, 이전 모델로 만든 저장 답변은 지워집니다.</p>
+            <table>
+              <tr><th style="width:120px">역할</th><th>하는 일</th><th style="width:220px">모델</th></tr>
+              <tr v-for="r in ['fast', 'quality']" :key="r">
+                <td><b>{{ r === 'fast' ? '빠른 모델' : '정확한 모델' }}</b></td><td>{{ modelCfg.roles?.[r] }}</td>
+                <td><select class="sel" v-model="modelSel[r]" :disabled="me.role !== '팀장'" style="width:200px">
+                  <option v-for="m in modelCfg.installed" :key="m" :value="m">{{ m }}</option></select></td>
+              </tr>
+            </table>
+            <div style="margin-top:12px; display:flex; gap:10px; align-items:center">
+              <button class="btn pri" v-if="me.role === '팀장'" :disabled="modelSel.fast === modelCfg.fast && modelSel.quality === modelCfg.quality" @click="applyModels">적용</button>
+              <span class="muted" v-else>모델 변경은 팀장만 할 수 있습니다.</span>
+              <span class="muted">현재: 빠른 {{ modelCfg.fast }} · 정확한 {{ modelCfg.quality }}</span>
+            </div>
+            <p class="note" style="margin-top:12px">실측(평가 스크립트, 둘 다 qwen3:8b): 평균 18.4초, 결정·충돌·질의 정답 100%. 작은 모델 조합은 같은 스크립트(eval/run_eval.py)로 다시 재서 비교할 수 있습니다.</p>
           </div>
           <div v-if="stab === 'num'">
             <table>
@@ -565,6 +584,13 @@ createApp({
     function dlgClose(v) { dlg.open = false; dlgResolve?.(v); dlgResolve = null; }
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && dlg.open) dlgClose(null); });
     const switchOpen = ref(false); document.addEventListener('click', () => { switchOpen.value = false; });
+    const modelCfg = ref({}), modelSel = reactive({ fast: '', quality: '' });
+    async function loadModels() { modelCfg.value = await api('/models'); modelSel.fast = modelCfg.value.fast; modelSel.quality = modelCfg.value.quality; }
+    async function applyModels() {
+      if (!await ask({ title: '모델 변경', message: `빠른 모델 ${modelSel.fast}, 정확한 모델 ${modelSel.quality}로 바꿀까요?\n이전 모델로 만든 저장 답변은 지워집니다.`, ok: '적용' })) return;
+      await post('/models', { user: me.value.user_id, fast: modelSel.fast, quality: modelSel.quality });
+      await loadModels(); loadNotes();
+    }
     const scopePrj = ref(''), scopeMtg = ref(''), scopeDate = ref('');
     const stab = ref('rag'), ragCounts = ref({}), ragQ = ref('실시간 전송 방식'), ragCol = ref('r3'), ragFiltered = ref(true), ragRows = ref([]);
     let nextId = 0;
@@ -820,7 +846,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { modelCfg, modelSel, loadModels, applyModels, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,

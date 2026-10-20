@@ -225,6 +225,11 @@ class AccessStore:
             return None            # 처음이거나, 원장·정책·문서·원문 중 무엇이 바뀌었으면 새로 만든다
         return {"final": r["final"], "created": r["created"], **json.loads(r["payload"])}
 
+    def cache_clear(self) -> None:
+        """모델을 바꾸면 이전 모델로 만든 답이 섞이지 않게 저장 답변을 비운다."""
+        with self.conn:
+            self.conn.execute("DELETE FROM answer_cache")
+
     def cache_put(self, key: str, fingerprint: str, final: str, payload: dict) -> None:
         with self.conn:
             self.conn.execute("INSERT OR REPLACE INTO answer_cache VALUES (?,?,?,?,?)",

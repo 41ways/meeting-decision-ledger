@@ -26,7 +26,7 @@ from pydantic import BaseModel
 from agent.ledger_graph import LedgerDeps, build_ledger_graph, normalize_meeting_id
 from agent.session_store import SqliteSessionStore
 from ledger.access import AccessStore
-from ledger.llm import build_llms
+from ledger.llm import OLLAMA_URL, LocalLLM, build_llms
 from ledger.mcp_bridge import LedgerMCP
 
 HERE = Path(__file__).parent
@@ -69,6 +69,12 @@ class DecideReq(BaseModel):
     scope: str = "user"          # user | role | all
     duration: str = "once"       # once | project | forever | until
     until: str = ""              # duration=until일 때 기한 (YYYY-MM-DD)
+
+
+class ModelReq(BaseModel):
+    user: str
+    fast: str
+    quality: str
 
 
 class AclReq(BaseModel):
@@ -416,6 +422,40 @@ async def admin_acl_set(req: AclReq):
 
 
 # ---------------------------------------------------------------- 알림·RAG
+# ---------------------------------------------------------------- 모델 설정 (Wave 10a 티어링을 화면에서)
+ROLE_DESC = {"fast": "질문 분류 · 주제 고르기 · 예외 범위 판단", "quality": "결정 추출 · 충돌 판정 · 답변 작성"}
+
+
+@app.get("/models")
+async def models():
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=5) as c:
+            tags = (await c.get(f"{OLLAMA_URL}/api/tags")).json().get("models", [])
+        installed = sorted((m["name"] for m in tags if "embed" not in m["name"]), key=lambda n: (n.split(":")[0], n))
+    except Exception:
+        installed = []
+    d = app.state.deps
+    return {"installed": installed, "fast": getattr(d.fast_llm, "model", d.fast_llm.name),
+            "quality": getattr(d.quality_llm, "model", d.quality_llm.name), "roles": ROLE_DESC}
+
+
+@app.post("/models")
+async def set_models(req: ModelReq):
+    """서버를 끄지 않고 역할별 모델을 바꾼다 (팀장만). 그래프 노드는 deps.fast_llm/quality_llm을 매번 읽는다."""
+    lead_only(req.user)
+    installed = (await models())["installed"]
+    for m in (req.fast, req.quality):
+        if m not in installed:
+            raise HTTPException(400, f"설치되지 않은 모델: {m}")
+    d = app.state.deps
+    d.fast_llm = LocalLLM(req.fast, 0.00015, "fast")
+    d.quality_llm = LocalLLM(req.quality, 0.005, "quality")
+    app.state.access.cache_clear()
+    app.state.access.notify(req.user, f"모델 변경: 빠른 모델 {req.fast} · 정확한 모델 {req.quality} (저장 답변 초기화)", "done")
+    return {"fast": req.fast, "quality": req.quality}
+
+
 @app.get("/notifications")
 async def notifications(user: str):
     rows = app.state.access.notifications(user)
