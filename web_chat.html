@@ -126,7 +126,8 @@ input, select, textarea { font: inherit; color: inherit; }
 .scope select { -webkit-appearance: none; appearance: none; height: 28px; border: 0; border-radius: 6px; padding: 0 22px 0 8px; font-size: 12.5px; color: var(--muted); cursor: pointer;
   background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%237a8594' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 7px center; }
 .scope select:hover { background-color: #f1f3f6; color: var(--fg); } .scope select:focus { outline: none; color: var(--fg); }
-.scope label { display: flex; gap: 6px; align-items: center; flex: none; }
+/* label로 감싸면 달력 아이콘 클릭이 회의 메뉴 버튼으로 넘어가므로 div로 둔다 */
+.scope .sc { display: flex; gap: 6px; align-items: center; flex: none; }
 .sel { -webkit-appearance: none; appearance: none; height: 30px; padding: 0 28px 0 10px; border: 1px solid var(--line2); border-radius: var(--r);
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234c5866' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 9px center;
   font-size: 13px; color: var(--fg); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
@@ -139,20 +140,21 @@ input.sel { padding-right: 10px; background-image: none; cursor: text; }
 .cal-pick svg { width: 16px; height: 16px; pointer-events: none; } .cal-pick:hover { color: var(--accent); border-color: var(--accent); }
 .cal-pick:hover { background: #f1f3f6; } .cal-pick.on { color: var(--accent); background: #e3e9f2; }
 .scope { position: relative; }
-.mini { position: absolute; bottom: 34px; left: -120px; width: 268px; cursor: default; color: var(--fg); background: #fff; border: 1px solid var(--line2); border-radius: 4px;
+.mini { position: absolute; bottom: 34px; left: -120px; width: 268px; cursor: default; color: var(--fg); background: #fff; border: 1px solid #dfe4ea; border-radius: 10px;
   box-shadow: 0 10px 30px rgba(20,35,60,.18); z-index: 30; padding: 10px; animation: rise .15s ease-out; }
 .mini-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: var(--fg); font-size: 13px; }
 .mini-hd button { padding: 2px 8px; color: var(--muted); font-size: 15px; } .mini-hd button:hover { color: var(--accent); }
 .mini-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .mini-grid .mh { text-align: center; font-size: 11px; color: var(--muted); padding: 2px 0; } .mini-grid .mh.sun { color: #c0392b; } .mini-grid .mh.sat { color: #1f5fbf; }
-.mini-grid button { min-width: 0; height: 34px; border-radius: 3px; font-family: var(--mono); font-size: 12px; color: #a3acb8; position: relative; padding-bottom: 6px; }
-.mini-grid button.has { color: var(--fg); font-weight: 700; background: #f3f6fa; cursor: pointer; } .mini-grid button.has:hover { background: var(--sel); }
+.mini-grid button { min-width: 0; height: 34px; border-radius: 6px; font-family: var(--mono); font-size: 12px; color: #a3acb8; position: relative; padding-bottom: 6px; }
+.mini-grid button.has { color: var(--navy); font-weight: 700; background: #dce5f1; cursor: pointer; } .mini-grid button.has:hover { background: #c7d5e8; }
 .mini-grid button.sel { background: var(--accent); color: #fff; } .mini-grid button.today { box-shadow: inset 0 0 0 1px var(--navy); }
 .mini-grid button:disabled { cursor: default; } .mini-grid button.blank { visibility: hidden; }
 .mini-grid button i { position: absolute; left: 0; right: 0; bottom: 4px; display: flex; justify-content: center; gap: 2px; }
 .mini-grid button i em { width: 5px; height: 5px; border-radius: 50%; display: block; } .mini-grid button.sel i em { box-shadow: 0 0 0 1px #fff; }
 .mini-ft { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12px; }
 .mini-ft button { color: var(--accent); font-size: 12px; }
+.mini-key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: #dce5f1; margin-right: 5px; vertical-align: -1px; }
 .scope select, .scope input { flex: none; min-width: 0; }
 .scope .s-clear { height: 28px; padding: 0 8px; font-size: 12.5px; color: var(--muted); border-radius: 6px; } .scope .s-clear:hover { background: #f1f3f6; color: var(--fg); }
 /* 사용자 정의 선택 메뉴: 테두리 없는 글자형 버튼 + 버튼 아래로 붙는 카드 */
@@ -555,9 +557,9 @@ tr.lock td { color: var(--muted); }
         </div>
         <div class="scope-out">
         <div class="scope">
-          <label>
-            <pick-menu v-model="scopePrj" :options="prjOpts" title="프로젝트" width="176px" pop-width="230px" @change="onScopePrj"></pick-menu></label>
-          <label>
+          <div class="sc">
+            <pick-menu v-model="scopePrj" :options="prjOpts" title="프로젝트" width="176px" pop-width="230px" @change="onScopePrj"></pick-menu></div>
+          <div class="sc">
             <pick-menu v-model="scopeMtg" :options="mtgOpts" title="회의" width="260px" pop-width="330px" @change="onScopeMtg"></pick-menu>
             <span class="cal-pick" :class="{ on: scopeDate }" :title="scopeDate ? scopeDate + ' 회의만 보는 중' : '날짜로 회의 찾기'" @click.stop="openMini($event)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -571,9 +573,9 @@ tr.lock td { color: var(--muted); }
                     {{ c.d }}<i v-if="c.ms.length"><em v-for="m in c.ms.slice(0, 3)" :key="m.meeting_id" :style="{ background: prjColor(prjKey(m)) }"></em></i>
                   </button>
                 </div>
-                <div class="mini-ft"><span class="muted">점 = 회의 있는 날</span><button v-if="scopeDate" @click="scopeDate = ''; scopeMtg = ''; miniOpen = false">날짜 해제</button></div>
+                <div class="mini-ft"><span class="muted"><i class="mini-key"></i>회의 있는 날</span><button v-if="scopeDate" @click="scopeDate = ''; scopeMtg = ''; miniOpen = false">날짜 해제</button></div>
               </div>
-            </span></label>
+            </span></div>
 
           <button class="s-clear" v-if="scopePrj || scopeMtg || scopeDate" @click="scopePrj = ''; scopeMtg = ''; scopeDate = ''">해제</button>
             </div>
