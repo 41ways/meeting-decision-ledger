@@ -36,6 +36,7 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, StateGraph
 from langsmith import traceable
 
+from agent import enrich
 from agent.schedule_add import events_as_meetings, schedule_add_node
 from ledger.schedule_parse import is_add_request
 from ledger.thresholds import MIN_TOPIC_SCORE
@@ -136,7 +137,11 @@ class LedgerState(TypedDict, total=False):
     items: list[dict]         # 검토 대상: 회의 결정들, 또는 의견·질문 1건
     action_items: list[dict]
     undecided: list[dict]
-    overview: dict            # 회의 요약: 주제 · 논의 요약 · 방향성
+    overview: dict            # 회의 요약: 주제 · 논의 요약 · 방향성 (추출 호출이 함께 낸 것, 보고서에는 summary를 쓴다)
+    meeting_meta: dict        # 회의 정보 (날짜·제목·참석자) — 회의 목록 표에서
+    summary: dict             # 근거 번호가 달린 요약 {topic, lines:[{text, seqs}], direction}
+    insights: list[str]       # 회의 단위 눈여겨볼 점 (코드 집계)
+    resolved: list[dict]      # 이번 회의 결정으로 해소되는 이전 미결
     competencies: list[dict]  # 면접 전사문: 질문·답변 요약 쌍
     replan_rounds: int
     draft: str
@@ -504,6 +509,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
         return {"items": [], "segments": [],
                 "events": _ev(state, {"type": "PlanCreated", "items": 0, "reason": "원문 없음(파기 또는 없음)"})}
     procedure = await deps.mcp.prompt("extract_decisions_prompt", meeting_id=state["meeting_id"])
+    meta = await deps.mcp.call("meeting_info", meeting_id=state["meeting_id"])
     glossary = await deps.mcp.resource("project-doc://GLOSSARY/current")
     # 후보는 규칙으로 먼저 찾는다 — 확정 표현(결정), 기한·부탁 표현(할 일), 보류 표현(미결). LLM은 후보를 분류·요약한다
     # 배정 표현이 있으면 결정 후보에서 빼고 할 일 후보로만 표시 (gate와 같은 기준)
@@ -572,7 +578,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
     mpid = KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)      # 회의 정리는 그 회의의 프로젝트가 기준
     items = [{**d, "decided_seq": d["seq"], "topic": await ensure_topic(deps, topic_key(d["topic"]), d["statement"]),
               "project": mpid} for d in out.get("decisions", [])]
-    return {"segments": segs, "meeting_date": segs[0]["date"],
+    return {"segments": segs, "meeting_date": segs[0]["date"], "meeting_meta": meta or {},
             "attendee_roles": sorted({s["role"] for s in segs}), "items": items,
             "action_items": out.get("action_items", []), "undecided": out.get("undecided", []),
             "overview": out.get("overview") or {}, "usage": _usage(state, usage, recheck_usage),
@@ -1067,7 +1073,56 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
     evs = [{"type": "ConflictChecked", "statement": i["statement"][:40], "status": i["review"]["status"],
             "conflicts": [f"{c['type']}:{','.join(c['against'])}" for c in i["review"]["conflicts"]]}
            for i in items]
-    return {"items": items, "usage": _usage(state, *[r[1] for r in results]), "events": _ev(state, *evs)}
+    out = {"items": items}
+    usages = [r[1] for r in results]
+    if state["mode"] in ("meeting", "opinion"):
+        extra, more, more_evs = await _enrich(state, deps, items)
+        out.update(extra)
+        usages += more
+        evs += more_evs
+    return {**out, "usage": _usage(state, *usages), "events": _ev(state, *evs)}
+
+
+async def _enrich(state: LedgerState, deps: LedgerDeps, items: list[dict]) -> tuple[dict, list, list]:
+    """
+    판정이 끝난 항목에 라벨·해결 제안을 붙이고, 회의면 칸 기록·근거 달린 요약·인사이트까지 만든다
+
+    판정 결과(review)는 바꾸지 않는다. LLM은 칸·요약·대안 문장만 쓰고 enrich 모듈이 원문과 대조한다.
+    Args:
+        state: 그래프 상태 (mode, segments, action_items, undecided, meeting_meta, items의 project)
+        deps:  의존성 (mcp, quality_llm)
+        items: 판정이 붙은 항목 (라벨·제안·칸을 붙인다)
+    Returns:
+        (상태 갱신 dict, LLM 사용량 목록, 이벤트 목록)
+    """
+    for d in items:
+        d["label"], d["label_reason"] = enrich.label_for(d["review"])
+        d["suggestions"] = enrich.suggest(d)
+    usages = [await enrich.ai_alternatives(deps.quality_llm, items)]
+    if state["mode"] != "meeting":
+        return {}, usages, [{"type": "Suggested", "count": sum(len(d["suggestions"]) for d in items)}]
+    glossary = enrich.parse_glossary(await deps.mcp.resource("project-doc://GLOSSARY/current"))
+    usages.append(await enrich.fill_slots(deps.quality_llm, items, glossary))
+    undecided = [dict(u) for u in state.get("undecided", [])]
+    usages.append(await enrich.open_topics(deps.fast_llm, undecided, await deps.mcp.resource("ledger://topics")))
+    actions = [dict(a) for a in state.get("action_items", [])]
+    enrich.tie_actions(actions, items)
+    summary, su = await enrich.write_summary(deps.quality_llm, state["segments"], items, actions, undecided)
+    usages.append(su)
+    pid = items[0]["project"] if items else KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)
+    history = await deps.mcp.call("list_decisions", project_id=pid)
+    topics = {d["topic"] for d in items if d.get("topic")}
+    meta = state.get("meeting_meta") or {}
+    # 이번 회의 결정과 같은 사안의 앞선 열린 미결 = 이번 회의로 해소되는 미결 (실제 연결은 finalize의 기록 저장에서)
+    resolved = [o for o in await deps.mcp.call("open_items", project_id=pid)
+                if o.get("topic") in topics and o["meeting_id"] != state["meeting_id"]
+                and (o.get("date") or "") <= (meta.get("date") or state.get("meeting_date") or "")]
+    insights = enrich.insights(meta, items, actions, history, resolved)
+    evs = [{"type": "SlotsFilled", "items": len(items), "warn": sum(bool(d.get("slot_warn")) for d in items)},
+           {"type": "SummaryWritten", "lines": len(summary["lines"]), "dropped": summary["dropped"]},
+           {"type": "Suggested", "count": sum(len(d["suggestions"]) for d in items)}]
+    return ({"action_items": actions, "undecided": undecided, "summary": summary, "insights": insights,
+             "resolved": resolved}, usages, evs)
 
 
 # ---------------------------------------------------------------- write / validate
@@ -1075,49 +1130,76 @@ STATUS_KO = {"ok": "문제없음", "conflict": "충돌", "change_approved": "기
              "needs_approval": "확인 필요", "no_basis": "비교할 기준 없음(새 주제)"}
 
 
+def _sug_lines(d: dict, indent: str = "   ") -> list[str]:
+    """
+    해결 방향 줄 (코드 제안 먼저, AI 제안은 표시를 붙여 뒤에)
+    Args:
+        d:      suggestions가 붙은 항목
+        indent: 들여쓰기
+    Returns:
+        마크다운 줄 목록 (제안이 없으면 빈 목록)
+    """
+    sug = d.get("suggestions") or []
+    if not sug:
+        return []
+    return [f"{indent}▶ 해결 방향"] + [f"{indent}  · {'[AI 제안·검토 필요] ' if s['ai'] else ''}{s['text']}"
+                                       for s in sorted(sug, key=lambda s: s["ai"])]
+
+
 def render_meeting(state: LedgerState) -> str:
     """
     회의 정리 보고서를 템플릿으로 작성
 
-    숫자·ID·인용이 모델을 거치지 않도록 구조화 결과를 그대로 마크다운으로 옮긴다.
+    숫자·ID·인용·라벨은 저장된 구조화 결과에서 코드가 그린다. LLM 문장은 요약 줄(근거 번호 검사 통과)과 AI 제안뿐.
     Args:
-        state: 그래프 상태 (meeting_id, meeting_date, overview, items, action_items, undecided 사용)
+        state: 그래프 상태 (meeting_id, meeting_meta, summary, items, action_items, undecided, insights, resolved)
     Returns:
-        회의 요약·결정·할 일·미결 논의 마크다운
+        회의 정보·요약·결정(라벨·근거·해결 방향)·할 일·미결·눈여겨볼 점 마크다운
     """
-    rows = [f"## {state['meeting_id']} 회의 정리 ({state.get('meeting_date', '')})", ""]
-    ov = state.get("overview") or {}
-    if ov:
-        rows += ["### 회의 요약", f"주제: {ov.get('topic', '')}"]
-        rows += [f"- {d}" for d in ov.get("discussion", [])]
-        if ov.get("direction"):
-            rows.append(f"방향: {ov['direction']}")
+    meta = state.get("meeting_meta") or {}
+    rows = [f"## {state['meeting_id']} {meta.get('title', '회의')} 정리 ({state.get('meeting_date', '')})"]
+    if meta.get("attendees"):
+        rows.append("참석 " + " · ".join(f"{a['name']}({a['role']})" if a.get("role") else a["name"]
+                                         for a in meta["attendees"]))
+    rows.append("")
+    sm = state.get("summary") or {}
+    if sm.get("lines") or sm.get("topic"):
+        rows += ["### 회의 요약", f"주제: {sm.get('topic', '')}"]
+        rows += [f"- {ln['text']} [{', '.join(map(str, ln['seqs']))}]" for ln in sm.get("lines", [])]
+        if sm.get("direction"):
+            rows.append(f"방향: {sm['direction']}")
         rows.append("")
-    rows.append("### 결정")
+    held = sum(d.get("label") == "확인 필요" for d in state["items"])
+    rows.append(f"### 결정 ({len(state['items'])}건" + (f", 확인 필요 {held}건" if held else "") + ")")
     for n, d in enumerate(state["items"], 1):
         r = d["review"]
-        rows.append(f"{n}) **{d['statement']}** — {STATUS_KO.get(r['status'], r['status'])}  (결정 {d['decided_by']})")
+        label, why = d.get("label") or enrich.label_for(r)[0], d.get("label_reason") or enrich.label_for(r)[1]
+        rows.append(f"{n}) **{d['statement']}** — [{label}] {why}  (결정 {d['decided_by']})")
         rows.append("   근거: " + "; ".join(f"[{e['seq']}] {e['speaker']} \"{e['quote']}\"" for e in d["evidence"]))
-        for c in r["conflicts"]:
-            rows.append(f"   - {c['type']} [{', '.join(c['against'])}] {c['detail']}")
+        rows += [f"   - {enrich.CONFLICT_KO.get(c['type'], c['type'])} [{', '.join(c['against'])}] {c['detail']}"
+                 for c in r["conflicts"]]
         if r.get("changes"):
             rows.append(f"   - 기준 변경: {', '.join(r['changes'])} (권한자 승인 — 문서 개정 필요)")
-        if r.get("confirms"):
-            rows.append(f"   - 승인 대기 결정 {', '.join(r['confirms'])}과 같은 내용 — 원장에서 승인하면 확정")
         if r.get("waiver_applied"):
             rows.append(f"   - 예외 적용: {r['waiver_applied']}")
         if r["status"] in ("needs_approval", "no_basis"):
-            rows += [f"   - 확인: {n}" for n in r.get("notes", [])[:2]]
+            # 회의 결정의 '원문 논의' 안내는 같은 회의 발언을 다시 찾은 것이라 뺀다
+            rows += [f"   - 확인: {x}" for x in r.get("notes", [])[:2] if not x.startswith("유효한 결정·기준 문서 없음")]
+        rows += [f"   - 요약 확인 필요: {w}" for w in d.get("slot_warn", [])]
+        rows += _sug_lines(d)
     rows += ["", "### 할 일"]
     for a in state.get("action_items", []):
         # gate가 비운 담당자·기한은 '?'와 경고로 드러낸다 (빈칸을 지어내지 않음)
         miss = [k for k in ("owner", "due") if not a.get(k)]
         warn = f"  ⚠ {'·'.join(miss)} 없음" if miss else ""
         rows.append(f"- {a['statement']} — 담당 {a.get('owner') or '?'} / 기한 {a.get('due') or '?'}{warn} "
-                 f"(근거 {', '.join(str(e['seq']) for e in a['evidence'])})")
+                    f"(근거 {', '.join(str(e['seq']) for e in a['evidence'])})" + (f"  ⚠ {a['warn']}" if a.get("warn") else ""))
     if state.get("undecided"):
-        rows += ["", "### 미결 논의"]
-        rows += [f"- {u['subject']} (근거 {', '.join(str(e['seq']) for e in u['evidence'])})" for u in state["undecided"]]
+        rows += ["", "### 미결"]
+        rows += [f"- [미결] {u['subject']} (근거 {', '.join(str(e['seq']) for e in u['evidence'])})"
+                 for u in state["undecided"]]
+    if state.get("insights"):
+        rows += ["", "### 눈여겨볼 점"] + [f"- {x}" for x in state["insights"]]
     return "\n".join(rows)
 
 
@@ -1165,6 +1247,7 @@ def render_opinion(item: dict) -> str:
     if r.get("waiver_applied"):
         rows.append(f"- 적용 가능한 예외: {r['waiver_applied']}")
     rows += [f"- 참고: {n}" for n in r.get("notes", [])]
+    rows += _sug_lines(item, indent="")
     return "\n".join(rows)
 
 
@@ -1446,7 +1529,12 @@ async def finalize_node(state: LedgerState, deps: LedgerDeps) -> dict:
     Returns:
         final(최종 답변), report(구조화 결과·원장 제안 ID), events(Finalize) 갱신
     """
-    proposed = []
+    proposed, saved = [], None
+    if state["mode"] == "meeting" and state.get("segments"):
+        # 회의 정리 결과를 회의 기록에 남긴다 — 다음 회의·질문이 이 기록(미결·할 일·요약)을 이어 쓴다
+        saved = await deps.mcp.call("save_meeting_record", meeting_id=state["meeting_id"],
+                                    pipeline_version=enrich.PIPELINE_VERSION, summary=state.get("summary"),
+                                    actor=state.get("user_id") or "agent", items=_record_items(state))
     if deps.propose_to_ledger and state["mode"] == "meeting":
         for d in state["items"]:
             if d["review"].get("confirms"):          # 기존 승인 대기 결정을 확정하는 발언 → 새로 올리지 않고 그 결정을 승인 대상으로
@@ -1454,15 +1542,61 @@ async def finalize_node(state: LedgerState, deps: LedgerDeps) -> dict:
             # 충돌·승인 필요 결정은 원장에 올리지 않는다
             elif d["review"]["status"] in ("ok", "change_approved", "no_basis"):
                 r = await deps.mcp.call("propose_decision", statement=d["statement"], topic=d["topic"],
-                                        decided_by=d["decided_by"],
+                                        decided_by=d["decided_by"], slots=d.get("slots") or {},
+                                        item_id=f"{state['meeting_id']}:decision:{d['decided_seq']}",
+                                        actor=state.get("user_id") or "agent",
                                         evidence=[{k: e[k] for k in ("meeting_id", "seq", "quote")}
                                                   for e in d["evidence"]])
                 proposed.append(r.get("proposed"))
     report = {"mode": state["mode"], "items": state.get("items", []), "overview": state.get("overview", {}),
+              "summary": state.get("summary", {}), "insights": state.get("insights", []),
               "action_items": state.get("action_items", []), "undecided": state.get("undecided", []),
-              "proposed": proposed, "restricted": state.get("restricted", [])}
+              "proposed": proposed, "restricted": state.get("restricted", []),
+              "linked": (saved or {}).get("linked", []), "refs": _refs(state, proposed)}
     return {"final": state["draft"], "report": report,
             "events": _ev(state, {"type": "Finalize", "pipeline": state["mode"], "proposed": proposed})}
+
+
+def _record_items(state: LedgerState) -> list[dict]:
+    """
+    회의 정리 결과를 회의 기록 항목으로 (결정 후보·미결·할 일)
+    Args:
+        state: 그래프 상태 (items, undecided, action_items)
+    Returns:
+        save_meeting_record에 넘길 항목 목록
+    """
+    ev = lambda es: [{k: e.get(k) for k in ("meeting_id", "seq", "speaker", "quote")} for e in es]  # noqa: E731
+    out = [{"kind": "decision", "seq": d["decided_seq"], "statement": d["statement"], "slots": d.get("slots"),
+            "topic": d.get("topic") or "", "label": d.get("label"),
+            "review": {**d["review"], "label_reason": d.get("label_reason"), "suggestions": d.get("suggestions", [])},
+            "evidence": ev(d["evidence"]), "state": "held"} for d in state.get("items", [])]
+    out += [{"kind": "open", "seq": u.get("seq"), "statement": u["subject"], "topic": u.get("topic") or "",
+             "label": "미결", "evidence": ev(u["evidence"]), "state": "open"} for u in state.get("undecided", [])]
+    out += [{"kind": "action", "seq": a.get("seq"), "statement": a["statement"], "owner": a.get("owner"),
+             "due": a.get("due"), "label": "할 일", "evidence": ev(a["evidence"]), "state": "open",
+             "review": {"warn": a.get("warn")}} for a in state.get("action_items", [])]
+    return out
+
+
+def _refs(state: LedgerState, proposed: list) -> list[str]:
+    """
+    이 답이 가리킨 대상 (다음 질문의 '이거'·'그 회의'를 코드가 풀 때 쓴다)
+    Args:
+        state:    그래프 상태
+        proposed: 원장에 올린 결정 ID
+    Returns:
+        결정·회의 ID 목록 (앞이 더 중요)
+    """
+    refs = [x for x in proposed if x]
+    if state.get("meeting_id"):
+        refs.append(state["meeting_id"])
+    for it in state.get("items", []):
+        res = it.get("research") or {}
+        if res.get("authority") == "decision" and res.get("current"):
+            refs.append(res["current"]["decision_id"])
+        refs += [p["decision_id"] for p in res.get("pending", [])]
+        refs += [e["meeting_id"] for e in (res.get("current") or {}).get("evidence", []) if e.get("meeting_id")]
+    return list(dict.fromkeys(refs))
 
 
 def _after_plan(state: LedgerState) -> str:

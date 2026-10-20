@@ -196,10 +196,18 @@ class FakeMCP:
     calls = 0
 
     async def call(self, name, **a):
+        self.saved = getattr(self, "saved", [])
+        if name == "save_meeting_record":
+            self.saved.append(a)
+            return {"saved": len(a["items"]), "linked": []}
         return {"get_segments": SEGS,
                 "resolve_current": {**RES_WS, "rules": [], "advisory": [], "notes": []},
                 "check_authority": {"ok": True, "rule": "AUTH-01@v3"},
-                "check_waiver": {"active_waivers": []}}[name]
+                "check_waiver": {"active_waivers": []},
+                "meeting_info": {"meeting_id": "OPS-M04", "date": "2026-10-13", "title": "기능 확장 회의",
+                                 "attendees": [{"name": "서지후", "role": "PL"}]},
+                "list_decisions": [], "open_items": [],
+                "topic_candidates": [{"topic": "cache", "score": 0.8}]}[name]
 
     async def prompt(self, name, **a):
         return "절차"
@@ -414,3 +422,15 @@ def test_nothing_found_must_be_said_not_undecided():
     out = run(G.validate_node(_q_state("관련 결정을 찾지 못했습니다.", {"authority": "discussion", "pending": []}, disc),
                               deps=None))
     assert "결정되지 않" in out["validation_feedback"]
+
+
+def test_meeting_result_is_saved_to_records_with_labels():
+    """회의 정리 결과(결정 후보·할 일)가 라벨과 함께 회의 기록에 저장되고, 답이 가리킨 대상(refs)이 남는다."""
+    mcp = FakeMCP()
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=FakeLLM(), mcp=mcp))
+    st = run(graph.ainvoke({"message": "OPS-M04 회의 정리해줘", "events": []}))
+    saved = mcp.saved[0]
+    kinds = {i["kind"] for i in saved["items"]}
+    assert saved["meeting_id"] == "OPS-M04" and kinds == {"decision", "action"}
+    assert saved["items"][0]["label"] == "승인 대기" and "OPS-M04" in st["report"]["refs"]
+    assert "참석 서지후(PL)" in st["final"]

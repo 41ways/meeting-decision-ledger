@@ -33,7 +33,9 @@ def main() -> None:
 
     store = LedgerStore()
     print("SQLite 시드:", store.load_seed(data))
-    print("회의 목록:", MeetingRecords().sync_meetings(data), "건")
+    records = MeetingRecords()
+    records.reset()          # 시드 재적재는 처음부터 — 이전 정리 결과(항목·사안·이력)도 비운다
+    print("회의 목록:", records.sync_meetings(data), "건")
 
     rag = LedgerRAG()
     rag.reset()

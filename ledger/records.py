@@ -127,6 +127,15 @@ class MeetingRecords:
                 d[k] = json.loads(d[k])
         return d
 
+    def reset(self) -> None:
+        """
+        회의 기록을 비운다 (시연·평가 초기화용 — 시드 재적재와 함께만 쓴다)
+        """
+        with self._conn() as c:
+            for table in ("items", "threads", "events"):
+                c.execute(f"DELETE FROM {table}")
+            c.execute("UPDATE meetings SET summary=NULL, processed_at=NULL, pipeline_version=NULL")
+
     # ---------------- 이력 ----------------
     def log(self, actor: str, kind: str, target: str, detail: dict | None = None) -> None:
         """
