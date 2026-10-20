@@ -74,6 +74,8 @@ def normalize_meeting_id(msg: str) -> str:
 # 결정 판별 규칙 — gate가 코드로 확인한다 (회상·제안·보류 발언을 결정으로 뽑는 오류 차단)
 CONFIRM = re.compile(r"걸로|겠습니다|확정|하죠|합시다|바꾸죠|가죠|그렇게 하|갑시다")
 NOT_CONFIRM = re.compile(r"확정은 아닙|아직 확정|결론 내지|다음에 다시|보고 정할|검토해")
+# 확정하면서 재검토 여지를 남기는 표현 — 이런 결정 앞의 논의는 미결로 남길 수 있다
+REOPEN = re.compile(r"나중에|바꿀 수|다시 보|재검토")
 CHAIR_ROLES = ("PM", "PL")      # 진행자급의 단정 발언('코드에서 걸러요')도 결정으로 인정
 
 
@@ -770,7 +772,12 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:  # pylint: di
         if owner and req and req["speaker"] == owner and re.search(r"주세요|부탁", req["text"]):
             owner = None                              # '누가 ~해 주세요'를 말한 사람은 요청자이지 담당자가 아니다
         actions.append({**a, "owner": owner, "due": due, "evidence": _cite(by_seq, ev)})
-    undecided = [{**u, "evidence": _cite(by_seq, [u.get("seq")])} for u in state.get("undecided", [])]
+    # 같은 회의에서 정해진 것을 미결로 또 뽑은 경우를 뺀다 — 미결 발언이 통과한 결정의 근거나 확정 직전 2발언 안이면 이미 정해진 것.
+    # 단 확정 발언이 '나중에 바꿀 수 있으니까'처럼 재검토 여지를 남겼으면 그 미결은 둔다 (이후 결정으로 이어지는 논의)
+    settled = {x for d in kept if not REOPEN.search(by_seq[d["decided_seq"]]["text"])
+               for x in {*(e["seq"] for e in d["evidence"]), *range(d["decided_seq"] - 2, d["decided_seq"] + 1)}}
+    undecided = [{**u, "evidence": _cite(by_seq, [u.get("seq")])} for u in state.get("undecided", [])
+                 if u.get("seq") not in settled]
     evs = [{"type": "DecisionFound", "statement": d["statement"], "seq": d["decided_seq"],
             "decided_by": d["decided_by"]} for d in kept]
     # 원문 근거가 하나도 없는 할 일·미결(존재하지 않는 번호)은 보고서에서 뺀다

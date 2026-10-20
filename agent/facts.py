@@ -148,6 +148,7 @@ async def fact_answer(deps, msg: str, refs: list[str]) -> tuple[str, list[str]]:
     elif mid:
         # 회의가 대상이면 그 회의에서 나온 결정 후보와 라벨
         decs = [i for i in await deps.mcp.call("meeting_items", meeting_id=mid) if i["kind"] == "decision"]
-        rows += [f"- 결정 [{i.get('label') or '?'}] {i['statement']}" + (f" → {i['decision_id']}" if i.get("decision_id") else "")
+        rows += [f"- 결정 [{i.get('label') or '?'}] {i['statement']}"
+                 + (f" → {i['decision_id']}" if i.get("decision_id") else "")
                  for i in decs]
     return "\n".join(rows), out_refs

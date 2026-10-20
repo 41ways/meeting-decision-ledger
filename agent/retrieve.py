@@ -96,7 +96,8 @@ def merge(res: dict, picked: dict, project_id: str) -> tuple[dict, list[dict], l
                                                  and d["decision_id"] not in seen]
     disc = []
     for o in picked["opens"]:
-        for e in o.get("evidence") or [{"meeting_id": o["meeting_id"], "seq": o.get("seq"), "speaker": "", "quote": o["statement"]}]:
+        fallback = [{"meeting_id": o["meeting_id"], "seq": o.get("seq"), "speaker": "", "quote": o["statement"]}]
+        for e in o.get("evidence") or fallback:
             disc.append({"meeting_id": e.get("meeting_id"), "seq": e.get("seq"), "speaker": e.get("speaker") or "",
                          "text": e.get("quote") or o["statement"], "open_item": o["item_id"], "state": o.get("state"),
                          "linked_to": o.get("linked_to")})

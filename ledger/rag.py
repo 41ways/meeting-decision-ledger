@@ -151,16 +151,6 @@ class LedgerRAG:
                           "role": s["role"], "text": s["text"]})
         return self._upsert(R1, ids, docs, metas)
 
-    def delete_transcript(self, meeting_id: str) -> None:
-        """
-        보존 기한이 지난 원문 파기 (정책 SEC-02)
-
-        원장의 인용은 남는다.
-        Args:
-            meeting_id: 파기할 회의 ID
-        """
-        self.col(R1).delete(where={"meeting_id": meeting_id})
-
     def ingest_baseline_doc(self, md_text: str, doc: dict, project_id: str, domain: str = "meeting") -> int:
         """
         기준 문서를 '## ' 섹션 단위로 R2에 적재
@@ -303,7 +293,9 @@ class LedgerRAG:
 
     def delete_transcript(self, meeting_id: str) -> int:
         """
-        회의 하나의 발언 색인 삭제 (보존 기한이 지난 원문 파기용)
+        회의 하나의 발언 색인 삭제 (보존 기한이 지난 원문 파기용, 정책 SEC-02)
+
+        원장의 인용은 남는다.
         Args:
             meeting_id: 회의 ID
         Returns:

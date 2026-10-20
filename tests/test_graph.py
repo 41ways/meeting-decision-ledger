@@ -101,6 +101,30 @@ def test_gate_takes_corrected_due_from_later_utterance():
     assert b["due"] == "2026-10-10"
 
 
+def test_gate_drops_undecided_settled_in_same_meeting():
+    def seg(q, sp, role, t):
+        return {"meeting_id": "OPS-M01", "date": "2026-09-15", "seq": q, "ts": "",
+                "speaker": sp, "role": role, "text": t}
+
+    st = {**_gate_state([
+        {"decided_seq": 7, "proposal_seq": 6, "statement": "LLM은 사내 Ollama로", "topic": "llm.external"},
+        {"decided_seq": 10, "proposal_seq": 9, "statement": "실시간 전송 롱폴링으로 시작", "topic": "realtime.transport"},
+    ]), "meeting_date": "2026-09-15", "segments": [
+        seg(6, "노영오", "AI 개발", "LLM은 어떻게 할까요? 외부 API가 품질은 좋은데요."),
+        seg(7, "서지후", "PL", "운영 로그가 들어가니까 기본은 사내 Ollama 모델로 갑시다. 외부 API는 보안 승인 받아야 하니까 일단 제외요."),
+        seg(9, "장상민", "백엔드", "실시간 진행 표시는요? 고객센터 챗봇 때는 롱폴링 썼던 걸로 아는데."),
+        seg(10, "서지후", "PL", "일단 고객센터 챗봇이랑 같게 롱폴링으로 시작하죠. 나중에 바꿀 수 있으니까."),
+        seg(12, "정한결", "PM", "5초는 요구사항 초안에 들어가 있어요. 설계하면서 다시 보죠."),
+    ], "undecided": [
+        {"seq": 6, "subject": "외부 LLM API 사용 여부"},          # 7에서 정함 → 뺀다
+        {"seq": 9, "subject": "실시간 전송 방식 변경 가능성"},     # 10이 '나중에 바꿀 수' → 둔다
+        {"seq": 12, "subject": "응답 시간 5초 기준"},              # 결정과 무관 → 둔다
+    ]}
+    out = run(G.gate_node(st, deps=None))
+    assert [d["decided_seq"] for d in out["items"]] == [7, 10]
+    assert [u["seq"] for u in out["undecided"]] == [9, 12]
+
+
 # ---------------------------------------------------------------- 판정표 decide()
 def _item(research, auth=None, waivers=()):
     return {"statement": "x", "topic": "t", "research": research, "authority_check": auth, "waivers": list(waivers)}

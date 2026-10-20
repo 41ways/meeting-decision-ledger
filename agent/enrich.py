@@ -36,7 +36,8 @@ def label_for(review: dict) -> tuple[str, str]:
     """
     s = review.get("status")
     if s == "conflict":
-        why = [CONFLICT_KO.get(c["type"], c["type"]) for c in review.get("conflicts", []) if c["type"] != "past_project"]
+        why = [CONFLICT_KO.get(c["type"], c["type"]) for c in review.get("conflicts", [])
+               if c["type"] != "past_project"]
         return "확인 필요", " · ".join(dict.fromkeys(why))
     if s == "needs_approval":
         return "확인 필요", (review.get("notes") or ["사람 확인 필요"])[0]
@@ -246,7 +247,8 @@ async def ai_alternatives(llm, items: list[dict]) -> dict | None:
     got = {x.get("i"): (x.get("alternative") or "").strip() for x in out.get("items", [])}
     for n, d in targets:
         alt = got.get(n, "")
-        src = " ".join(e["quote"] for e in d.get("evidence", [])) + " " + d["statement"] + " " + " ".join(_rule_texts(d))
+        src = (" ".join(e["quote"] for e in d.get("evidence", [])) + " " + d["statement"] + " "
+               + " ".join(_rule_texts(d)))
         if alt and not values_ok(alt, src) and not _repeats_change(alt, d):
             d.setdefault("suggestions", []).append({"text": alt, "ai": True})
     return usage
@@ -270,7 +272,8 @@ def _rule_texts(d: dict) -> list[str]:
         elif c["type"] == "authority":
             out.append(f"{ref}: {(d.get('authority_check') or {}).get('reason', '')}")
         elif c["type"] == "baseline":
-            out += [f"{ref}: {b.get('text', '')[:120]}" for b in res.get("baseline", []) if b.get("section", "").startswith(ref)]
+            out += [f"{ref}: {b.get('text', '')[:120]}" for b in res.get("baseline", [])
+                    if b.get("section", "").startswith(ref)]
     return out or [c.get("detail", "") for c in d["review"]["conflicts"]]
 
 
@@ -291,7 +294,8 @@ def _repeats_change(alt: str, d: dict) -> bool:
     return bool(after) and after.lower() in alt.lower() and not NEGATION.search(alt)
 
 
-OPEN_TOPIC_SCHEMA = {"type": "object", "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {
+OPEN_TOPIC_SCHEMA = {"type": "object", "properties": {"items": {"type": "array", "items": {
+    "type": "object", "properties": {
     "i": {"type": "integer"}, "topic": {"type": "string"}}, "required": ["i", "topic"]}}}, "required": ["items"]}
 
 
@@ -445,8 +449,10 @@ def insights(meta: dict, items: list[dict], actions: list[dict], history: list[d
         past = sorted((h for h in history if h.get("topic") == d.get("topic") and h["status"] == "approved"
                        and (h.get("effective_from") or "") <= date), key=lambda h: h.get("effective_from") or "")
         if len(past) >= 2:
-            chain = " → ".join(f"{h['statement'].rstrip('.')}({(h.get('effective_from') or '')[5:]})" for h in past[-3:])
-            out.append(f"'{d.get('slots', {}).get('target') or d['topic']}' 사안 {len(past) + 1}번째 변경 시도: {chain} → 이번 회의")
+            chain = " → ".join(f"{h['statement'].rstrip('.')}({(h.get('effective_from') or '')[5:]})"
+                               for h in past[-3:])
+            target = d.get('slots', {}).get('target') or d['topic']
+            out.append(f"'{target}' 사안 {len(past) + 1}번째 변경 시도: {chain} → 이번 회의")
     tied = [a for a in actions if a.get("warn")]
     if tied:
         out.append(f"할 일 {len(tied)}건이 확인 필요인 결정에 묶여 있음 — 진행 전 확인")

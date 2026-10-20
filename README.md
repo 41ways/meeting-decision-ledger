@@ -32,7 +32,7 @@ LLM 단독이나 단순 RAG로는 이 상황을 놓치거나, 이미 대체된 �
 | Frontend | HTML·CSS, Vue 3 (CDN, 빌드 없음) — 베이스 `web_chat.html` 수정 |
 | Backend | Python 3.11, FastAPI, SSE |
 | Agent | LangGraph StateGraph (베이스 노드 구조), 의존성 주입(`functools.partial`) |
-| 외부 기능 연동 | MCP — FastMCP stdio 서버 (Tool 20 · Resource 3 · Prompt 3). 일정은 조회(list_events)와 추가 초안(propose_event)까지, 저장은 서버 확인 API만 |
+| 외부 기능 연동 | MCP — FastMCP stdio 서버 (Tool 29 · Resource 3 · Prompt 3). 일정은 조회(list_events)와 추가 초안(propose_event)까지, 저장은 서버 확인 API만 |
 | RAG | Chroma(컬렉션 4개, cosine) + SQLite(원장·정책·예외의 진실의 원천) |
 | LLM | Ollama `qwen3:8b`·`qwen3:0.6b` (think off). 입력창에서 모델 조합 선택: **자동**(기본 — 회의 정리·질의·검토는 8b, 일반 대화는 0.6b, 일정 질문은 모델 없이) / 정확(전부 8b) / 빠름(분류 0.6b + 작성 8b) / 가장 빠름(전부 0.6b). `LLM_BACKEND=openai`로 OpenAI 전환 가능 |
 | 임베딩 | Ollama `qwen3-embedding:4b` (로컬) |

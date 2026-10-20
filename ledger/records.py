@@ -188,10 +188,12 @@ class MeetingRecords:
                 # 역할은 발언에 붙은 역할이 가장 정확하다 (없으면 사용자 목록)
                 spoke = {s["speaker"]: s.get("role") for s in m.get("segments", [])}
                 att = [{"name": n, "role": spoke.get(n) or roles.get(n, "")} for n in m.get("attendees", [])]
-                c.execute("""INSERT INTO meetings (meeting_id, project_id, domain, date, title, attendees, transcript_deleted)
+                c.execute("""INSERT INTO meetings
+                             (meeting_id, project_id, domain, date, title, attendees, transcript_deleted)
                              VALUES (?,?,?,?,?,?,0)
                              ON CONFLICT(meeting_id) DO UPDATE SET project_id=excluded.project_id, domain=excluded.domain,
-                             date=excluded.date, title=excluded.title, attendees=excluded.attendees, transcript_deleted=0""",
+                             date=excluded.date, title=excluded.title, attendees=excluded.attendees,
+                             transcript_deleted=0""",
                           (m["meeting_id"], m.get("project_id"), m.get("domain", "meeting"), m.get("date"),
                            m.get("title"), json.dumps(att, ensure_ascii=False)))
                 seen.add(m["meeting_id"])
@@ -259,7 +261,8 @@ class MeetingRecords:
                 old = c.execute("SELECT state, linked_to, created FROM items WHERE item_id=?", (iid,)).fetchone()
                 # 다시 정리할 때 사람이 닫았거나 이어 둔 미결 상태는 지키고 내용만 갱신한다
                 state = old["state"] if old and old["state"] in ("closed", "linked") else it.get("state")
-                c.execute("""INSERT OR REPLACE INTO items (item_id, meeting_id, project_id, date, kind, seq, statement, slots,
+                c.execute("""INSERT OR REPLACE INTO items
+                             (item_id, meeting_id, project_id, date, kind, seq, statement, slots,
                              topic, thread_id, label, review, evidence, decision_id, state, linked_to, owner, due, created, updated)
                              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                           (iid, meeting_id, pid, date, it["kind"], it.get("seq"), it.get("statement"),
@@ -327,7 +330,8 @@ class MeetingRecords:
         """
         with self._conn() as c:
             return [self._row(r) for r in c.execute(
-                "SELECT * FROM items WHERE decision_id=? OR linked_to=? ORDER BY date, seq", (decision_id, decision_id))]
+                "SELECT * FROM items WHERE decision_id=? OR linked_to=? ORDER BY date, seq",
+                (decision_id, decision_id))]
 
     def link_decision(self, item_id: str, decision_id: str, actor: str = "agent") -> None:
         """
