@@ -14,8 +14,10 @@ import json
 import os
 import re
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from pathlib import Path
 
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()   # LANGCHAIN_TRACING_V2 / LANGCHAIN_API_KEY — langsmith import 전에 환경변수가 있어야 추적이 켜짐
@@ -29,7 +31,6 @@ from agent.ledger_graph import LedgerDeps, build_ledger_graph, normalize_meeting
 from agent.session_store import SqliteSessionStore
 from ledger.access import AccessStore
 from ledger.llm import OLLAMA_URL, LocalLLM, build_llms, warm_up
-from dataclasses import replace
 from ledger.mcp_bridge import LedgerMCP
 
 HERE = Path(__file__).parent
@@ -179,32 +180,32 @@ def can_view_decision_for_answer(user_id: str, decision: dict) -> bool:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(application: FastAPI):
     """
     서버 시작·종료 시 공유 자원 생성과 정리 (Wave 1·2)
 
-    MCP 자식 프로세스, LLM, 권한 저장소, 그래프를 프로세스당 1회만 만들어 app.state에 둔다.
+    MCP 자식 프로세스, LLM, 권한 저장소, 그래프를 프로세스당 1회만 만들어 application.state에 둔다.
     Ollama 백엔드면 모델 조합(PRESETS)별 그래프를 미리 만들고 모델을 예열한다.
     Args:
-        app: FastAPI 앱
+        application: FastAPI 앱
     Returns:
         종료 시점까지 대기하는 비동기 컨텍스트 (yield 이후 정리)
     """
     mcp = LedgerMCP()
     await mcp.start()
     fast, quality = build_llms()
-    app.state.access = AccessStore()
+    application.state.access = AccessStore()
     deps = LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, session_store=SqliteSessionStore(),
                       propose_to_ledger=True, can_view=can_view_decision_for_answer)
-    app.state.deps = deps
-    app.state.graph = build_ledger_graph(deps)
+    application.state.deps = deps
+    application.state.graph = build_ledger_graph(deps)
     # 기본 그래프(build_llms 기준)를 'accurate'로 등록. OpenAI 백엔드면 이 하나만 쓴다
-    app.state.graphs = {"accurate": app.state.graph}
+    application.state.graphs = {"accurate": application.state.graph}
     if os.environ.get("LLM_BACKEND", "ollama") == "ollama":
         for key, (_, f, q) in PRESETS.items():
             if key != "accurate":
                 # deps를 복사해 LLM만 바꾼다 — MCP·세션 저장소·권한 판정은 공유. 'auto'만 일반 대화를 0.6b로
-                app.state.graphs[key] = build_ledger_graph(replace(
+                application.state.graphs[key] = build_ledger_graph(replace(
                     deps, fast_llm=LocalLLM(f, 0.00015, "fast"), quality_llm=LocalLLM(q, 0.005, "quality"),
                     chat_llm=LocalLLM("qwen3:0.6b", 0.00015, "chat") if key == "auto" else None))
         asyncio.create_task(warm_up(["qwen3:8b", "qwen3:0.6b"]))     # 첫 질문 전에 모델을 메모리에 올려 둔다
@@ -214,9 +215,9 @@ async def lifespan(app: FastAPI):
     deps.session_store.close()
     # 종료 직전 LangSmith 추적을 마저 전송. 추적이 꺼져 있거나 패키지가 없어도 종료는 막지 않는다
     try:
-        from langchain_core.tracers.langchain import wait_for_all_tracers
+        from langchain_core.tracers.langchain import wait_for_all_tracers  # pylint: disable=import-outside-toplevel
         wait_for_all_tracers()
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         pass
 
 
@@ -558,7 +559,8 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
                         seen = len(evs)
                         state["events"] = evs        # 답변 재사용 때 처리 과정을 그대로 다시 보여 주려고 보관
                     state.update({k: v for k, v in delta.items() if k != "events"})
-        except Exception as e:     # LLM 서버 다운·MCP 오류 등 — 화면에 원인을 보여 주고 스트림을 정상 종료
+        # LLM 서버 다운·MCP 오류 등 — 화면에 원인을 보여 주고 스트림을 정상 종료
+        except Exception as e:  # pylint: disable=broad-exception-caught
             # 연결 계열 예외(ConnectError 등)는 원인이 대부분 Ollama 미실행이라 조치 안내로 바꾼다
             hint = "LLM 서버(Ollama)에 연결할 수 없습니다. ollama serve 확인" if "Connect" in type(e).__name__ else repr(e)
             deps.session_store.append(thread_id, "assistant", "오류: " + hint)
@@ -571,16 +573,18 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             yield sse({"type": "AccessDenied", "targets": report["restricted"]})
         final = state.get("final", "")
         # 의견 검토면 '결정으로 올리기' 버튼에 쓸 문장·주제·판정을 함께 보낸다
-        opinion = ({"statement": message, "topic": report["items"][0]["topic"], "status": report["items"][0]["review"]["status"]}
-                   if state.get("mode") == "opinion" and report.get("items") else None)
+        opinion = None
+        if state.get("mode") == "opinion" and report.get("items"):
+            first = report["items"][0]
+            opinion = {"statement": message, "topic": first["topic"], "status": first["review"]["status"]}
         yield sse({"type": "FinalAnswer", "reply": final, "mode": state.get("mode"),
                    "proposed": report.get("proposed", []), "opinion": opinion})
         # 원장 근거로 답하는 모드만 저장. 일반 대화·일정은 저장하지 않는다
         if key and state.get("mode") in ("meeting", "interview", "opinion", "question"):
             # 지문은 처리 후 값으로 저장 (이번 처리에서 올린 승인 대기 결정까지 반영된 상태)
-            app.state.access.cache_put(key, await deps.mcp.call("ledger_fingerprint"), final,
-                                       {"mode": state.get("mode"), "opinion": opinion, "restricted": report.get("restricted", []),
-                                        "events": [e for e in state.get("events", []) if e.get("type") not in ("Finalize",)]})
+            replay = {"mode": state.get("mode"), "opinion": opinion, "restricted": report.get("restricted", []),
+                      "events": [e for e in state.get("events", []) if e.get("type") != "Finalize"]}
+            app.state.access.cache_put(key, await deps.mcp.call("ledger_fingerprint"), final, replay)
         deps.session_store.append(thread_id, "assistant", final)
         after_run(user, thread_id, message, state)
         yield "data: [DONE]\n\n"
@@ -683,10 +687,16 @@ async def admin_pending(user: str):
     acc = app.state.access
     rows = await app.state.deps.mcp.call("list_decisions", project_id="")
     src = acc.proposal_sources()
-    pending = [{k: v for k, v in r.items() if k != "evidence"} | {
-        "requested_by": acc.user(src[r["decision_id"]]["requested_by"])["name"] if r["decision_id"] in src else r.get("decided_by"),
-        "source": src.get(r["decision_id"], {}).get("source", "원장"),
-        "meetings": sorted({e["meeting_id"] for e in r.get("evidence", [])})} for r in rows if r["status"] == "proposed"]
+    pending = []
+    for r in rows:
+        if r["status"] != "proposed":
+            continue
+        did = r["decision_id"]
+        requester = acc.user(src[did]["requested_by"])["name"] if did in src else r.get("decided_by")
+        pending.append({k: v for k, v in r.items() if k != "evidence"} | {
+            "requested_by": requester,
+            "source": src.get(did, {}).get("source", "원장"),
+            "meetings": sorted({e["meeting_id"] for e in r.get("evidence", [])})})
     return {"decisions": pending, "requests": acc.requests("pending"), "history": acc.requests(None)[:20]}
 
 
@@ -812,11 +822,10 @@ async def models():
     Returns:
         presets(조합 목록), default(기본 조합 키)
     """
-    import httpx
     try:
         async with httpx.AsyncClient(timeout=5) as c:
             installed = {m["name"] for m in (await c.get(f"{OLLAMA_URL}/api/tags")).json().get("models", [])}
-    except Exception:
+    except (httpx.HTTPError, ValueError):     # Ollama 꺼짐·응답 형식 오류
         installed = set()
     out = [{"key": k, "label": lab, "fast": f, "quality": q, "available": k in app.state.graphs and {f, q} <= installed}
            for k, (lab, f, q) in PRESETS.items()]
@@ -873,7 +882,8 @@ async def rag_search(collection: str, q: str, filtered: bool = True, k: int = 6)
     Returns:
         검색 결과 행 목록
     """
-    return {"rows": await app.state.deps.mcp.call("rag_inspect", collection=collection, query=q, filtered=filtered, k=k)}
+    rows = await app.state.deps.mcp.call("rag_inspect", collection=collection, query=q, filtered=filtered, k=k)
+    return {"rows": rows}
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 """원장·정책 판단 로직 단위 테스트 — 임베딩·LLM 없이 SQLite만으로 돈다."""
+# pylint: disable=missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument  # pytest fixture·가짜 객체 관용
 import sys
 from pathlib import Path
 

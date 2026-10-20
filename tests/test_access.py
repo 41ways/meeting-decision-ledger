@@ -1,4 +1,5 @@
 """권한·요청·알림 단위 테스트 (임시 SQLite)."""
+# pylint: disable=missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument  # pytest fixture·가짜 객체 관용
 import pytest
 
 from ledger.access import AccessStore
@@ -80,7 +81,7 @@ def test_answer_cache_reused_only_when_inputs_unchanged(acc):
 
 
 def test_cache_key_same_target_and_extra_request():
-    import server
+    import server  # pylint: disable=import-outside-toplevel  # 서버 모듈은 무거워 이 테스트에서만 읽는다
     k = server.cache_key
     assert k("kjh", "OPS-M04 회의 정리해줘") == k("pdy", "M04 회의 요약 부탁") == "summary:OPS-M04"
     assert k("kjh", "M04 정리해줘 할 일만") is None              # 추가 요청은 새로 처리

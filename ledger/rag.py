@@ -100,7 +100,7 @@ class LedgerRAG:
         for n in names or [R1, R2, R3, R4]:
             try:
                 self.client.delete_collection(n)
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught  # chromadb 버전마다 없는 컬렉션 예외 종류가 다름
                 # 아직 만들어지지 않은 컬렉션은 지울 것이 없으므로 무시
                 pass
 

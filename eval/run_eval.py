@@ -11,9 +11,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib
 import json
+import os
 import re
+import shutil
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -105,10 +109,11 @@ async def run_baseline(kind: str, llm: LocalLLM, rag: LedgerRAG, meetings, opini
     """
     out = {"meetings": {}, "opinions": {}, "questions": {}}
     for mid in meetings:
-        segs, lines = seg_lines(mid)
+        _, lines = seg_lines(mid)
         ctx = naive_context(rag, lines[:1500], k=5) if kind == "B" else ""     # 회의록 앞부분을 검색어로
         t = time.perf_counter()
-        r, u = await llm.json(BASE_MEETING_SYS, (f"## 참고 자료\n{ctx}\n\n" if ctx else "") + f"## 회의 {mid}\n{lines}", BASE_SCHEMA)
+        prefix = f"## 참고 자료\n{ctx}\n\n" if ctx else ""
+        r, u = await llm.json(BASE_MEETING_SYS, prefix + f"## 회의 {mid}\n{lines}", BASE_SCHEMA)
         out["meetings"][mid] = {"decisions": [{"seq": d["seq"], "statement": d["statement"], "quote": d["quote"],
                                                "against": d.get("conflicts_with", [])} for d in r.get("decisions", [])],
                                 "action_items": r.get("action_items", []), "sec": time.perf_counter() - t, "calls": 1,
@@ -116,7 +121,8 @@ async def run_baseline(kind: str, llm: LocalLLM, rag: LedgerRAG, meetings, opini
     for o in opinions:
         ctx = naive_context(rag, o["text"]) if kind == "B" else ""
         t = time.perf_counter()
-        r, u = await llm.json(BASE_OPINION_SYS, (f"## 참고 자료\n{ctx}\n\n" if ctx else "") + f"## 의견\n{o['text']}", OPINION_SCHEMA)
+        prefix = f"## 참고 자료\n{ctx}\n\n" if ctx else ""
+        r, u = await llm.json(BASE_OPINION_SYS, prefix + f"## 의견\n{o['text']}", OPINION_SCHEMA)
         out["opinions"][o["id"]] = {**r, "sec": time.perf_counter() - t, "calls": 1, "tokens": u["tokens"]}
     for q in questions:
         ctx = naive_context(rag, q["text"]) if kind == "B" else ""
@@ -168,9 +174,10 @@ async def run_after(llm: LocalLLM, meetings, opinions, questions) -> dict:
                            "against": [a for c in r["conflicts"] for a in c["against"]],
                            "blocking": [a for c in r["conflicts"] if c["type"] != "past_project" for a in c["against"]],
                            "changes": r.get("changes", []), "confirms": r.get("confirms", []), "status": r["status"]})
-            out["meetings"][mid] = {"decisions": ds, "action_items": [{"seq": a["evidence"][0]["seq"] if a["evidence"] else None,
-                                    "statement": a["statement"], "owner": a.get("owner"), "due": a.get("due")}
-                                    for a in st["report"]["action_items"]],
+            actions = [{"seq": a["evidence"][0]["seq"] if a["evidence"] else None,
+                        "statement": a["statement"], "owner": a.get("owner"), "due": a.get("due")}
+                       for a in st["report"]["action_items"]]
+            out["meetings"][mid] = {"decisions": ds, "action_items": actions,
                                     "sec": sec, "calls": st["usage"]["llm_calls"], "tokens": st["usage"]["tokens"],
                                     "events": st["events"]}
         for o in opinions:
@@ -182,7 +189,8 @@ async def run_after(llm: LocalLLM, meetings, opinions, questions) -> dict:
             verdict = ("allowed_with_waiver" if r.get("waiver_applied") and not blocking else
                        "conflict" if r["status"] == "conflict" else
                        "needs_approval" if r["status"] == "needs_approval" else "no_conflict")
-            out["opinions"][o["id"]] = {"verdict": verdict, "against": [a for c in r["conflicts"] for a in c["against"]],
+            out["opinions"][o["id"]] = {"verdict": verdict,
+                                        "against": [a for c in r["conflicts"] for a in c["against"]],
                                         "waiver": r.get("waiver_applied"), "topic": it["topic"], "sec": sec,
                                         "calls": st["usage"]["llm_calls"], "tokens": st["usage"]["tokens"]}
         for q in questions:
@@ -264,9 +272,11 @@ def score(run: dict) -> dict:
         for ga in g["action_items"]:
             m["act_gt"] += 1
             # 할 일 짝짓기: 발언 번호가 맞으면 우선, 없으면 문장에 같은 단어가 하나라도 있는 것
+            words = set(ga["statement"].split())
             pa = next((a for a in pred["action_items"] if a.get("seq") in ga["evidence_seq"]), None) or \
-                next((a for a in pred["action_items"] if set(ga["statement"].split()) & set((a.get("statement") or "").split())), None)
-            m["act_ok"] += bool(pa) and norm_owner(pa.get("owner")) == ga.get("owner") and pa.get("due") == ga.get("due")
+                next((a for a in pred["action_items"] if words & set((a.get("statement") or "").split())), None)
+            m["act_ok"] += (bool(pa) and norm_owner(pa.get("owner")) == ga.get("owner")
+                            and pa.get("due") == ga.get("due"))
         for gc in g["conflicts"]:
             if gc["type"] == "past_project":   # 과거 프로젝트 사례는 참고용이라 탐지 대상에서 제외
                 continue
@@ -276,7 +286,8 @@ def score(run: dict) -> dict:
                 ids = set(d.get("against", [])) | set(d.get("changes", []))   # 승인된 변경(changes)으로 짚어도 탐지로 인정
                 m["conf_hit"] += bool(ids & set(gc["against"]))
         # 오탐: 막는 충돌이 없어야 할 결정에 충돌을 붙인 경우. Before는 blocking이 없어 against로 대신 본다
-        conflict_targets = {gc["target"] for gc in g["conflicts"] if gc["type"] not in ("past_project", "change_approved")}
+        conflict_targets = {gc["target"] for gc in g["conflicts"]
+                            if gc["type"] not in ("past_project", "change_approved")}
         for gid, d in matched.items():
             if gid not in conflict_targets and d.get("blocking", d.get("against")):
                 m["false_alarm"] += 1
@@ -304,7 +315,10 @@ def score(run: dict) -> dict:
     items = list(run["meetings"].values()) + list(run["opinions"].values()) + list(run["questions"].values())
     cost = {"avg_sec": round(sum(x["sec"] for x in items) / len(items), 1),
             "llm_calls": sum(x["calls"] for x in items), "tokens": sum(x["tokens"] for x in items)}
-    pct = lambda a, b: round(100 * a / b) if b else None
+
+    def pct(a, b):
+        return round(100 * a / b) if b else None
+
     return {
         "결정 재현율(%)": pct(m["dec_hit"], m["dec_gt"]), "결정 정밀도(%)": pct(m["dec_pred_ok"], m["dec_pred"]),
         "회상 발언 오추출(건)": m["trap_hit"], "인용 원문 일치(%)": pct(m["quote_exact"], m["quote_total"]),
@@ -328,10 +342,10 @@ def to_md(scores: dict) -> str:
     """
     cols = list(scores)
     keys = list(next(iter(scores.values())))
-    L = ["| 지표 | " + " | ".join(cols) + " |", "|---|" + "---|" * len(cols)]
+    rows = ["| 지표 | " + " | ".join(cols) + " |", "|---|" + "---|" * len(cols)]
     for k in keys:
-        L.append(f"| {k} | " + " | ".join("-" if scores[c][k] is None else str(scores[c][k]) for c in cols) + " |")
-    return "\n".join(L)
+        rows.append(f"| {k} | " + " | ".join("-" if scores[c][k] is None else str(scores[c][k]) for c in cols) + " |")
+    return "\n".join(rows)
 
 
 def isolated_store() -> None:
@@ -341,14 +355,10 @@ def isolated_store() -> None:
     store/chroma를 임시 폴더로 복사하고 원장(SQLite)을 그 폴더에 시드 상태로 새로 만든다.
     MCP 서버 자식 프로세스도 LEDGER_STORE 환경변수를 물려받아 같은 사본을 쓴다.
     """
-    import os
-    import shutil
-    import tempfile
     tmp = Path(tempfile.mkdtemp(prefix="ledger_eval_"))
     shutil.copytree(ROOT / "store" / "chroma", tmp / "chroma")
     os.environ["LEDGER_STORE"] = str(tmp)
-    import importlib
-    import ledger.store as st
+    import ledger.store as st  # pylint: disable=import-outside-toplevel  # LEDGER_STORE를 바꾼 뒤에 읽어야 한다
     importlib.reload(st)       # 저장 경로를 import 시점에 정하므로 바뀐 LEDGER_STORE로 다시 읽힌다
     st.LedgerStore().load_seed()
 
@@ -389,5 +399,5 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", choices=["before-a", "before-b", "after", "rescore"])
     ap.add_argument("--meetings", default="OPS-M03,OPS-M04,OPS-M05")
-    a = ap.parse_args()
-    asyncio.run(main(a.only, a.meetings.split(",")))
+    args = ap.parse_args()
+    asyncio.run(main(args.only, args.meetings.split(",")))

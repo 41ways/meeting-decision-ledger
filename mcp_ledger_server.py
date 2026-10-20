@@ -7,6 +7,7 @@ Tool / Resource / Prompt 구분 기준은 3과와 같다: "부를 때마다 결�
 
 approve_decision은 사람(승인 화면)만 부르는 경로다. Agent 그래프는 propose까지만 한다.
 """
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -244,7 +245,6 @@ def ledger_fingerprint() -> str:
     Returns:
         SHA-1 해시 앞 16자리
     """
-    import hashlib
     # 판정 결과를 바꿀 수 있는 입력만 모은다. 원문은 내용 대신 파일명·수정 시각으로 변경 감지
     parts = [[(d["decision_id"], d["status"], d.get("superseded_by")) for d in store.decisions()],
              store.current_policy_version(),

@@ -122,8 +122,8 @@ class LedgerStore:
             테이블별 적재 건수 {"decisions", "policy_versions", "waivers", "documents"}
         """
         with self._conn() as c:
-            c.execute("DELETE FROM decisions"); c.execute("DELETE FROM policy_rules")
-            c.execute("DELETE FROM waivers"); c.execute("DELETE FROM documents")
+            for table in ("decisions", "policy_rules", "waivers", "documents"):
+                c.execute(f"DELETE FROM {table}")
         decisions = json.loads((data_dir / "r3_ledger" / "decisions_seed.json").read_text())["decisions"]
         for d in decisions:
             self._insert_decision(d)
@@ -211,9 +211,11 @@ class LedgerStore:
         # WHERE 1=1 뒤에 AND를 이어 붙여 조건 유무와 상관없이 같은 방식으로 SQL 조립
         sql, args = "SELECT * FROM decisions WHERE 1=1", []
         if project_id:
-            sql += " AND project_id=?"; args.append(project_id)
+            sql += " AND project_id=?"
+            args.append(project_id)
         if topic:
-            sql += " AND topic=?"; args.append(topic)
+            sql += " AND topic=?"
+            args.append(topic)
         with self._conn() as c:
             rows = [self._row_to_decision(r) for r in c.execute(sql, args).fetchall()]
         # is_active는 저장 컬럼이 아닌 계산값이라 SQL이 아니라 여기서 거른다
@@ -231,7 +233,8 @@ class LedgerStore:
         """
         key = project_key(project_id)
         with self._conn() as c:
-            ids = [r[0] for r in c.execute("SELECT decision_id FROM decisions WHERE decision_id LIKE ?", (f"{key}-%",)).fetchall()]
+            rows = c.execute("SELECT decision_id FROM decisions WHERE decision_id LIKE ?", (f"{key}-%",)).fetchall()
+            ids = [r[0] for r in rows]
         # 문자열 정렬이 아닌 숫자 최대값 + 1. 번호 자리가 숫자가 아닌 ID는 건너뛴다
         n = max((int(i.split("-")[1]) for i in ids if i.split("-")[1].isdigit()), default=0) + 1
         return f"{key}-{n:04d}"
@@ -248,7 +251,7 @@ class LedgerStore:
         """
         d = dict(d)   # 호출 측 dict를 바꾸지 않도록 복사
         d.setdefault("decision_id", self.next_decision_id(d.get("project_id", "PRJ-OPSAI")))
-        d["status"] = "proposed"; d["approved_by"] = None; d["superseded_by"] = None
+        d.update(status="proposed", approved_by=None, superseded_by=None)
         self._insert_decision(d)
         return d["decision_id"]
 

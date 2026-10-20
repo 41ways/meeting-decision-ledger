@@ -88,7 +88,8 @@ class LocalLLM:
             return {}, {**usage, "parse_error": True}
 
     @traceable(run_type="llm", name="local_llm.text")
-    async def text(self, system: str, user: str, on_token=None, timeout: float = 600.0, max_tokens: int = 800) -> tuple[str, dict]:
+    async def text(self, system: str, user: str, on_token=None, timeout: float = 600.0,
+                   max_tokens: int = 800) -> tuple[str, dict]:
         """
         자유 텍스트 응답을 스트리밍으로 받아 이어 붙여 반환
 
@@ -104,7 +105,8 @@ class LocalLLM:
         Raises:
             httpx.HTTPStatusError: Ollama가 오류 상태 코드를 돌려줄 때
         """
-        payload = {"model": self.model, "stream": True, "think": False, "keep_alive": KEEP_ALIVE, "options": {"temperature": 0.0, "num_ctx": NUM_CTX, "num_predict": max_tokens},
+        payload = {"model": self.model, "stream": True, "think": False, "keep_alive": KEEP_ALIVE,
+                   "options": {"temperature": 0.0, "num_ctx": NUM_CTX, "num_predict": max_tokens},
                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
         chunks, tokens = [], 0
         async with httpx.AsyncClient(timeout=timeout) as c:
@@ -142,7 +144,7 @@ async def warm_up(models: list[str]) -> None:
             # 예열은 최적화일 뿐이라 Ollama가 꺼져 있어도 서버 시작을 막지 않음
             try:
                 await c.post(f"{OLLAMA_URL}/api/generate", json={"model": m, "keep_alive": KEEP_ALIVE})
-            except Exception:
+            except httpx.HTTPError:
                 pass
 
 
@@ -178,7 +180,7 @@ class OpenAILLM:
         self.headers = {"Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY', '')}"}
 
     @traceable(run_type="llm", name="openai_llm.json")
-    async def json(self, system: str, user: str, schema: dict, think: bool = False,
+    async def json(self, system: str, user: str, schema: dict, think: bool = False,  # pylint: disable=unused-argument  # think는 LocalLLM과 인터페이스를 맞추려고 받기만 한다
                    timeout: float = 120.0, max_tokens: int = 2000) -> tuple[dict, dict]:
         """
         response_format json_schema로 구조를 강제한 응답을 받아 dict로 반환
@@ -214,7 +216,8 @@ class OpenAILLM:
             return {}, {**usage, "parse_error": True}
 
     @traceable(run_type="llm", name="openai_llm.text")
-    async def text(self, system: str, user: str, on_token=None, timeout: float = 120.0, max_tokens: int = 800) -> tuple[str, dict]:
+    async def text(self, system: str, user: str, on_token=None, timeout: float = 120.0,
+                   max_tokens: int = 800) -> tuple[str, dict]:
         """
         자유 텍스트 응답을 SSE 스트리밍으로 받아 이어 붙여 반환
         Args:
@@ -229,7 +232,8 @@ class OpenAILLM:
             httpx.HTTPStatusError: API가 오류 상태 코드를 돌려줄 때
         """
         # include_usage: 스트리밍은 기본으로 토큰 수를 주지 않아 마지막 청크에 usage를 받도록 요청
-        payload = {"model": self.model, "temperature": 0, "stream": True, "max_tokens": max_tokens, "stream_options": {"include_usage": True},
+        payload = {"model": self.model, "temperature": 0, "stream": True, "max_tokens": max_tokens,
+                   "stream_options": {"include_usage": True},
                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
         chunks, tokens = [], 0
         async with httpx.AsyncClient(timeout=timeout) as c:

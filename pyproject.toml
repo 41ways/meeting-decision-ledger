@@ -1,0 +1,14 @@
+# pylint 설정 — 실행: uvx pylint agent ledger server.py mcp_ledger_server.py scripts eval tests
+[tool.pylint.main]
+# 프로젝트 .venv의 패키지를 찾도록 실행 경로를 잡는다
+init-hook = "import sys; sys.path.append('.')"
+
+[tool.pylint.format]
+# 한국어 주석과 판정 문구가 길어 120자까지 허용
+max-line-length = 120
+
+[tool.pylint."messages control"]
+disable = [
+    # load_dotenv()를 import 전에 불러야 LangSmith 추적이 켜지고, scripts·eval은 sys.path를 먼저 고친다
+    "wrong-import-position",
+]

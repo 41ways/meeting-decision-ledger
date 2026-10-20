@@ -35,7 +35,7 @@ async def main(msg: str, out: str | None):
     print(f"\n-- {sec}s, usage={state.get('usage')}, mcp_calls={mcp.calls}")
     if out:
         Path(out).write_text(json.dumps({k: state.get(k) for k in ("mode", "report", "final", "events", "usage")},
-                                        ensure_ascii=False, indent=1, default=str))
+                                        ensure_ascii=False, indent=1, default=str), encoding="utf-8")
 
 
 if __name__ == "__main__":

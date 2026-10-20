@@ -2,6 +2,7 @@
 
 실모델 없이 '코드가 책임지는 부분'만 검증한다: 결정 판별 규칙, 인용 채우기, 판정표, 검증 노드.
 """
+# pylint: disable=missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument  # pytest fixture·가짜 객체 관용
 import asyncio
 
 import pytest
@@ -84,8 +85,10 @@ def test_gate_requester_is_not_owner():
 
 
 def test_gate_takes_corrected_due_from_later_utterance():
-    seg = lambda q, sp, role, t: {"meeting_id": "OPS-M03", "date": "2026-10-06", "seq": q, "ts": "",
-                                  "speaker": sp, "role": role, "text": t}
+    def seg(q, sp, role, t):
+        return {"meeting_id": "OPS-M03", "date": "2026-10-06", "seq": q, "ts": "",
+                "speaker": sp, "role": role, "text": t}
+
     st = {**_gate_state([], [
         {"seq": 14, "statement": "캐시 후보 정리", "owner": "장상민", "due": "2026-10-10"},
         {"seq": 14, "statement": "로그 수집", "owner": "장상민", "due": "2026-10-10"},   # 정정 발언과 무관
@@ -181,7 +184,8 @@ class FakeLLM:
                     "action_items": [{"seq": 12, "statement": "웹소켓 전환 설계", "owner": "장상민", "due": "2026-10-17"}],
                     "undecided": []}, {"tokens": 1}
         if "checks" in props:
-            return {"checks": [{"ref": "OPS-0007", "relation": "different", "reason": "SSE와 다름"}], "waivers": []}, {"tokens": 1}
+            checks = [{"ref": "OPS-0007", "relation": "different", "reason": "SSE와 다름"}]
+            return {"checks": checks, "waivers": []}, {"tokens": 1}
         return {}, {"tokens": 1}
 
     async def text(self, system, user, on_token=None, **kw):
@@ -245,11 +249,15 @@ def test_schedule_question_answered_from_meeting_list():
     class SchedMCP(FakeMCP):
         async def call(self, name, **a):
             if name == "list_meetings":
-                return [{"meeting_id": "OPS-M04", "date": "2026-10-13", "title": "기능 확장 회의", "attendees": ["서지후"], "domain": "meeting"},
-                        {"meeting_id": "OPS-M05", "date": "2026-10-20", "title": "현업 피드백 회의", "attendees": ["정한결"], "domain": "meeting"},
-                        {"meeting_id": "HBE-I01", "date": "2026-10-16", "title": "면접", "attendees": ["서지후", "지원자 K"], "domain": "interview"}]
+                return [{"meeting_id": "OPS-M04", "date": "2026-10-13", "title": "기능 확장 회의",
+                         "attendees": ["서지후"], "domain": "meeting"},
+                        {"meeting_id": "OPS-M05", "date": "2026-10-20", "title": "현업 피드백 회의",
+                         "attendees": ["정한결"], "domain": "meeting"},
+                        {"meeting_id": "HBE-I01", "date": "2026-10-16", "title": "면접",
+                         "attendees": ["서지후", "지원자 K"], "domain": "interview"}]
             return await super().call(name, **a)
-    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=FakeLLM(), mcp=SchedMCP(), today="2026-10-20"))
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=FakeLLM(), mcp=SchedMCP(),
+                                              today="2026-10-20"))
     st = run(graph.ainvoke({"message": "이번 주 회의 몇개야?", "events": []}))
     assert st["mode"] == "schedule" and st["final"].startswith("이번 주(10-19~10-25) 회의는 1건")
     for q in ("지난주 회의 몇 개야?", "저번주 회의 몇개야", "저번 주 회의 몇 개야?", "전주 회의 몇 건이야"):
@@ -294,11 +302,13 @@ def test_user_scope_project_overrides_default():
 
 def test_answer_judge_low_score_triggers_rewrite():
     st = {"mode": "question", "message": "SSE는 왜 골랐어?", "draft": "OPS-0007 때문입니다.", "events": [],
-          "answer_sources": "OPS-0007 ...", "items": [{"research": {"authority": "decision", "current": {"decision_id": "OPS-0007"}, "pending": []}}]}
+          "answer_sources": "OPS-0007 ...",
+          "items": [{"research": {"authority": "decision", "current": {"decision_id": "OPS-0007"}, "pending": []}}]}
 
     class LowJudge(FakeLLM):
         async def json(self, system, user, schema, **kw):
-            return {"relevance": 2, "grounding": 5, "completeness": 4, "clarity": 4, "feedback": "질문에 바로 답하지 않음"}, {"tokens": 1}
+            score = {"relevance": 2, "grounding": 5, "completeness": 4, "clarity": 4, "feedback": "질문에 바로 답하지 않음"}
+            return score, {"tokens": 1}
 
     out = run(G.validate_node(st, deps=G.LedgerDeps(fast_llm=LowJudge(), quality_llm=LowJudge(), mcp=FakeMCP())))
     assert out["validation_feedback"] and "품질 심판" in out["validation_feedback"]

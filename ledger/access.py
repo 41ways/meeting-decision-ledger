@@ -301,7 +301,8 @@ class AccessStore:
         expires = ((datetime.now() + timedelta(days=7)).isoformat(timespec="seconds") if duration == "7d"
                    else f"{until[:10]}T23:59:59" if duration == "until" else None)
         with self.conn:
-            self.conn.execute("UPDATE access_requests SET status=?, decided_by=?, scope=?, duration=?, expires=?, decided=? WHERE id=?",
+            self.conn.execute("UPDATE access_requests SET status=?, decided_by=?, scope=?, duration=?, expires=?, "
+                              "decided=? WHERE id=?",
                               ("approved" if approve else "rejected", by, scope, duration, expires, now(), req_id))
         label = f"{SCOPE_KO[scope]} · " + (f"{until[:10]}까지" if duration == "until" else DURATION_KO[duration])
         who = self.user(r["requester"])["name"]
@@ -326,7 +327,8 @@ class AccessStore:
         """
         exists = self.conn.execute("SELECT 1 FROM proposals WHERE decision_id=?", (decision_id,)).fetchone()
         with self.conn:
-            self.conn.execute("INSERT OR IGNORE INTO proposals VALUES (?,?,?,?)", (decision_id, requested_by, source, now()))
+            self.conn.execute("INSERT OR IGNORE INTO proposals VALUES (?,?,?,?)",
+                              (decision_id, requested_by, source, now()))
         if not exists:
             name = self.user(requested_by)["name"]
             for lead in self.leads():
@@ -352,7 +354,8 @@ class AccessStore:
         """
         return {r["decision_id"]: dict(r) for r in self.conn.execute("SELECT * FROM proposals")}
 
-    def after_decision(self, decision_id: str, by: str, approved: bool, superseded: list[str], reason: str = "") -> None:
+    def after_decision(self, decision_id: str, by: str, approved: bool, superseded: list[str],
+                       reason: str = "") -> None:
         """
         결정 승인·반려 뒤 승인자와 요청자에게 결과 알림
 
@@ -452,7 +455,8 @@ class AccessStore:
                               (key, fingerprint, final, json.dumps(payload, ensure_ascii=False, default=str), now()))
 
     # ---------------------------------------------------------------- 대화방
-    def touch_thread(self, thread_id: str, user_id: str, title: str, project_key: str | None, meeting_id: str | None) -> None:
+    def touch_thread(self, thread_id: str, user_id: str, title: str, project_key: str | None,
+                     meeting_id: str | None) -> None:
         """
         대화방 생성 또는 갱신
 

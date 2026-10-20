@@ -169,8 +169,11 @@ def main():
     # 이미 cache 주제 결정이 있으면 다시 올리지 않는다 (재실행 시 중복 방지)
     if not any(d["topic"] == "cache" for d in ledger.decisions(project_id="PRJ-OPSAI")):
         did = ledger.propose({"project_id": "PRJ-OPSAI", "topic": "cache", "statement": "캐시 적용 범위를 런북 문서로 제한",
-                              "rationale": "모니터링 수치는 계속 바뀌어 캐시하면 옛 값이 나옴", "alternatives_rejected": ["자주 묻는 질문 Redis 캐시"],
-                              "decided_by": "서지후", "evidence": [{"meeting_id": "OPS-M04", "seq": q, "quote": m04[q]["text"]} for q in (10, 11)]})
+                              "rationale": "모니터링 수치는 계속 바뀌어 캐시하면 옛 값이 나옴",
+                              "alternatives_rejected": ["자주 묻는 질문 Redis 캐시"],
+                              "decided_by": "서지후",
+                              "evidence": [{"meeting_id": "OPS-M04", "seq": q, "quote": m04[q]["text"]}
+                                           for q in (10, 11)]})
         acc.record_proposal(did, "pdy", "OPS-M04")
     # 열람 요청 1건 (인턴이 참석하지 않은 회의)
     acc.request_access("yhr", "OPS-M04", "온보딩 자료 정리")

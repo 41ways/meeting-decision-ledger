@@ -1,5 +1,7 @@
 """MCP 서버(decision-ledger)를 stdio로 띄워 Tool·Resource·Prompt가 노출되고 동작하는지 확인한다."""
-import asyncio, json, sys
+import asyncio
+import json
+import sys
 from pathlib import Path
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -21,7 +23,8 @@ async def main():
             # MCP SDK 버전에 따라 필드 이름이 snake_case/camelCase로 달라 둘 다 받는다
             rt = await s.list_resource_templates()
             items = getattr(rt, "resource_templates", None) or getattr(rt, "resourceTemplates", [])
-            print("Resource templates:", [getattr(t, "uri_template", None) or getattr(t, "uriTemplate", None) for t in items])
+            print("Resource templates:",
+                  [getattr(t, "uri_template", None) or getattr(t, "uriTemplate", None) for t in items])
             print("Prompts:", [p.name for p in (await s.list_prompts()).prompts])
             async def call(name, args):
                 """
@@ -36,8 +39,10 @@ async def main():
                 txt = res.content[0].text if res.content else ""
                 return json.loads(txt) if txt.startswith(("{","[")) else txt
             r1 = await call("resolve_current", {"text": "대화 저장 DB를 MySQL로 바꾸죠"})
-            print("resolve_current:", r1["topic"], r1["authority"], r1["current"]["decision_id"], [x["rule_id"] for x in r1["rules"]], r1["notes"])
-            print("check_authority:", await call("check_authority", {"topic": "schedule", "decided_by_role": "PL", "attendee_roles": ["PL","백엔드"]}))
+            print("resolve_current:", r1["topic"], r1["authority"], r1["current"]["decision_id"],
+                  [x["rule_id"] for x in r1["rules"]], r1["notes"])
+            print("check_authority:", await call("check_authority", {
+                "topic": "schedule", "decided_by_role": "PL", "attendee_roles": ["PL", "백엔드"]}))
             print("check_waiver:", (await call("check_waiver", {"rule_id": "ARC-02", "on_date": "2026-10-13"}))["note"])
             seg = await call("get_segments", {"meeting_id": "M04", "seq_from": 3, "seq_to": 4})
             print("get_segments:", [(x["seq"], x["speaker"], x["text"][:25]) for x in seg])

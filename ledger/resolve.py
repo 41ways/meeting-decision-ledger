@@ -202,7 +202,8 @@ class Resolver:
         return {"ok": ok, "rule": f"{r['rule_id']}@{r['policy_version']}", "approver": r["approver_role"],
                 "threshold": r["threshold"], "reason": r["text"]}
 
-    def check_waiver(self, rule_id: str, scope_text: str, on: str, project_id: str | None = None) -> dict:
+    def check_waiver(self, rule_id: str, scope_text: str, on: str,  # pylint: disable=unused-argument
+                     project_id: str | None = None) -> dict:
         """
         특정 날짜에 유효한 정책 예외(waiver) 확인
 

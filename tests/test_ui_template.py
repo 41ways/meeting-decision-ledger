@@ -1,5 +1,6 @@
 """화면(web_chat.html) 문법 검사 — Vue 템플릿 식이나 스크립트에 따옴표 하나만 빠져도 화면 전체가 하얗게 뜬다.
 node가 있으면 템플릿 식과 스크립트를 실제 JS 파서로 검사한다 (없으면 건너뜀)."""
+# pylint: disable=missing-function-docstring,missing-class-docstring,redefined-outer-name,unused-argument  # pytest fixture·가짜 객체 관용
 import json
 import shutil
 import subprocess
