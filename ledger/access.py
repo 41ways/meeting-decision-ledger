@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY AUTOINCREMENT, 
 CREATE TABLE IF NOT EXISTS answer_cache (key TEXT PRIMARY KEY, fingerprint TEXT, final TEXT, payload TEXT, created TEXT);
 CREATE TABLE IF NOT EXISTS threads (thread_id TEXT PRIMARY KEY, user_id TEXT, title TEXT, project_key TEXT,
     meeting_id TEXT, updated TEXT);
+CREATE TABLE IF NOT EXISTS thread_refs (thread_id TEXT PRIMARY KEY, refs TEXT);
 """
 
 
@@ -478,6 +479,30 @@ class AccessStore:
                 self.conn.execute("UPDATE threads SET updated=?, project_key=COALESCE(project_key, ?), "
                                   "meeting_id=COALESCE(meeting_id, ?) WHERE thread_id=?",
                                   (now(), project_key, meeting_id, thread_id))
+
+    def thread_refs(self, thread_id: str) -> list[str]:
+        """
+        대화방에서 직전 답이 가리킨 대상 (결정·회의 ID) — '이거', '그 회의'를 코드가 풀 때 쓴다
+        Args:
+            thread_id: 대화방 ID
+        Returns:
+            ID 목록 (앞이 더 중요), 없으면 빈 목록
+        """
+        r = self.conn.execute("SELECT refs FROM thread_refs WHERE thread_id=?", (thread_id,)).fetchone()
+        return json.loads(r["refs"]) if r and r["refs"] else []
+
+    def set_thread_refs(self, thread_id: str, refs: list[str]) -> None:
+        """
+        직전 답이 가리킨 대상 저장 (비어 있으면 이전 값을 유지)
+        Args:
+            thread_id: 대화방 ID
+            refs:      결정·회의 ID 목록
+        """
+        if not refs:
+            return
+        with self.conn:
+            self.conn.execute("INSERT OR REPLACE INTO thread_refs VALUES (?,?)",
+                              (thread_id, json.dumps(refs[:10], ensure_ascii=False)))
 
     def delete_thread(self, thread_id: str, user_id: str) -> bool:
         """

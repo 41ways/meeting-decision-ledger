@@ -519,6 +519,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
         # 이력은 이번 질문을 저장하기 전 상태로 읽어 그래프에 넘긴다 (질문이 이력에 중복되지 않게)
         history = deps.session_store.load(thread_id)
         deps.session_store.append(thread_id, "user", message)
+        refs = app.state.access.thread_refs(thread_id)     # 직전 답이 가리킨 결정·회의 ('이거' 풀이용)
 
         # 모르는 모델 키(또는 OpenAI 백엔드라 조합 그래프가 없음)면 기본 그래프·'정확' 표시로 대체
         graph = app.state.graphs.get(model) or app.state.graph
@@ -540,6 +541,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             yield sse({"type": "FinalAnswer", "reply": hit["final"], "mode": hit.get("mode"), "cached": True,
                        "opinion": hit.get("opinion")})
             deps.session_store.append(thread_id, "assistant", hit["final"])
+            app.state.access.set_thread_refs(thread_id, hit.get("refs") or [])
             yield "data: [DONE]\n\n"
             return
         # seen: 이미 보낸 이벤트 수. 노드는 누적된 events 목록 전체를 돌려주므로 새로 붙은 것만 보낸다
@@ -549,7 +551,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             # updates = 노드 종료마다 상태 갱신분, custom = 노드가 직접 쓰는 답변 토큰 등
             async for mode, payload in graph.astream(
                     {"message": message, "user_id": user, "history": history, "events": [],
-                     "scope_project": project, "scope_meeting": meeting},
+                     "scope_project": project, "scope_meeting": meeting, "context_refs": refs},
                     stream_mode=["updates", "custom"]):
                 if mode == "custom":
                     yield sse(payload)
@@ -587,9 +589,11 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
         if key and state.get("mode") in ("meeting", "interview", "opinion", "question"):
             # 지문은 처리 후 값으로 저장 (이번 처리에서 올린 승인 대기 결정까지 반영된 상태)
             replay = {"mode": state.get("mode"), "opinion": opinion, "restricted": report.get("restricted", []),
+                      "refs": report.get("refs", []),
                       "events": [e for e in state.get("events", []) if e.get("type") != "Finalize"]}
             app.state.access.cache_put(key, await deps.mcp.call("ledger_fingerprint"), final, replay)
         deps.session_store.append(thread_id, "assistant", final)
+        app.state.access.set_thread_refs(thread_id, report.get("refs") or [])
         after_run(user, thread_id, message, state)
         yield "data: [DONE]\n\n"
 

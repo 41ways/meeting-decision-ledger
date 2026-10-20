@@ -36,7 +36,8 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, StateGraph
 from langsmith import traceable
 
-from agent import enrich
+from agent import enrich, retrieve
+from agent.facts import fact_answer, is_fact_question
 from agent.schedule_add import events_as_meetings, schedule_add_node
 from ledger.schedule_parse import is_add_request
 from ledger.thresholds import MIN_TOPIC_SCORE
@@ -128,7 +129,7 @@ class LedgerState(TypedDict, total=False):
     history: list[dict]
     restricted: list[str]     # 열람 권한이 없어 가린 결정 ID
     answer_sources: str       # 질의 답변에 쓴 근거 글 (품질 심판용)
-    mode: str                 # meeting / interview / opinion / question / chat / schedule / schedule_add
+    mode: str                 # meeting / interview / opinion / question / fact / chat / schedule / schedule_add
     schedule_draft: dict      # 일정 추가 초안 (저장 전)
     meeting_id: str
     meeting_date: str
@@ -142,6 +143,7 @@ class LedgerState(TypedDict, total=False):
     summary: dict             # 근거 번호가 달린 요약 {topic, lines:[{text, seqs}], direction}
     insights: list[str]       # 회의 단위 눈여겨볼 점 (코드 집계)
     resolved: list[dict]      # 이번 회의 결정으로 해소되는 이전 미결
+    context_refs: list[str]   # 직전 답이 가리킨 결정·회의 ID ('이거' 풀이용, 서버가 대화방에서 꺼내 넘김)
     competencies: list[dict]  # 면접 전사문: 질문·답변 요약 쌍
     replan_rounds: int
     draft: str
@@ -249,6 +251,9 @@ async def route_node(state: LedgerState, deps: LedgerDeps) -> dict:
     # 회의 정리: 회의 ID가 있고 정리 동사가 있을 때만. ID만 있는 질문('M04에서 왜 바꿨어?')은 질의로 넘긴다
     elif mid and re.search(r"정리|요약|추출|처리|분석", msg):
         mode = "interview" if "-I" in mid else "meeting"
+    # 사실 질문: 회의 날짜·참석자·결정자·승인자 — 표 조회로 답한다 (LLM 없음)
+    elif is_fact_question(msg):
+        mode = "fact"
     # 의견: 제안·권유 어미 ('바꾸면 어때?', '하자')
     elif re.search(r"어떨까|어때|바꾸면|바꾸자|하자|쓰면|쓰자|제안|넣자", msg):
         mode = "opinion"
@@ -262,6 +267,23 @@ async def route_node(state: LedgerState, deps: LedgerDeps) -> dict:
         mode = out.get("mode", "chat")
     return {"mode": mode, "meeting_id": mid, "usage": _usage(state, usage),
             "events": _ev(state, {"type": "RouteDecided", "route": mode})}
+
+
+@traceable(name="fact_answer_node")
+async def fact_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
+    """
+    사실 질문 답변 노드 — 회의 목록·원장·이력 표 조회 (LLM 없음)
+
+    대상은 메시지의 ID, 없으면 직전 답이 가리킨 대상(context_refs). 둘 다 없으면 되묻는다.
+    Args:
+        state: 그래프 상태 (message, context_refs)
+        deps:  의존성 (mcp)
+    Returns:
+        final, report(refs), events(FactAnswered) 갱신
+    """
+    final, refs = await fact_answer(deps, state["message"], state.get("context_refs") or [])
+    return {"final": final, "report": {"mode": "fact", "refs": refs},
+            "events": _ev(state, {"type": "FactAnswered", "targets": refs})}
 
 
 def _range(msg: str, today: str) -> tuple[str, str, str]:
@@ -803,8 +825,18 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
             auth = await deps.mcp.call("check_authority", topic=AUTH_TOPIC.get(item["topic"], "tech.stack"),
                                        decided_by_role=item["decided_by_role"],
                                        attendee_roles=state["attendee_roles"])
+        if state["mode"] == "question":
+            # 후보를 넓게 모아 LLM이 관련 ID만 고르고, 주제로 찾은 결과와 대조한다
+            picked = await retrieve.pick(deps, state["message"], item.get("project") or DEFAULT_PID)
+            pick_usage.append(picked["usage"])
+            res, disc, why = retrieve.merge(res, picked, item.get("project") or DEFAULT_PID)
+            pick_evs.append({"type": "CandidatesPicked", "shown": picked["shown"],
+                             "picked": [d["decision_id"] for d in picked["decisions"]]
+                             + [o["item_id"] for o in picked["opens"]], "check": why})
+            item = {**item, **({"discussion": disc} if disc else {}), "check_reasons": why}
         return {**item, "research": res, "waivers": waivers, "authority_check": auth}
 
+    pick_usage, pick_evs = [], []
     # 재조사 이벤트와 첫 조사 이벤트를 구분하려고 호출 전 상태를 기억한다
     before = [bool(i.get("research")) for i in state["items"]]
     # 조회 실패 항목은 failed 표시를 남긴다 — '기준 없음'과 섞이면 오류가 '문제없음'으로 조용히 바뀐다
@@ -816,7 +848,10 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
     evs += [{"type": "TaskCompleted", "statement": i["statement"][:40], "topic": i["topic"],
             "authority": i["research"]["authority"],
             "current": (i["research"].get("current") or {}).get("decision_id")} for i, b in zip(items, before) if not b]
-    return {"items": list(items), "events": _ev(state, *evs)}
+    out = {"items": list(items), "events": _ev(state, *evs, *pick_evs)}
+    if any(pick_usage):
+        out["usage"] = _usage(state, *pick_usage)
+    return out
 
 
 @traceable(name="replan_check_node")
@@ -1327,18 +1362,55 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
         rows.append(f"[기준 문서] {b['doc_id']} {b['doc_version']} {b['section']}: {b['text']}")
         blocks.append(f"### 기준 문서 · {b['doc_id']} {b['doc_version']} {b['section']}\n> {b['text'][:300]}")
     if item.get("discussion"):
-        blocks.append("### 원문 논의 · 결정되지 않음\n" + "\n".join(
-            f"- {x['meeting_id']} [{x['seq']}] {x['speaker']}: {x['text']}" for x in item["discussion"]))
+        # 결정으로 이어진 미결은 '이전 논의', 아직 열린 것만 '결정되지 않음'
+        closed = all(x.get("linked_to") for x in item["discussion"])
+        blocks.append(("### 이전 논의 · 이후 결정으로 이어짐\n" if closed else "### 원문 논의 · 결정되지 않음 (미결)\n")
+                      + "\n".join(f"- {x['meeting_id']} [{x['seq']}] {x['speaker']}: {x['text']}" for x in item["discussion"]))
     for x in item.get("discussion", []):
         rows.append(f"[원문 논의·미결] {x['meeting_id']} [{x['seq']}] {x['speaker']}: \"{x['text']}\"")
     if not decs and res["authority"] != "baseline" and not item.get("discussion"):
         # 아무것도 못 찾았으면 그렇다고 말한다 — 가장 가까운 발언을 '관련 논의'로 붙이지 않는다
         rows.append("[찾지 못함] 이 질문과 관련된 결정·기준 문서·회의 논의가 없다")
         blocks.append("### 찾지 못함\n이 질문과 관련된 결정·기준 문서·회의 논의를 찾지 못했습니다.")
-    if res.get("topic_doubt") or res.get("similar_other"):
-        warn = [n for n in res.get("notes", []) if "주제" in n]
+    if res.get("topic_doubt") or res.get("similar_other") or item.get("check_reasons"):
+        warn = [n for n in res.get("notes", []) if "주제" in n] + item.get("check_reasons", [])
         blocks.append("### 확인 필요\n" + "\n".join(f"- {n}" for n in warn))
+    if cur_id or res.get("current"):
+        flow = await _thread_flow(deps, res, item.get("project", DEFAULT_PID))
+        if flow:
+            blocks.append("### 이 사안의 흐름\n" + "\n".join(flow))
     return "\n".join(rows), "\n\n".join(blocks)
+
+
+async def _thread_flow(deps: LedgerDeps, res: dict, project_id: str) -> list[str]:
+    """
+    사안의 흐름 — 같은 주제의 원장 결정(대체 포함)과 회의 기록(미결·결정 후보)을 날짜순으로
+    Args:
+        deps:       의존성 (mcp)
+        res:        research 결과 (current의 topic·project)
+        project_id: 질문 대상 프로젝트
+    Returns:
+        줄 목록 (흐름이 한 단계뿐이면 빈 목록)
+    """
+    cur = res.get("current") or {}
+    topic, pid = cur.get("topic") or res.get("topic"), cur.get("project_id") or project_id
+    if not topic:
+        return []
+    rows = []
+    for d in await deps.mcp.call("list_decisions", project_id=pid):
+        if d.get("topic") == topic and d["status"] in ("approved", "proposed"):
+            st = "승인 대기" if d["status"] == "proposed" else ("대체됨" if d.get("superseded_by") else "확정")
+            rows.append((d.get("effective_from") or "9999", f"- {d['decision_id']} [{st}] {d['statement'].rstrip('.')}"
+                         + (f" ({d['effective_from'][5:]})" if d.get("effective_from") else "")))
+    for it in await deps.mcp.call("thread_items", project_id=pid, topic=topic):
+        if it["kind"] == "open":
+            st = {"linked": "미결 → 결정으로 이어짐", "closed": "미결 → 닫힘"}.get(it.get("state"), "미결")
+            rows.append((it.get("date") or "", f"- {it['meeting_id']} ({(it.get('date') or '')[5:]}) [{st}] {it['statement']}"))
+        elif it["kind"] == "decision" and not it.get("decision_id"):
+            rows.append((it.get("date") or "", f"- {it['meeting_id']} ({(it.get('date') or '')[5:]}) "
+                                              f"[{it.get('label')}] {it['statement']} (원장에 올리지 않음)"))
+    rows.sort(key=lambda x: x[0])
+    return [r[1] for r in rows] if len(rows) > 1 else []
 
 
 def _code_answer(item: dict, restricted: list | None = None) -> str:
@@ -1417,7 +1489,9 @@ async def write_node(state: LedgerState, deps: LedgerDeps) -> dict:
         draft, usage = await deps.quality_llm.text(
             ANSWER_SYSTEM, f"## 질문\n{state['message']}\n\n## 근거\n{sources}{fb}",
             on_token=lambda p: writer({"type": "AnswerToken", "attempt": attempt, "delta": p}), max_tokens=220)
-        draft = draft.strip() + ("\n\n" + blocks if blocks else "")     # 근거 블록은 원장 데이터를 코드가 그대로 붙임
+        label = retrieve.answer_label(state["items"][0])
+        # 라벨은 코드가 붙인다 — 모델 문장이 '확정'처럼 말해도 상태는 원장 기준으로 보인다
+        draft = f"[{label}] " + draft.strip() + ("\n\n" + blocks if blocks else "")
     out = {"draft": draft, "usage": _usage(state, usage),
            "events": _ev(state, {"type": "DraftWritten", "attempt": attempt, "length": len(draft)})}
     if state["mode"] == "question":
@@ -1500,7 +1574,8 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
     if problems and ok and state["mode"] == "question":
         # 3번 다시 써도 통과 못 하면 모델 문장을 버리고 원장 필드로 만든 답으로 바꾼다 (근거 블록은 그대로)
         short = state["draft"].split("\n\n### ")[0]
-        out["draft"] = (_code_answer(state["items"][0], state.get("restricted"))
+        out["draft"] = (f"[{retrieve.answer_label(state['items'][0])}] "
+                        + _code_answer(state["items"][0], state.get("restricted"))
                         + "\n\n※ 자동 작성 답변이 근거 검사를 통과하지 못해 원장 기록으로 답했습니다."
                         + state["draft"][len(short):])
     return out
@@ -1622,7 +1697,7 @@ def _after_route(state: LedgerState) -> str:
     Returns:
         'chat_answer', 'schedule_answer', 'schedule_add', 또는 'plan'(meeting·interview·opinion·question)
     """
-    return {"chat": "chat_answer", "schedule": "schedule_answer",
+    return {"chat": "chat_answer", "schedule": "schedule_answer", "fact": "fact_answer",
             "schedule_add": "schedule_add"}.get(state["mode"], "plan")   # interview도 plan 경로
 
 
@@ -1642,7 +1717,8 @@ def build_ledger_graph(deps: LedgerDeps):
         return partial(fn, deps=deps)   # Wave 13 — 명시적 의존성 주입
 
     for name, fn in [("route", route_node), ("chat_answer", chat_answer_node),
-                     ("schedule_answer", schedule_answer_node), ("schedule_add", schedule_add_node), ("plan", plan_node),
+                     ("schedule_answer", schedule_answer_node), ("schedule_add", schedule_add_node),
+                     ("fact_answer", fact_answer_node), ("plan", plan_node),
                      ("gate", gate_node), ("research", research_node), ("replan_check", replan_check_node),
                      ("analysis", analysis_node), ("write", write_node), ("validate", validate_node),
                      ("finalize", finalize_node)]:
@@ -1650,8 +1726,9 @@ def build_ledger_graph(deps: LedgerDeps):
     g.set_entry_point("route")
     g.add_conditional_edges("route", _after_route,
                             {"chat_answer": "chat_answer", "schedule_answer": "schedule_answer",
-                             "schedule_add": "schedule_add", "plan": "plan"})
+                             "schedule_add": "schedule_add", "fact_answer": "fact_answer", "plan": "plan"})
     g.add_edge("chat_answer", END)
+    g.add_edge("fact_answer", END)
     g.add_edge("schedule_answer", END)
     g.add_edge("schedule_add", END)
     g.add_conditional_edges("plan", _after_plan, {"gate": "gate", "write": "write"})

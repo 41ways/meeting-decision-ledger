@@ -272,6 +272,18 @@ def save_meeting_record(meeting_id: str, items: list[dict], pipeline_version: st
 
 
 @mcp.tool()
+def meeting_items(meeting_id: str) -> list[dict]:
+    """회의 하나에서 나온 항목 (결정 후보·미결·할 일과 라벨).
+
+    Args:
+        meeting_id: 회의 ID
+    Returns:
+        항목 목록
+    """
+    return records.items(meeting_id=meeting_id)
+
+
+@mcp.tool()
 def open_items(project_id: str = "", include_linked: bool = False) -> list[dict]:
     """미결 목록 (결정으로 이어진 미결은 기본 제외).
 

@@ -408,7 +408,7 @@ def test_value_not_in_sources_is_rejected_then_replaced_by_ledger_answer():
     out = run(G.validate_node(_q_state("OPS-0005에 따라 최종 답변은 45초 이내입니다.\n\n### OPS-0005 · x", RES_LAT,
                                        attempts=2), deps=None))
     assert out["validation_feedback"] is None and "45초" not in out["draft"]
-    assert out["draft"].startswith("현재 유효한 결정은 OPS-0005입니다") and "### OPS-0005" in out["draft"]
+    assert out["draft"].startswith("[확정] 현재 유효한 결정은 OPS-0005입니다") and "### OPS-0005" in out["draft"]
     ok = run(G.validate_node(_q_state("OPS-0005에 따라 최종 답변은 30초 이내입니다.", RES_LAT, attempts=2), deps=None))
     assert ok["validation_feedback"] is None and "draft" not in ok          # 근거와 맞으면 모델 답 그대로
 
