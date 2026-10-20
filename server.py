@@ -30,6 +30,8 @@ from pydantic import BaseModel
 from agent.ledger_graph import LedgerDeps, build_ledger_graph, normalize_meeting_id
 from agent.session_store import SqliteSessionStore
 from ledger.access import AccessStore
+from ledger.calendar import build_calendar
+from ledger.calendar_api import router as calendar_router
 from ledger.llm import OLLAMA_URL, LocalLLM, build_llms, warm_up
 from ledger.mcp_bridge import LedgerMCP
 
@@ -196,7 +198,7 @@ async def lifespan(application: FastAPI):
     fast, quality = build_llms()
     application.state.access = AccessStore()
     deps = LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, session_store=SqliteSessionStore(),
-                      propose_to_ledger=True, can_view=can_view_decision_for_answer)
+                      propose_to_ledger=True, can_view=can_view_decision_for_answer, calendar=build_calendar())
     application.state.deps = deps
     application.state.graph = build_ledger_graph(deps)
     # 기본 그래프(build_llms 기준)를 'accurate'로 등록. OpenAI 백엔드면 이 하나만 쓴다
@@ -222,6 +224,7 @@ async def lifespan(application: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(calendar_router)     # 일정 목록·확인·저장 (ledger/calendar_api.py)
 
 
 def lead_only(user: str) -> None:
@@ -578,7 +581,8 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             first = report["items"][0]
             opinion = {"statement": message, "topic": first["topic"], "status": first["review"]["status"]}
         yield sse({"type": "FinalAnswer", "reply": final, "mode": state.get("mode"),
-                   "proposed": report.get("proposed", []), "opinion": opinion})
+                   "proposed": report.get("proposed", []), "opinion": opinion,
+                   "schedule": state.get("schedule_draft")})     # 일정 추가 초안 → 화면의 확인 카드
         # 원장 근거로 답하는 모드만 저장. 일반 대화·일정은 저장하지 않는다
         if key and state.get("mode") in ("meeting", "interview", "opinion", "question"):
             # 지문은 처리 후 값으로 저장 (이번 처리에서 올린 승인 대기 결정까지 반영된 상태)

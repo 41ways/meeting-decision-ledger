@@ -2,6 +2,7 @@
 
 route ─┬ chat ─────────────────────────────────────────────── chat_answer → END
        ├ schedule ─────────────────────────────────────────── schedule_answer → END  (LLM 없이 회의 목록으로 답함)
+       ├ schedule_add ─────────────────────────────────────── schedule_add → END  (초안만, 저장은 사람이 '추가')
        └ meeting / interview / opinion / question
             → plan → gate → research ⇄ replan_check → analysis → write ⇄ validate → finalize
 
@@ -35,6 +36,8 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, StateGraph
 from langsmith import traceable
 
+from agent.schedule_add import events_as_meetings, schedule_add_node
+from ledger.schedule_parse import is_add_request
 from ledger.thresholds import MIN_TOPIC_SCORE
 
 TODAY = "2026-10-20"
@@ -106,6 +109,7 @@ class LedgerDeps:
     session_store: Any = None  # Wave 12
     chat_llm: Any = None       # 일반 대화 전용 모델 (자동 모드에서 작은 모델). 없으면 fast_llm
     can_view: Any = None       # (user_id, decision) -> bool. 권한 없는 결정은 내용 자체를 LLM에 넘기지 않는다
+    calendar: Any = None       # CalendarProvider (ledger/calendar.py). 일정 추가 초안·일정 조회에 쓴다
     today: str = TODAY
     propose_to_ledger: bool = False
 
@@ -123,7 +127,8 @@ class LedgerState(TypedDict, total=False):
     history: list[dict]
     restricted: list[str]     # 열람 권한이 없어 가린 결정 ID
     answer_sources: str       # 질의 답변에 쓴 근거 글 (품질 심판용)
-    mode: str                 # meeting / interview / opinion / question / chat
+    mode: str                 # meeting / interview / opinion / question / chat / schedule / schedule_add
+    schedule_draft: dict      # 일정 추가 초안 (저장 전)
     meeting_id: str
     meeting_date: str
     attendee_roles: list[str]
@@ -229,9 +234,12 @@ async def route_node(state: LedgerState, deps: LedgerDeps) -> dict:
     # 메시지에 ID가 없으면 입력창에서 고른 회의를 쓴다
     mid = normalize_meeting_id(msg) or (state.get("scope_meeting") or "")
     usage = None
-    # 규칙 순서가 우선순위 — 일정 > 회의 정리 > 의견 > 질의. 앞 규칙이 더 좁은 조건이다
+    # 규칙 순서가 우선순위 — 일정 추가 > 일정 > 회의 정리 > 의견 > 질의. 앞 규칙이 더 좁은 조건이다
+    # 일정 추가: 날짜 + (추가 동사와 시각·일정 단어, 또는 시각). 묻는 문장은 조회로 넘긴다
+    if is_add_request(msg):
+        mode = "schedule_add"
     # 일정: 기간 표현 + 회의·면접 단어. '지난주 회의 정리해줘'는 일정이 아니라 회의 정리라서 정리·요약 단어가 있으면 제외
-    if SCHEDULE_Q.search(msg) and re.search(r"회의|면접|일정|미팅", msg) and not re.search(r"정리|요약|추출", msg):
+    elif SCHEDULE_Q.search(msg) and re.search(r"회의|면접|일정|미팅", msg) and not re.search(r"정리|요약|추출", msg):
         mode = "schedule"
     # 회의 정리: 회의 ID가 있고 정리 동사가 있을 때만. ID만 있는 질문('M04에서 왜 바꿨어?')은 질의로 넘긴다
     elif mid and re.search(r"정리|요약|추출|처리|분석", msg):
@@ -323,24 +331,28 @@ async def schedule_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
     a, b, label = _range(state["message"], deps.today)
     # ISO 날짜 문자열은 사전순 비교가 곧 날짜 비교
     ms = [m for m in await deps.mcp.call("list_meetings") if a <= m["date"] <= b]
+    ms += events_as_meetings(deps.calendar, a, b)       # 사람이 확인해 추가한 일정 (EVT-*)
     q = state["message"]
     if re.search(r"면접", q):
         ms, kind = [m for m in ms if m.get("domain") == "interview"], "면접은"
     elif re.search(r"일정", q):
-        kind = "일정은"            # 일정 = 회의 + 면접 전부
+        kind = "일정은"            # 일정 = 회의 + 면접 + 추가된 기타 일정 전부
     else:
-        ms, kind = [m for m in ms if m.get("domain") != "interview"], "회의는"
+        ms, kind = [m for m in ms if m.get("domain") not in ("interview", "event")], "회의는"
     days = "월화수목금토일"
     n_int = sum(m.get("domain") == "interview" for m in ms)
-    detail = f" (회의 {len(ms) - n_int}건, 면접 {n_int}건)" if kind == "일정은" and ms else ""
+    n_evt = sum(m.get("domain") == "event" for m in ms)
+    etc = f", 기타 일정 {n_evt}건" if n_evt else ""
+    detail = f" (회의 {len(ms) - n_int - n_evt}건, 면접 {n_int}건{etc})" if kind == "일정은" and ms else ""
     span = f"{a[5:]}~{b[5:]}" if a != b else a[5:]
     head = f"{label}({span}) {kind} {len(ms)}건입니다{detail}."
     # 참석자에서 지원자는 뺀다 (면접 지원자 이름을 일정 답변에 노출하지 않음)
     lines = [head]
-    for m in sorted(ms, key=lambda x: x["date"]):
+    for m in sorted(ms, key=lambda x: (x["date"], x.get("start") or "")):
         weekday = days[date.fromisoformat(m["date"]).weekday()]
         attendees = ", ".join(x for x in m["attendees"] if not x.startswith("지원자"))
-        lines.append(f"- {m['meeting_id']} · {m['date'][5:]}({weekday}) {m['title']} · 참석 {attendees}")
+        time = f" {m['time']}" if m.get("time") else ""
+        lines.append(f"- {m['meeting_id']} · {m['date'][5:]}({weekday}){time} {m['title']} · 참석 {attendees}")
     return {"final": "\n".join(lines),
             "events": _ev(state, {"type": "ScheduleAnswered", "range": f"{a}~{b}", "count": len(ms)},
                           {"type": "Finalize", "pipeline": "schedule"})}
@@ -364,7 +376,8 @@ async def chat_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
     writer = get_stream_writer()
     reply, usage = await (deps.chat_llm or deps.fast_llm).text(
         "너는 회의 요약·결정 정리 비서다. 한두 문장으로 답한다. 할 수 있는 일: 회의록 정리('OPS-M04 회의 정리해줘'), "
-        "제안 검토('Redis로 바꾸면 어때?'), 과거 결정 근거 질의('SSE는 왜 골랐어?'), 일정 질문('이번 주 회의 몇 개야?'). "
+        "제안 검토('Redis로 바꾸면 어때?'), 과거 결정 근거 질의('SSE는 왜 골랐어?'), 일정 질문('이번 주 회의 몇 개야?'), "
+        "일정 추가('다음 주 화요일 오후 3시 OPS 주간 회의 잡아줘'). "
         "회의·결정·일정에 관한 사실은 이 대화에서 지어내지 말고, 위 기능으로 다시 물어보라고 안내한다.",
         f"{hist}\nuser: {state['message']}", on_token=lambda p: writer({"type": "AnswerToken", "delta": p}))
     return {"final": reply, "usage": _usage(state, usage),
@@ -1473,9 +1486,10 @@ def _after_route(state: LedgerState) -> str:
     Args:
         state: 그래프 상태 (mode 사용)
     Returns:
-        'chat_answer', 'schedule_answer', 또는 'plan'(meeting·interview·opinion·question)
+        'chat_answer', 'schedule_answer', 'schedule_add', 또는 'plan'(meeting·interview·opinion·question)
     """
-    return {"chat": "chat_answer", "schedule": "schedule_answer"}.get(state["mode"], "plan")   # interview도 plan 경로
+    return {"chat": "chat_answer", "schedule": "schedule_answer",
+            "schedule_add": "schedule_add"}.get(state["mode"], "plan")   # interview도 plan 경로
 
 
 def build_ledger_graph(deps: LedgerDeps):
@@ -1494,16 +1508,18 @@ def build_ledger_graph(deps: LedgerDeps):
         return partial(fn, deps=deps)   # Wave 13 — 명시적 의존성 주입
 
     for name, fn in [("route", route_node), ("chat_answer", chat_answer_node),
-                     ("schedule_answer", schedule_answer_node), ("plan", plan_node),
+                     ("schedule_answer", schedule_answer_node), ("schedule_add", schedule_add_node), ("plan", plan_node),
                      ("gate", gate_node), ("research", research_node), ("replan_check", replan_check_node),
                      ("analysis", analysis_node), ("write", write_node), ("validate", validate_node),
                      ("finalize", finalize_node)]:
         g.add_node(name, node(fn))
     g.set_entry_point("route")
     g.add_conditional_edges("route", _after_route,
-                            {"chat_answer": "chat_answer", "schedule_answer": "schedule_answer", "plan": "plan"})
+                            {"chat_answer": "chat_answer", "schedule_answer": "schedule_answer",
+                             "schedule_add": "schedule_add", "plan": "plan"})
     g.add_edge("chat_answer", END)
     g.add_edge("schedule_answer", END)
+    g.add_edge("schedule_add", END)
     g.add_conditional_edges("plan", _after_plan, {"gate": "gate", "write": "write"})
     g.add_edge("gate", "research")
     g.add_edge("research", "replan_check")

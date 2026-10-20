@@ -227,6 +227,15 @@ tr.lock td { color: var(--muted); }
 .ev.off { opacity: .2; filter: grayscale(1); }
 .ev.locked { opacity: .55; }
 .mdetail { background: #fbfcfe; }
+/* 일정 추가 확인 카드 — 저장 전 해석 결과. 칸은 고칠 수 있고 '추가'를 눌러야 저장 */
+.sched { border: 1px solid var(--line2); border-radius: var(--r); background: #fbfcfe; padding: 10px 14px 12px; margin: -8px 0 16px; font-size: 13px; }
+.sched .mrow { align-items: center; }
+.sched input { height: 28px; min-width: 0; border: 1px solid var(--line2); border-radius: 6px; padding: 0 8px; font: inherit; font-size: 13px; background: #fff; color: var(--fg); }
+.sched input:focus { outline: none; border-color: var(--accent); } .sched input.miss { border-color: var(--warn); }
+.sched .when { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.sched .cf { color: var(--warn); font-size: 12.5px; padding: 2px 0; } .sched .nt { color: var(--muted); font-size: 12.5px; padding: 2px 0; }
+.sched .ft { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.mini-grid button i em.o { background: transparent !important; border: 1.5px solid; box-sizing: border-box; }
 .mdetail h4 .x { font-size: 18px; color: var(--muted); padding: 0 4px; } .mdetail h4 .x:hover { color: var(--fg); }
 .mrow { display: grid; grid-template-columns: 64px 1fr; gap: 8px; font-size: 13px; padding: 3px 0; }
 .mrow > span:first-child { color: var(--muted); font-size: 12px; }
@@ -411,6 +420,29 @@ tr.lock td { color: var(--muted); }
             <div class="act" v-else-if="item.kind === 'proposed'">
               <span class="muted">승인 대기로 원장에 올렸습니다 (팀장 승인 필요):</span><span class="mono">{{ item.ids.join(', ') }}</span>
             </div>
+            <div class="sched" v-else-if="item.kind === 'schedule'">
+              <div class="mrow"><span>날짜·시간</span><span class="when">
+                <input type="date" v-model="item.d.date" :class="{ miss: !item.d.date }" :disabled="!!item.state">
+                <input type="time" v-model="item.d.start" :class="{ miss: !item.d.start }" :disabled="!!item.state"> ~
+                <input type="time" v-model="item.d.end" :disabled="!!item.state"></span></div>
+              <div class="mrow"><span>제목</span><input v-model="item.d.title" :class="{ miss: !item.d.title }" :disabled="!!item.state"></div>
+              <div class="mrow"><span>참석</span><input v-model="item.d.attendees" placeholder="이름을 쉼표로" :disabled="!!item.state"></div>
+              <div class="mrow"><span>프로젝트</span><span>{{ item.d.project ? item.d.project + ' · ' + ((projects.find(p => p.key === item.d.project) || {}).name || '') : '지정 안 함' }}</span></div>
+              <div class="cf" v-for="c in item.d.conflicts" :key="c.id">⚠ 겹침: {{ c.who.join(', ') }} — {{ c.id }} {{ c.title }} ({{ c.start ? c.start + '~' + c.end : '시간 미상' }})</div>
+              <div class="nt" v-for="w in item.d.warnings.concat(item.d.notes)" :key="w">{{ w }}</div>
+              <div class="nt" v-if="item.d.permission !== 'add'">{{ item.d.permission_note }}</div>
+              <div class="ft">
+                <template v-if="!item.state">
+                  <button class="btn pri" @click="addSchedule(item)">{{ item.d.permission === 'request' ? '팀장에게 요청' : '추가' }}</button>
+                  <button class="btn" @click="item.state = 'cancelled'">취소</button>
+                </template>
+                <span class="done" v-else-if="item.state === 'saved'">추가됨 · {{ item.saved.event_id }}</span>
+                <span class="done" v-else-if="item.state === 'requested'">팀장에게 요청 보냄</span>
+                <span class="muted" v-else-if="item.state === 'dry'">구글 달력 연결 전(dry-run)이라 저장하지 않았습니다</span>
+                <span class="muted" v-else>취소함 · 저장하지 않았습니다</span>
+                <span class="st-bad" v-if="item.msg">{{ item.msg }}</span>
+              </div>
+            </div>
             <div class="act" v-else-if="item.kind === 'opinion'">
               <span class="done" v-if="item.sent">승인 요청 보냄 · {{ item.sent }}</span>
               <template v-else><button class="btn" @click="proposeOpinion(item)">이 의견을 결정으로 승인 요청</button>
@@ -569,10 +601,10 @@ tr.lock td { color: var(--muted); }
                   <span class="mh" v-for="(d, i) in '일월화수목금토'" :key="'h' + d" :class="{ sun: i === 0, sat: i === 6 }">{{ d }}</span>
                   <button v-for="c in miniCells" :key="c.k" :disabled="!c.ms.length" @click="pickMiniDate(c.iso)"
                           :class="{ has: c.ms.length, sel: c.iso === scopeDate, today: c.today, blank: !c.d }">
-                    {{ c.d }}<i v-if="c.ms.length"><em v-for="m in c.ms.slice(0, 3)" :key="m.meeting_id" :style="{ background: prjColor(prjKey(m)) }"></em></i>
+                    {{ c.d }}<i v-if="c.ms.length || c.es.length"><em v-for="m in c.ms.slice(0, 3)" :key="m.meeting_id" :style="{ background: prjColor(prjKey(m)) }"></em><em class="o" v-for="e in c.es.slice(0, Math.max(0, 3 - c.ms.length))" :key="e.event_id" :style="{ color: prjColor(e.project) }"></em></i>
                   </button>
                 </div>
-                <div class="mini-ft"><span class="muted"><i class="mini-key"></i>회의 있는 날</span><button v-if="scopeDate" @click="scopeDate = ''; scopeMtg = ''; miniOpen = false">날짜 해제</button></div>
+                <div class="mini-ft"><span class="muted"><i class="mini-key"></i>회의 있는 날 · ○ 추가된 일정</span><button v-if="scopeDate" @click="scopeDate = ''; scopeMtg = ''; miniOpen = false">날짜 해제</button></div>
               </div>
             </span></div>
 
@@ -593,8 +625,18 @@ tr.lock td { color: var(--muted); }
               <span class="d" v-if="c.d">{{ c.d }}</span>
               <button v-for="m in c.ms" :key="m.meeting_id" class="ev" :class="{ off: selPrj && prjKey(m) !== selPrj, locked: !m.can_view, sel: selMeeting && selMeeting.meeting_id === m.meeting_id }"
                       :style="{ '--pc': prjColor(prjKey(m)), '--pbg': prjBg(prjKey(m)) }" :title="m.meeting_id + ' ' + m.title + (m.can_view ? '' : ' (열람 권한 없음)')" @click="pickMeeting(m)">{{ m.meeting_id.split('-')[1] }} {{ m.title.replace(/ — .*/, '').replace(/^백엔드 개발자 /, '') }}</button>
+              <button v-for="e in c.es" :key="e.event_id" class="ev" :class="{ off: selPrj && e.project !== selPrj, sel: selEvent && selEvent.event_id === e.event_id }"
+                      :style="{ '--pc': prjColor(e.project), '--pbg': prjBg(e.project) }" :title="e.event_id + ' ' + e.start + ' ' + e.title" @click="pickEvent(e)">{{ e.start }} {{ e.title }}</button>
             </div>
           </div>
+        </div>
+        <div class="sec mdetail" v-if="selEvent">
+          <h4><span><span class="mono" :style="{ color: prjColor(selEvent.project) }">{{ selEvent.event_id }}</span> · {{ selEvent.title }}</span>
+            <button class="x" title="닫기" @click="selEvent = null">×</button></h4>
+          <div class="mrow"><span>날짜</span>{{ selEvent.date }} ({{ '일월화수목금토'[new Date(selEvent.date).getDay()] }}) {{ selEvent.start }}{{ selEvent.end ? '~' + selEvent.end : '' }}</div>
+          <div class="mrow"><span>프로젝트</span>{{ selEvent.project || '지정 안 함' }}</div>
+          <div class="mrow"><span>참석</span>{{ selEvent.attendees.join(', ') }}</div>
+          <div class="mrow"><span>추가</span>{{ userName(selEvent.created_by) }} · 채팅에서 확인 후 추가한 일정 (회의록 없음)</div>
         </div>
         <div class="sec mdetail" v-if="selMeeting">
           <h4><span><span class="mono" :style="{ color: prjColor(prjKey(selMeeting)) }">{{ selMeeting.meeting_id }}</span> · {{ selMeeting.title }}</span>
@@ -657,8 +699,9 @@ function md(t) {   // 보고서의 **굵게**, ## 제목, ⚠ 만 표시 (HTML�
 const STEP = {
   ModelInfo: e => e.text,
   CacheHit: e => `같은 요청의 저장된 결과 재사용 (${e.created.slice(5, 16).replace('T', ' ')} 생성 · 원장·정책·원문 변경 없음)`,
-  RouteDecided: e => ({ meeting: '회의 정리', interview: '면접 요약', opinion: '의견 검토', question: '근거 질의', schedule: '일정 조회', chat: '일반 대화' })[e.route] + ' 경로',
+  RouteDecided: e => ({ meeting: '회의 정리', interview: '면접 요약', opinion: '의견 검토', question: '근거 질의', schedule: '일정 조회', schedule_add: '일정 추가', chat: '일반 대화' })[e.route] + ' 경로',
   ScheduleAnswered: e => `회의 목록에서 ${e.range} 조회 — ${e.count}건`,
+  ScheduleDrafted: e => `일정 초안: ${e.date || '날짜 미정'} ${e.start || '시간 미정'}${e.missing.length ? ' · 되물을 항목 ' + e.missing.length + '개' : ''}${e.conflicts ? ' · ⚠ 겹침 ' + e.conflicts + '건' : ''} (저장 전)`,
   PlanCreated: e => e.domain === 'interview' ? `계획: 질문·답변 ${e.competencies}쌍, 공정성 점검 ${e.items}건`
     : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic} · 프로젝트 ${e.project} (${e.how})` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건${e.rechecked ? ` (누락 의심 ${e.rechecked}건 재확인)` : ''}`,
   GateApplied: e => !e.removed ? null : e.removed_seq ? `권위 게이트: 결정 아닌 후보 ${e.removed}건 제외 (발언 ${e.removed_seq.join(', ')})` : `권위 게이트: 근거로 못 쓰는 발언 ${e.removed}건 제외`,
@@ -735,6 +778,7 @@ createApp({
     const log = ref([]), input = ref(''), sending = ref(false), page = ref('chat');
     const notes = ref([]), unread = ref(0), popOpen = ref(false);
     const drawer = ref(false), selPrj = ref(null), projects = ref([]), meetings = ref([]), ledger = ref([]), reqSent = reactive({});
+    const events = ref([]), selEvent = ref(null);     // 채팅에서 확인 후 추가한 일정 (GET /events)
     const calY = ref(2026), calM = ref(10);
     const admin = reactive({ decisions: [], requests: [], history: [] }), doneDec = ref([]), atab = ref('dec'), acl = ref([]);
     const dlg = reactive({ open: false, title: '', message: '', input: null, placeholder: '', ok: '확인', cancel: '취소', danger: false });
@@ -824,10 +868,11 @@ createApp({
     const miniCells = computed(() => {
       const y = miniY.value, m = miniM.value, first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
       const t = new Date(), cells = [];
-      for (let i = 0; i < first; i++) cells.push({ k: 'b' + i, d: '', ms: [] });
+      for (let i = 0; i < first; i++) cells.push({ k: 'b' + i, d: '', ms: [], es: [] });
       for (let d = 1; d <= days; d++) {
         const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         cells.push({ k: iso, d, iso, ms: meetings.value.filter(x => x.can_view && x.date === iso && (!scopePrj.value || x.meeting_id.startsWith(scopePrj.value + '-'))),
+                     es: events.value.filter(x => x.date === iso && (!scopePrj.value || x.project === scopePrj.value)),
                      today: t.getFullYear() === y && t.getMonth() + 1 === m && t.getDate() === d });
       }
       return cells;
@@ -882,7 +927,7 @@ createApp({
       const j = await api(`/notifications?user=${me.value.user_id}`); notes.value = j.notifications; unread.value = j.unread;
     }
     async function loadProjects() { projects.value = (await api('/projects')).projects; }
-    async function loadMeetings() { meetings.value = (await api(`/meetings?user=${me.value.user_id}`)).meetings; }
+    async function loadMeetings() { meetings.value = (await api(`/meetings?user=${me.value.user_id}`)).meetings; events.value = (await api('/events')).events; }
     async function loadLedger() { ledger.value = selPrj.value ? (await api(`/projects/${selPrj.value}/ledger?user=${me.value.user_id}`)).decisions : []; }
     async function loadAdmin() {
       if (me.value?.role !== '팀장') return;
@@ -969,6 +1014,7 @@ createApp({
           if (e.proposed?.length) log.value.push({ id: nextId++, kind: 'proposed', ids: e.proposed });
           if (e.cached) log.value.push({ id: nextId++, kind: 'cached', q: text });
           if (e.opinion) log.value.push(reactive({ id: nextId++, kind: 'opinion', op: e.opinion, sent: '' }));
+          if (e.schedule) log.value.push(reactive({ id: nextId++, kind: 'schedule', d: { ...e.schedule, attendees: e.schedule.attendees.join(', ') }, state: '', msg: '', saved: null }));
           stream = null; scroll(); return;
         }
         const f = STEP[e.type]; if (!f) return; const label = f(e); if (label) { steps.steps.push(label); scroll(); }
@@ -985,6 +1031,22 @@ createApp({
       const r = await post('/proposals', { user: me.value.user_id, statement: item.op.statement, topic: item.op.topic });
       item.sent = r.proposed; loadNotes(); loadAdmin();
     }
+
+    // 일정 추가: 고친 값을 서버가 다시 검사 → 겹침·요청이면 확인 대화상자 → 저장. 취소하면 아무것도 저장하지 않는다
+    async function addSchedule(item) {
+      const body = { user: me.value.user_id, draft: item.d };
+      try {
+        const chk = await post('/events/preview', body);
+        if (chk.errors.length) { item.msg = chk.errors.join(' '); return; }
+        if (chk.conflicts.length && !await ask({ title: '겹치는 일정', ok: '그래도 추가',
+          message: chk.conflicts.map(c => `${c.who.join(', ')} — ${c.id} ${c.title} (${c.start ? c.start + '~' + c.end : '시간 미상'})`).join('\n') + '\n\n그래도 추가할까요?' })) return;
+        if (chk.permission === 'request' && !await ask({ title: '팀장에게 요청', message: chk.permission_note, ok: '요청 보내기' })) return;
+        const r = await post('/events', body);
+        Object.assign(item, { state: r.requested ? 'requested' : r.dry_run ? 'dry' : 'saved', saved: r.event, msg: '' });
+        loadMeetings(); loadNotes();
+      } catch (err) { item.msg = err.message; }
+    }
+    function pickEvent(e) { selEvent.value = e; selMeeting.value = null; }
 
     async function decide(d, ok) {
       let r;
@@ -1026,7 +1088,7 @@ createApp({
     // 캘린더에서 회의를 누르면 바로 질문하지 않고 아래에 회의 정보를 보여 준다
     const selMeeting = ref(null), meetingDecisions = ref([]);
     async function pickMeeting(m) {
-      selMeeting.value = m; meetingDecisions.value = [];
+      selMeeting.value = m; meetingDecisions.value = []; selEvent.value = null;
       if (!m.can_view) return;
       const rows = (await api(`/projects/${prjKey(m)}/ledger?user=${me.value.user_id}`)).decisions;
       meetingDecisions.value = rows.filter(d => (d.meetings || []).includes(m.meeting_id));
@@ -1044,7 +1106,7 @@ createApp({
       const today = new Date();
       for (let d = 1; d <= days; d++) {
         const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        cells.push({ k: iso, d, ms: meetings.value.filter(x => x.date === iso),
+        cells.push({ k: iso, d, ms: meetings.value.filter(x => x.date === iso), es: events.value.filter(x => x.date === iso),
                      today: today.getFullYear() === y && today.getMonth() + 1 === m && today.getDate() === d });
       }
       return cells;
@@ -1073,7 +1135,8 @@ createApp({
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
-      loadAcl, loadRag, searchRag, go, togglePop, toggleDrawer, pickPrj, openMeeting, selMeeting, meetingDecisions, pickMeeting, summarizeMeeting, scopeToMeeting, month };
+      loadAcl, loadRag, searchRag, go, togglePop, toggleDrawer, pickPrj, openMeeting, selMeeting, meetingDecisions, pickMeeting, summarizeMeeting, scopeToMeeting, month,
+      events, selEvent, pickEvent, addSchedule };
   },
 }).component('pick-menu', PickMenu).mount('#app');
 </script>

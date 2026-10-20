@@ -6,6 +6,7 @@ Tool / Resource / Prompt 구분 기준은 3과와 같다: "부를 때마다 결�
 - Prompt   : 결정 추출·충돌 검토의 표준 절차
 
 approve_decision은 사람(승인 화면)만 부르는 경로다. Agent 그래프는 propose까지만 한다.
+일정도 같다: propose_event는 초안만 돌려주고, 저장은 서버의 확인 API(POST /events)에서만 한다.
 """
 import hashlib
 import json
@@ -18,8 +19,10 @@ ROOT = Path(__file__).resolve().parent
 # 백엔드가 다른 작업 디렉터리에서 자식 프로세스로 띄워도 ledger 패키지를 찾도록 프로젝트 루트를 경로에 추가
 sys.path.insert(0, str(ROOT))
 
+from ledger.calendar import build_calendar, find_conflicts   # noqa: E402
 from ledger.rag import LedgerRAG          # noqa: E402
 from ledger.resolve import MIN_DISCUSSION_SCORE, Resolver  # noqa: E402
+from ledger.schedule_parse import add_permission, build_draft   # noqa: E402
 from ledger.store import LedgerStore      # noqa: E402
 
 # 저장소·검색기는 프로세스당 하나만 만들어 모든 도구가 공유
@@ -27,6 +30,7 @@ mcp = FastMCP(name="decision-ledger")
 store = LedgerStore()
 rag = LedgerRAG()
 resolver = Resolver(store, rag)
+calendar = build_calendar()
 DATA = ROOT / "data" / "project"
 
 
@@ -199,16 +203,58 @@ def list_meetings() -> list[dict]:
     """회의·면접 목록 (캘린더용). 원문이 보존 중인 것만.
 
     Returns:
-        회의 목록 (meeting_id, project_id, date, title, attendees, domain, segments=발언 수)
+        회의 목록 (meeting_id, project_id, date, title, attendees, domain, segments=발언 수,
+        start·end=첫·마지막 발언 시각, 녹취 경과 시간만 있는 면접은 빈 문자열)
     """
     out = []
     # 파기된 원문은 파일이 없으므로 파일 목록이 곧 보존 중인 회의 목록
     for f in sorted((DATA / "r1_meetings").glob("*.json")):
         m = json.loads(f.read_text())
+        # 'HH:MM'만 시각으로 본다. 면접 녹취의 '00:00:10'은 경과 시간이라 일정 겹침 검사에 쓰지 않는다
+        ts = [s.get("ts", "") for s in m["segments"]]
+        clock = len(ts[0].split(":")) == 2 if ts else False
         # domain 필드가 없는 예전 파일은 회의(meeting)로 본다
         out.append({k: m.get(k) for k in ("meeting_id", "project_id", "date", "title", "attendees")}
-                   | {"domain": m.get("domain", "meeting"), "segments": len(m["segments"])})
+                   | {"domain": m.get("domain", "meeting"), "segments": len(m["segments"]),
+                      "start": ts[0] if clock else "", "end": ts[-1] if clock else ""})
     return out
+
+
+# ---------------- Tool: 일정 (CalendarProvider) ----------------
+@mcp.tool()
+def list_events(date_from: str = "", date_to: str = "") -> list[dict]:
+    """사람이 확인해 추가한 일정 목록 (회의록이 있는 회의는 list_meetings).
+
+    Args:
+        date_from: 시작일 YYYY-MM-DD (비우면 처음부터)
+        date_to:   종료일 YYYY-MM-DD (비우면 끝까지, 이 날 포함)
+    Returns:
+        일정 목록 (event_id, title, date, start, end, attendees, project, kind, created_by)
+    """
+    return calendar.list_events(date_from, date_to)
+
+
+@mcp.tool()
+def propose_event(text: str, user_id: str = "", today: str = "2026-10-20") -> dict:
+    """일정 추가 문장을 초안으로 해석한다 — 저장하지 않는다.
+
+    날짜·시간·참석자·프로젝트는 코드 규칙으로만 해석한다(이 도구는 LLM을 부르지 않음).
+    겹치는 일정·회의와 권한 판정을 함께 돌려준다. 저장은 사람이 화면에서 확인한 뒤 POST /events.
+    Args:
+        text:    일정 추가 문장 (예: '다음 주 화요일 오후 3시 OPS 주간 회의 잡아줘')
+        user_id: 요청자 ID (참석자 자동 포함·권한 판정)
+        today:   기준 날짜 YYYY-MM-DD
+    Returns:
+        초안 (date, start, end, title, attendees, project, missing, warnings, notes, conflicts, permission, saved=False)
+    """
+    draft = build_draft(text, today, user_id)
+    if draft["date"]:
+        same_day = [m for m in list_meetings() if m["date"] == draft["date"]]
+        draft["conflicts"] = find_conflicts(draft, calendar.list_events(draft["date"], draft["date"]), same_day)
+    else:
+        draft["conflicts"] = []
+    draft["permission"], draft["permission_note"] = add_permission(user_id, draft["attendees"])
+    return draft
 
 
 @mcp.tool()
