@@ -134,12 +134,6 @@ input, select, textarea { font: inherit; color: inherit; }
 .sel:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,78,140,.14); }
 .sel:disabled { background-color: #f4f6f9; color: var(--muted); cursor: default; }
 input.sel { padding-right: 10px; background-image: none; cursor: text; }
-/* 입력창 안 모델 선택 (Claude처럼 보내기 왼쪽) */
-.in-model { -webkit-appearance: none; appearance: none; height: 30px; border: 0; border-radius: 6px; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234c5866' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
-  padding: 0 24px 0 10px; font-size: 12.5px; color: var(--muted); cursor: pointer; width: auto; max-width: 170px; flex: none; field-sizing: content; }
-.in-model:hover { color: var(--fg); background-color: #f7f9fb; } .in-model:focus { outline: none; color: var(--fg); }
-/* 폭 고정: 고르는 회의 이름 길이에 따라 상자가 늘었다 줄었다 하지 않게 */
-.scope .s-prj { width: 140px; } .scope .s-mtg { width: 260px; text-overflow: ellipsis; }
 /* 달력 아이콘: 투명한 날짜 입력을 아이콘 위에 겹쳐 누르면 달력이 뜬다 */
 .cal-pick { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted); flex: none; cursor: pointer; }
 .cal-pick svg { width: 16px; height: 16px; pointer-events: none; } .cal-pick:hover { color: var(--accent); border-color: var(--accent); }
@@ -161,6 +155,31 @@ input.sel { padding-right: 10px; background-image: none; cursor: text; }
 .mini-ft button { color: var(--accent); font-size: 12px; }
 .scope select, .scope input { flex: none; min-width: 0; }
 .scope .s-clear { height: 28px; padding: 0 8px; font-size: 12.5px; color: var(--muted); border-radius: 6px; } .scope .s-clear:hover { background: #f1f3f6; color: var(--fg); }
+/* 사용자 정의 선택 메뉴: 테두리 없는 글자형 버튼 + 버튼 아래로 붙는 카드 */
+.dd { position: relative; flex: none; }
+.dd-btn { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 7px 0 8px; border: 0; border-radius: 6px; background: transparent;
+  font-size: 12.5px; color: var(--muted); cursor: pointer; max-width: 100%; transition: background .12s, color .12s; }
+.dd-btn:hover, .dd.open .dd-btn { background: #f1f3f6; color: var(--fg); }
+.dd-btn:focus-visible { outline: 2px solid rgba(31,78,140,.35); outline-offset: 1px; }
+.dd-lbl { flex: 1; min-width: 0; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dd-chev { width: 11px; height: 11px; flex: none; opacity: .75; transition: transform .15s; } .dd.open .dd-chev { transform: rotate(180deg); }
+.dd-btn .dd-dot { width: 7px; height: 7px; }
+.dd-btn.in-model { height: 30px; padding: 0 8px 0 10px; }
+.dd-pop { position: absolute; z-index: 40; min-width: 100%; max-height: 300px; overflow-y: auto; padding: 5px; background: #fff;
+  border: 1px solid #dfe4ea; border-radius: 10px; box-shadow: 0 12px 32px rgba(20,35,60,.14), 0 2px 6px rgba(20,35,60,.06); }
+.dd-pop.down { top: calc(100% + 6px); animation: dd-down .14s ease-out; } .dd-pop.up { bottom: calc(100% + 6px); animation: dd-up .14s ease-out; }
+.dd-pop.left { left: 0; } .dd-pop.right { right: 0; }
+@keyframes dd-down { from { opacity: 0; transform: translateY(-4px); } } @keyframes dd-up { from { opacity: 0; transform: translateY(4px); } }
+.dd-opt { display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 9px; border-radius: 7px; text-align: left; color: var(--fg); background: none; cursor: pointer; }
+.dd-opt.hi { background: #f1f4f8; } .dd-opt.picked b { color: var(--accent); font-weight: 600; }
+.dd-opt:disabled { cursor: default; opacity: .45; background: none; }
+.dd-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: block; }
+.dd-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.dd-txt b { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dd-txt small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dd-check { width: 15px; height: 15px; color: var(--accent); flex: none; }
+.dd-empty { padding: 10px; font-size: 12.5px; color: var(--muted); }
+.mini.down { bottom: auto; top: 34px; }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
 /* 공통 버튼·표 */
@@ -529,9 +548,7 @@ tr.lock td { color: var(--muted); }
                     placeholder="회의 정리, 제안 검토, 결정 근거를 물어보세요 (Shift+Enter 줄바꿈)"></textarea>
           <div class="crow">
             <span class="grow"></span>
-            <select class="in-model" v-model="modelKey" title="모델 조합">
-              <option v-for="p in presets" :key="p.key" :value="p.key" :disabled="!p.available">{{ p.key === 'auto' ? '자동' : p.label + ' · ' + (p.fast === p.quality ? p.quality : p.fast + '+' + p.quality) }}</option>
-            </select>
+            <pick-menu v-model="modelKey" :options="modelOpts" title="모델 조합" align="right" pop-width="250px" btn-class="in-model"></pick-menu>
             <button class="send" :disabled="sending || !input.trim()" @click="send()" title="보내기">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
           </div>
@@ -539,15 +556,13 @@ tr.lock td { color: var(--muted); }
         <div class="scope-out">
         <div class="scope">
           <label>
-            <select class="s-prj" title="프로젝트" v-model="scopePrj" @change="onScopePrj"><option value="">프로젝트 자동</option>
-              <option v-for="p in projects" :key="p.key" :value="p.key">{{ p.key }} · {{ p.name }}</option></select></label>
+            <pick-menu v-model="scopePrj" :options="prjOpts" title="프로젝트" width="176px" pop-width="230px" @change="onScopePrj"></pick-menu></label>
           <label>
-            <select class="s-mtg" title="회의" v-model="scopeMtg" @change="onScopeMtg"><option value="">{{ scopeDate ? scopeDate.slice(5) + ' 회의 중 선택' : '회의 지정 안 함' }}</option>
-              <option v-for="m in scopeMeetings" :key="m.meeting_id" :value="m.meeting_id">{{ m.date.slice(5) }} · {{ m.meeting_id }} · {{ m.title }}</option></select>
-            <span class="cal-pick" :class="{ on: scopeDate }" :title="scopeDate ? scopeDate + ' 회의만 보는 중' : '날짜로 회의 찾기'" @click.stop="openMini">
+            <pick-menu v-model="scopeMtg" :options="mtgOpts" title="회의" width="260px" pop-width="330px" @change="onScopeMtg"></pick-menu>
+            <span class="cal-pick" :class="{ on: scopeDate }" :title="scopeDate ? scopeDate + ' 회의만 보는 중' : '날짜로 회의 찾기'" @click.stop="openMini($event)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
               <!-- 작은 달력: 회의가 있는 날만 굵게 + 프로젝트 색 점, 없는 날은 누를 수 없음 -->
-              <div class="mini" v-if="miniOpen" @click.stop>
+              <div class="mini" :class="{ down: miniDown }" v-if="miniOpen" @click.stop>
                 <div class="mini-hd"><button @click="miniMove(-1)">‹</button><b>{{ miniY }}년 {{ miniM }}월</b><button @click="miniMove(1)">›</button></div>
                 <div class="mini-grid">
                   <span class="mh" v-for="(d, i) in '일월화수목금토'" :key="'h' + d" :class="{ sun: i === 0, sat: i === 6 }">{{ d }}</span>
@@ -659,6 +674,59 @@ const api = (u, opt) => fetch(u, opt).then(async r => { const j = await r.json()
 const post = (u, body) => api(u, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
+// 선택 메뉴: 버튼 바로 아래로 펼친다 (아래 공간이 모자랄 때만 버튼 위로). macOS 기본 팝업처럼 버튼을 덮지 않게.
+const PickMenu = {
+  props: { modelValue: { default: '' }, options: { type: Array, default: () => [] }, title: String, width: String,
+           popWidth: String, align: { type: String, default: 'left' }, btnClass: String },
+  emits: ['update:modelValue', 'change'],
+  setup(props, { emit }) {
+    const open = ref(false), up = ref(false), maxH = ref('300px'), hi = ref(-1), root = ref(null), list = ref(null);
+    const cur = computed(() => props.options.find(o => o.value === props.modelValue));
+    function show() {
+      // 아래 공간이 목록 전체 또는 180px 이상이면 아래로, 넘치는 만큼만 스크롤
+      const r = root.value.getBoundingClientRect(), need = Math.min(300, props.options.length * 44 + 12);
+      const below = window.innerHeight - r.bottom - 16, above = r.top - 16;
+      up.value = below < Math.min(need, 180) && above > below;
+      maxH.value = Math.max(120, Math.min(300, up.value ? above : below)) + 'px';
+      hi.value = Math.max(0, props.options.findIndex(o => o.value === props.modelValue));
+      open.value = true;
+      nextTick(() => list.value?.children[hi.value]?.scrollIntoView({ block: 'nearest' }));
+    }
+    function toggle() { open.value ? (open.value = false) : show(); }
+    function pick(o) { if (o.disabled) return; open.value = false; if (o.value !== props.modelValue) { emit('update:modelValue', o.value); nextTick(() => emit('change', o.value)); } }
+    function key(e) {
+      if (!open.value) { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); show(); } return; }
+      const n = props.options.length;
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); open.value = false; }
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault(); const d = e.key === 'ArrowDown' ? 1 : -1;
+        for (let i = 1; i <= n; i++) { const j = (hi.value + d * i + n) % n; if (!props.options[j].disabled) { hi.value = j; break; } }
+        list.value?.children[hi.value]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (props.options[hi.value]) pick(props.options[hi.value]); }
+      else if (e.key === 'Tab') open.value = false;
+    }
+    const outside = e => { if (open.value && root.value && !root.value.contains(e.target)) open.value = false; };
+    document.addEventListener('mousedown', outside);
+    return { open, up, maxH, hi, root, list, cur, toggle, pick, key };
+  },
+  template: `<div class="dd" :class="{ open }" ref="root">
+    <button type="button" class="dd-btn" :class="btnClass" :style="{ width }" :title="title" @click="toggle" @keydown="key" aria-haspopup="listbox" :aria-expanded="open">
+      <i v-if="cur && cur.color" class="dd-dot" :style="{ background: cur.color }"></i>
+      <span class="dd-lbl">{{ cur ? (cur.short || cur.label) : '' }}</span>
+      <svg class="dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div v-if="open" class="dd-pop" :class="[up ? 'up' : 'down', align]" :style="{ width: popWidth, maxHeight: maxH }" role="listbox" ref="list">
+      <button v-for="(o, i) in options" :key="String(o.value)" type="button" class="dd-opt" role="option" :aria-selected="o.value === modelValue"
+              :class="{ picked: o.value === modelValue, hi: i === hi }" :disabled="o.disabled" @click="pick(o)" @mouseenter="hi = i">
+        <i class="dd-dot" :style="{ background: o.color || 'transparent' }"></i>
+        <span class="dd-txt"><b>{{ o.label }}</b><small v-if="o.sub">{{ o.sub }}</small></span>
+        <svg v-if="o.value === modelValue" class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </button>
+      <div v-if="!options.length" class="dd-empty">선택할 항목이 없습니다</div>
+    </div>
+  </div>`,
+};
+
 createApp({
   setup() {
     const users = ref([]), me = ref(null), version = ref(''), build = ref('');
@@ -721,13 +789,24 @@ createApp({
       if (scopeMtg.value && !scopeMtg.value.startsWith(scopePrj.value + '-')) scopeMtg.value = '';
       if (scopeDate.value && !scopeMeetings.value.length) scopeDate.value = '';   // 그 날짜에 이 프로젝트 회의가 없으면 날짜 조건을 푼다
     }
-    const miniOpen = ref(false), miniY = ref(2026), miniM = ref(10);
+    // 사용자 정의 메뉴에 넘길 선택지 (색 점·보조 설명까지 한 번에)
+    const prjOpts = computed(() => [{ value: '', label: '프로젝트 자동', sub: '질문 내용으로 프로젝트를 고릅니다' }]
+      .concat(projects.value.map(p => ({ value: p.key, label: p.key + ' · ' + p.name, short: p.key + ' · ' + p.name, color: prjColor(p.key) }))));
+    const mtgOpts = computed(() => [{ value: '', label: scopeDate.value ? scopeDate.value.slice(5) + ' 회의 중 선택' : '회의 지정 안 함', sub: scopeDate.value ? '' : '질문만으로 찾습니다' }]
+      .concat(scopeMeetings.value.map(m => ({ value: m.meeting_id, label: m.title, short: m.meeting_id + ' · ' + m.title,
+        sub: m.date.slice(5).replace('-', '/') + ' · ' + m.meeting_id, color: prjColor(prjKey(m)) }))));
+    const modelOpts = computed(() => presets.value.map(p => ({ value: p.key, disabled: !p.available,
+      label: p.key === 'auto' ? '자동' : p.label, short: p.key === 'auto' ? '자동' : p.label,
+      sub: !p.available ? '모델이 설치되지 않음' : p.key === 'auto' ? '요청 종류에 맞춰 모델을 고릅니다'
+        : (p.fast === p.quality ? p.quality : p.fast + ' + ' + p.quality) })));
+    const miniOpen = ref(false), miniDown = ref(false), miniY = ref(2026), miniM = ref(10);
     document.addEventListener('click', () => { miniOpen.value = false; });
-    function openMini() {
+    function openMini(ev) {
       if (!miniOpen.value) {                 // 고른 날짜의 달, 없으면 가장 최근 회의가 있는 달부터
         const base = scopeDate.value || meetingDates.value[meetingDates.value.length - 1] || new Date().toISOString().slice(0, 10);
         miniY.value = +base.slice(0, 4); miniM.value = +base.slice(5, 7);
       }
+      miniDown.value = !!ev && window.innerHeight - ev.currentTarget.getBoundingClientRect().bottom > 330;   // 아래 공간이 넉넉하면 아래로
       miniOpen.value = !miniOpen.value;
     }
     function miniMove(d) { let m = miniM.value + d, y = miniY.value; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } miniM.value = m; miniY.value = y; }
@@ -974,17 +1053,18 @@ createApp({
       if (me.value && qs.get('mtg')) { drawer.value = true; await loadMeetings(); await loadProjects(); const m = meetings.value.find(x => x.meeting_id === qs.get('mtg')); if (m) await pickMeeting(m); }
       if (me.value && qs.get('mini')) openMini();
       if (me.value && qs.get('switch')) switchOpen.value = true;
+      if (me.value && qs.get('dd')) setTimeout(() => document.querySelector(`.dd-btn[title="${qs.get('dd')}"]`)?.click(), 300);   // 캡처용: ?dd=회의
       if (me.value && qs.get('notes')) { popOpen.value = true; }
       setInterval(loadNotes, 8000);
     })();
 
-    return { inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { prjOpts, mtgOpts, modelOpts, miniDown, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
       loadAcl, loadRag, searchRag, go, togglePop, toggleDrawer, pickPrj, openMeeting, selMeeting, meetingDecisions, pickMeeting, summarizeMeeting, scopeToMeeting, month };
   },
-}).mount('#app');
+}).component('pick-menu', PickMenu).mount('#app');
 </script>
 </body>
 </html>
