@@ -199,14 +199,19 @@ async def schedule_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
     """일정 질문은 LLM 없이 회의 목록(MCP Tool)으로 코드가 답한다 — 지어낼 여지가 없다."""
     a, b, label = _range(state["message"], deps.today)
     ms = [m for m in await deps.mcp.call("list_meetings") if a <= m["date"] <= b]
-    if re.search(r"면접", state["message"]):
-        ms = [m for m in ms if m.get("domain") == "interview"]
-    elif re.search(r"회의", state["message"]) and not re.search(r"면접|일정", state["message"]):
-        ms = [m for m in ms if m.get("domain") != "interview"]
-    kind = "면접은" if re.search(r"면접", state["message"]) else "회의는"
+    q = state["message"]
+    if re.search(r"면접", q):
+        ms, kind = [m for m in ms if m.get("domain") == "interview"], "면접은"
+    elif re.search(r"일정", q):
+        kind = "일정은"            # 일정 = 회의 + 면접 전부
+    else:
+        ms, kind = [m for m in ms if m.get("domain") != "interview"], "회의는"
     days = "월화수목금토일"
     from datetime import date
-    head = f"{label}({a[5:]}~{b[5:]}) {kind} {len(ms)}건입니다." if a != b else f"{label}({a[5:]}) {kind} {len(ms)}건입니다."
+    n_int = sum(m.get("domain") == "interview" for m in ms)
+    detail = f" (회의 {len(ms) - n_int}건, 면접 {n_int}건)" if kind == "일정은" and ms else ""
+    span = f"{a[5:]}~{b[5:]}" if a != b else a[5:]
+    head = f"{label}({span}) {kind} {len(ms)}건입니다{detail}."
     lines = [head] + [f"- {m['meeting_id']} · {m['date'][5:]}({days[date.fromisoformat(m['date']).weekday()]}) {m['title']}"
                       f" · 참석 {', '.join(x for x in m['attendees'] if not x.startswith('지원자'))}" for m in sorted(ms, key=lambda x: x["date"])]
     return {"final": "\n".join(lines),
@@ -429,6 +434,18 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
             due = year + due[4:]                      # 모델이 연도를 틀리는 경우 회의 연도로 고정
             if f"{int(due[8:])}일" not in said:      # 원문에 없는 기한은 지어낸 것 → 비운다
                 due = None
+        # 기한 정정: 배정 뒤 2발언 안에 진행자·담당자가 같은 일을 다른 날짜로 다시 말하면 나중 말이 기한
+        words = re.findall(r"[가-힣A-Za-z]{2,}", a.get("statement") or "")
+        for x in (q + 1, q + 2) if isinstance(q, int) else ():
+            s = by_seq.get(x)
+            if not s or not any(w in s["text"] for w in words):
+                continue
+            if s["role"] not in CHAIR_ROLES and not (ow and s["speaker"].startswith(ow[:3])):
+                continue
+            if m := re.search(r"(?:(\d{1,2})월\s*)?(\d{1,2})일", s["text"]):
+                month = int(m.group(1) or state["meeting_date"][5:7])
+                due = f"{year}-{month:02d}-{int(m.group(2)):02d}"
+                ev = sorted({*ev, x})
         owner = re.sub(r"\s*\(.*\)", "", a["owner"]).strip() if a.get("owner") else None
         speakers = {by_seq[x]["speaker"] for x in ev if x in by_seq}
         if owner and owner[-2:] not in said and owner not in speakers:

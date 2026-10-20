@@ -67,6 +67,21 @@ def test_gate_clears_invented_owner_and_due():
     assert b["owner"] is None and b["due"] is None
 
 
+def test_gate_takes_corrected_due_from_later_utterance():
+    seg = lambda q, sp, role, t: {"meeting_id": "OPS-M03", "date": "2026-10-06", "seq": q, "ts": "",
+                                  "speaker": sp, "role": role, "text": t}
+    st = {**_gate_state([], [
+        {"seq": 14, "statement": "캐시 후보 정리", "owner": "장상민", "due": "2026-10-10"},
+        {"seq": 14, "statement": "로그 수집", "owner": "장상민", "due": "2026-10-10"},   # 정정 발언과 무관
+    ]), "meeting_date": "2026-10-06", "segments": [
+        seg(14, "장상민", "백엔드", "네 10일까지 로그 수집 하고, 캐시 후보 정리도 같이 할게요."),
+        seg(15, "정한결", "PM", "캐시 후보는 10월 13일 회의 전까지로 할게요."),
+    ]}
+    a, b = run(G.gate_node(st, deps=None))["action_items"]
+    assert a["due"] == "2026-10-13" and [e["seq"] for e in a["evidence"]] == [14, 15]
+    assert b["due"] == "2026-10-10"
+
+
 # ---------------------------------------------------------------- 판정표 decide()
 def _item(research, auth=None, waivers=()):
     return {"statement": "x", "topic": "t", "research": research, "authority_check": auth, "waivers": list(waivers)}
@@ -209,6 +224,8 @@ def test_schedule_question_answered_from_meeting_list():
     for q in ("지난주 회의 몇 개야?", "저번주 회의 몇개야", "저번 주 회의 몇 개야?", "전주 회의 몇 건이야"):
         st = run(graph.ainvoke({"message": q, "events": []}))
         assert st["final"].startswith("지난주(10-12~10-18) 회의는 1건") and "OPS-M04" in st["final"], q
+    st = run(graph.ainvoke({"message": "지난주 일정은 몇개야", "events": []}))
+    assert st["final"].startswith("지난주(10-12~10-18) 일정은 2건입니다 (회의 1건, 면접 1건)"), st["final"]
     for q in ("지지난주 회의 몇 개야?", "저저번주 회의 몇개", "전전주 회의 몇 건", "2주 전 회의 몇 개야"):
         st = run(graph.ainvoke({"message": q, "events": []}))
         assert "(10-05~10-11)" in st["final"], (q, st["final"])
