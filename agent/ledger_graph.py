@@ -1278,7 +1278,7 @@ def render_opinion(item: dict) -> str:
     verdict = ("예외 범위 안에서 가능" if r.get("waiver_applied") and not blocking
                else STATUS_KO.get(r["status"], r["status"]))
     rows = [f"**검토 결과: {verdict}** (주제 {item['topic']})"]
-    rows += [f"- {c['type']} [{', '.join(c['against'])}] {c['detail']}" for c in r["conflicts"]]
+    rows += [f"- {enrich.CONFLICT_KO.get(c['type'], c['type'])} [{', '.join(c['against'])}] {c['detail']}" for c in r["conflicts"]]
     if r.get("waiver_applied"):
         rows.append(f"- 적용 가능한 예외: {r['waiver_applied']}")
     rows += [f"- 참고: {n}" for n in r.get("notes", [])]

@@ -274,9 +274,17 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 |---|---|
 | ![](docs/images/home.jpg) | ![](docs/images/scope_menu.jpg) |
 
-| 의견 검토 — 과거 결정·과거 프로젝트와 충돌 | 근거 질의 — 결정·이유·기각 대안·원문 |
+| 회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점 | 근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회) |
 |---|---|
-| ![](docs/images/opinion_question.jpg) | ![](docs/images/question_answer.jpg) |
+| ![](docs/images/m04_report.jpg) | ![](docs/images/question_answer.jpg) |
+
+| 근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름 | 의견 검토 — 충돌과 해결 방향 |
+|---|---|
+| ![](docs/images/sse_flow.jpg) | ![](docs/images/opinion_question.jpg) |
+
+| 승인함 — 원문 인용·승인 전 수정·대체될 결정 미리보기 | 미결함 — 경과일·후속 할 일·닫기 |
+|---|---|
+| ![](docs/images/admin_approve.jpg) | ![](docs/images/open_items.jpg) |
 
 | 면접 전사문 — 질문·답변 요약, 공정성 점검 | 일정 달력 — 회의 상세 |
 |---|---|
@@ -286,9 +294,9 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 |---|---|---|
 | ![](docs/images/schedule_add.jpg) | ![](docs/images/schedule_conflict.jpg) | ![](docs/images/schedule_calendar.jpg) |
 
-| 관리자 콘솔 — 결정·의견 승인 | 관리자 콘솔 — 열람 요청 (범위·기간) |
+| 관리자 콘솔 — 열람 요청 (범위·기간) | |
 |---|---|
-| ![](docs/images/admin_approve.jpg) | ![](docs/images/admin_requests.jpg) |
+| ![](docs/images/admin_requests.jpg) | |
 
 | 회의 접근 권한 (역할별) | 팀장 알림 |
 |---|---|
