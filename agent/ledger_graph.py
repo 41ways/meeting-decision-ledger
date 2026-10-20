@@ -772,10 +772,10 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
 
     # 재조사 이벤트와 첫 조사 이벤트를 구분하려고 호출 전 상태를 기억한다
     before = [bool(i.get("research")) for i in state["items"]]
-    # 조회 실패 항목은 authority='none'으로 채워 다음 노드가 '기준 없음'으로 처리하게 한다
+    # 조회 실패 항목은 failed 표시를 남긴다 — '기준 없음'과 섞이면 오류가 '문제없음'으로 조용히 바뀐다
     items = await gather_safe([one(i) for i in state["items"]],
                               lambda n, e: {**state["items"][n], "research": {"topic": state["items"][n]["topic"],
-                                            "authority": "none", "notes": [f"조회 실패: {e!r}"]}})
+                                            "authority": "none", "failed": True, "notes": [f"조회 실패: {e!r}"]}})
     evs = [{"type": "TaskCompleted", "statement": i["statement"][:40], "source": "R1 원문 논의"}
            for i, b in zip(items, before) if b and i.get("discussion") is not None]
     evs += [{"type": "TaskCompleted", "statement": i["statement"][:40], "topic": i["topic"],
@@ -960,6 +960,9 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
         Returns:
             (review를 붙인 항목, 사용량 dict 또는 None)
         """
+        if item.get("research", {}).get("failed"):   # 기준을 못 읽었으면 판정하지 않고 사람에게 돌린다
+            return {**item, "review": {"status": "needs_approval", "conflicts": [], "changes": [], "waiver_applied": None,
+                                       "notes": ["기준 조회 실패 — 사람 검토 필요"] + item["research"]["notes"]}}, None
         srcs = _sources(item)
         if not srcs:                              # 비교할 기준이 없으면 LLM을 부르지 않는다
             return {**item, "review": decide(item, [], {})}, None

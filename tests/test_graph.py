@@ -214,6 +214,21 @@ def test_graph_meeting_path_with_fakes():
     assert "[4] 서지후" in st["final"] and "기준 변경" in st["final"]
 
 
+class BrokenLookupMCP(FakeMCP):
+    async def call(self, name, **a):
+        if name == "resolve_current":
+            raise RuntimeError("chroma 연결 끊김")
+        return await super().call(name, **a)
+
+
+def test_lookup_failure_is_not_reported_as_ok():
+    """기준 조회가 실패하면 '문제없음'이 아니라 '승인 필요'로 사람에게 돌린다 (조용한 실패 방지)."""
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=FakeLLM(), mcp=BrokenLookupMCP()))
+    st = run(graph.ainvoke({"message": "OPS-M04 회의 정리해줘", "events": []}))
+    rv = st["items"][0]["review"]
+    assert rv["status"] == "needs_approval" and "기준 조회 실패" in rv["notes"][0]
+
+
 class EmptyMCP(FakeMCP):
     async def call(self, name, **a):
         return [] if name == "get_segments" else await super().call(name, **a)
