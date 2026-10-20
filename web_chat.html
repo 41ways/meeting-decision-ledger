@@ -499,7 +499,7 @@ tr.lock td { color: var(--muted); }
       <div class="composer" v-show="page === 'chat'">
         <div class="box"><input v-model="input" @keyup.enter="send()" placeholder="회의 정리(OPS-M04 회의 정리해줘), 제안 검토, 결정 근거 질문">
           <select class="in-model" v-model="modelKey" title="모델 조합 (분류·주제 / 추출·판정·답변)">
-            <option v-for="p in presets" :key="p.key" :value="p.key" :disabled="!p.available">{{ p.label }} · {{ p.fast === p.quality ? p.quality : p.fast + ' + ' + p.quality }}</option>
+            <option v-for="p in presets" :key="p.key" :value="p.key" :disabled="!p.available">{{ p.key === 'auto' ? '자동 · 작업에 맞춰 선택' : p.label + ' · ' + (p.fast === p.quality ? p.quality : p.fast + ' + ' + p.quality) }}</option>
           </select><button :disabled="sending" @click="send()">보내기</button></div>
         <div class="scope">
           <label>프로젝트
@@ -602,6 +602,7 @@ function md(t) {   // 보고서의 **굵게**, ## 제목, ⚠ 만 표시 (HTML�
             .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/⚠/g, '<span class="warn">⚠</span>');
 }
 const STEP = {
+  ModelInfo: e => e.text,
   CacheHit: e => `같은 요청의 저장된 결과 재사용 (${e.created.slice(5, 16).replace('T', ' ')} 생성 · 원장·정책·원문 변경 없음)`,
   RouteDecided: e => ({ meeting: '회의 정리', interview: '면접 요약', opinion: '의견 검토', question: '근거 질의', schedule: '일정 조회', chat: '일반 대화' })[e.route] + ' 경로',
   ScheduleAnswered: e => `회의 목록에서 ${e.range} 조회 — ${e.count}건`,
@@ -641,7 +642,7 @@ createApp({
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && dlg.open) dlgClose(null); });
     const switchOpen = ref(false); document.addEventListener('click', () => { switchOpen.value = false; });
     // 모델 조합: 입력창 아래에서 질문마다 고른다 (브라우저에 기억)
-    const presets = ref([]), modelKey = ref(ls.get('ledger_model') || 'accurate');
+    const presets = ref([]), modelKey = ref(ls.get('ledger_model') || 'auto');
     async function loadPresets() { const j = await api('/models'); presets.value = j.presets; if (!j.presets.some(p => p.key === modelKey.value && p.available)) modelKey.value = j.default; }
     watch(modelKey, v => ls.set('ledger_model', v));
     const scopePrj = ref(''), scopeMtg = ref(''), scopeDate = ref('');

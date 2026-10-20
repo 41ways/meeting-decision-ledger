@@ -35,7 +35,8 @@ from ledger.mcp_bridge import LedgerMCP
 HERE = Path(__file__).parent
 VERSION = "0.7.0"
 # 모델 조합 (Wave 10a 티어링). 입력창 아래에서 질문마다 고른다. 조합마다 그래프를 미리 만들어 사람마다 달라도 서로 영향 없음
-PRESETS = {"accurate": ("정확", "qwen3:8b", "qwen3:8b"),
+PRESETS = {"auto": ("자동", "qwen3:8b", "qwen3:8b"),          # 회의 정리·질의·의견은 8b, 일반 대화는 0.6b, 일정은 모델 없이
+           "accurate": ("정확", "qwen3:8b", "qwen3:8b"),
            "fast": ("빠름", "qwen3:0.6b", "qwen3:8b"),
            "fastest": ("가장 빠름", "qwen3:0.6b", "qwen3:0.6b")}
 BUILD = "2026-10-20"
@@ -114,8 +115,9 @@ async def lifespan(app: FastAPI):
     if os.environ.get("LLM_BACKEND", "ollama") == "ollama":
         for key, (_, f, q) in PRESETS.items():
             if key != "accurate":
-                app.state.graphs[key] = build_ledger_graph(replace(deps, fast_llm=LocalLLM(f, 0.00015, "fast"),
-                                                                    quality_llm=LocalLLM(q, 0.005, "quality")))
+                app.state.graphs[key] = build_ledger_graph(replace(
+                    deps, fast_llm=LocalLLM(f, 0.00015, "fast"), quality_llm=LocalLLM(q, 0.005, "quality"),
+                    chat_llm=LocalLLM("qwen3:0.6b", 0.00015, "chat") if key == "auto" else None))
         asyncio.create_task(warm_up(["qwen3:8b", "qwen3:0.6b"]))     # 첫 질문 전에 모델을 메모리에 올려 둔다
     await refresh_meetings()
     yield
@@ -244,7 +246,7 @@ async def chat(req: ChatRequest):
 
 @app.get("/chat/stream")
 async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh", force: bool = False,
-                      project: str = "", meeting: str = "", model: str = "accurate"):
+                      project: str = "", meeting: str = "", model: str = "auto"):
     """노드가 끝날 때마다 새 이벤트를, 답변 작성 중에는 토큰을 'data: {json}\\n\\n'으로 보낸다."""
     deps = app.state.deps
 
@@ -272,6 +274,9 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
 
         # 같은 요청 재사용: 원장·정책·문서·원문이 그대로면 저장된 답을 돌려준다
         graph = app.state.graphs.get(model) or app.state.graph
+        lab, f, q = PRESETS.get(model, PRESETS["accurate"])
+        yield sse({"type": "ModelInfo", "text": "모델 자동 — 회의 정리·질의·검토는 qwen3:8b, 일반 대화는 qwen3:0.6b, 일정은 모델 없이"
+                   if model == "auto" else f"모델 {lab} — " + (q if f == q else f"분류 {f} · 작성 {q}")})
         key = None if force else cache_key(user, message, project, meeting)
         key = key and f"{key}|{model}"                       # 모델이 다르면 다른 답
         fp = await deps.mcp.call("ledger_fingerprint")
@@ -445,7 +450,7 @@ async def models():
         installed = set()
     out = [{"key": k, "label": lab, "fast": f, "quality": q, "available": k in app.state.graphs and {f, q} <= installed}
            for k, (lab, f, q) in PRESETS.items()]
-    return {"presets": out, "default": "accurate"}
+    return {"presets": out, "default": "auto"}
 
 
 @app.get("/notifications")

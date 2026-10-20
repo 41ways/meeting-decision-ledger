@@ -76,6 +76,7 @@ class LedgerDeps:
     quality_llm: Any           # Wave 10a — 추출·충돌 판정·답변 작성
     mcp: Any                   # Wave 2  — 결정 원장 MCP 서버
     session_store: Any = None  # Wave 12
+    chat_llm: Any = None       # 일반 대화 전용 모델 (자동 모드에서 작은 모델). 없으면 fast_llm
     can_view: Any = None       # (user_id, decision) -> bool. 권한 없는 결정은 내용 자체를 LLM에 넘기지 않는다
     today: str = TODAY
     propose_to_ledger: bool = False
@@ -230,7 +231,7 @@ async def chat_answer_node(state: LedgerState, deps: LedgerDeps) -> dict:
     """Wave 5 direct 경로 — 세션 히스토리 기반 짧은 응답 (Wave 12 세션)."""
     hist = "\n".join(f"{h['role']}: {h['content']}" for h in (state.get("history") or [])[-6:])
     writer = get_stream_writer()
-    reply, usage = await deps.fast_llm.text(
+    reply, usage = await (deps.chat_llm or deps.fast_llm).text(
         "너는 회의 요약·결정 정리 비서다. 한두 문장으로 답한다. 할 수 있는 일: 회의록 정리('OPS-M04 회의 정리해줘'), "
         "제안 검토('Redis로 바꾸면 어때?'), 과거 결정 근거 질의('SSE는 왜 골랐어?'), 일정 질문('이번 주 회의 몇 개야?'). "
         "회의·결정·일정에 관한 사실은 이 대화에서 지어내지 말고, 위 기능으로 다시 물어보라고 안내한다.",
@@ -264,7 +265,17 @@ TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
 
 def topic_key(raw: str | None) -> str:
     """모델이 주제 목록 줄을 통째로 돌려줘도('session.store: 대화 세션 저장소') 키만 남긴다. 키가 틀리면 원장 조회가 빈다."""
-    return (raw or "").strip().removeprefix("new:").split(":")[0].strip()
+    t = (raw or "").strip().removeprefix("new:").split(":")[0].strip()
+    # 작은 모델은 지시문 예시('<영문 소문자>')를 그대로 따라 쓰기도 한다 → 키 형식이 아니면 버리고 검색 후보로 대신
+    return t if re.fullmatch(r"[a-z][a-z0-9_.]*", t) else ""
+
+
+async def ensure_topic(deps: "LedgerDeps", topic: str, text: str) -> str:
+    """주제 키가 비었으면 임베딩 검색 1순위 주제로 채운다 (LLM 선택이 실패했을 때의 대비책)."""
+    if topic:
+        return topic
+    cands = await deps.mcp.call("topic_candidates", text=text, k=1)
+    return cands[0]["topic"] if cands else "unknown"
 
 
 def _lines(segs: list[dict]) -> str:
@@ -282,7 +293,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             "문장의 주제를 아래 목록의 키 하나로 고른다. 맞는 게 없으면 new:<영문 소문자>.\n" + topics
             + "\n\n문장이 어느 프로젝트 이야기인지도 고른다 (언급이 없으면 현재 프로젝트).\n" + projects,
             state["message"], TOPIC_SCHEMA)
-        topic = topic_key(out.get("topic")) or "unknown"
+        topic = await ensure_topic(deps, topic_key(out.get("topic")), state["message"])
         # 판단 기준 프로젝트: 사용자가 고른 것 > 질문에서 판단한 것 > 기본값(OPS). 어떻게 정했는지 화면에 남긴다
         if state.get("scope_project") in KEY_TO_PID:
             pid, how = KEY_TO_PID[state["scope_project"]], "직접 지정"
@@ -347,8 +358,8 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
         "- overview: 전체 흐름을 보고 topic(회의 주제 한 줄), discussion(논의한 내용 3~5개, 각 40자 이내), "
         "direction(앞으로의 방향 1~2문장)을 쓴다. 결정 목록을 반복하지 말고 왜 그 얘기가 나왔는지를 담는다.", user, EXTRACT_SCHEMA)
     mpid = KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)      # 회의 정리는 그 회의의 프로젝트가 기준
-    items = [{**d, "decided_seq": d["seq"], "topic": topic_key(d["topic"]), "project": mpid}
-             for d in out.get("decisions", [])]
+    items = [{**d, "decided_seq": d["seq"], "topic": await ensure_topic(deps, topic_key(d["topic"]), d["statement"]),
+              "project": mpid} for d in out.get("decisions", [])]
     return {"segments": segs, "meeting_date": segs[0]["date"],
             "attendee_roles": sorted({s["role"] for s in segs}), "items": items,
             "action_items": out.get("action_items", []), "undecided": out.get("undecided", []),
