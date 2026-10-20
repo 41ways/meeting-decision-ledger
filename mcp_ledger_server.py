@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT))
 
 from ledger.calendar import build_calendar, find_conflicts   # noqa: E402
 from ledger.rag import LedgerRAG          # noqa: E402
+from ledger.records import MeetingRecords  # noqa: E402
 from ledger.resolve import MIN_DISCUSSION_SCORE, Resolver  # noqa: E402
 from ledger.schedule_parse import add_permission, build_draft   # noqa: E402
 from ledger.store import LedgerStore      # noqa: E402
@@ -30,6 +31,8 @@ mcp = FastMCP(name="decision-ledger")
 store = LedgerStore()
 rag = LedgerRAG()
 resolver = Resolver(store, rag)
+records = MeetingRecords()
+records.sync_meetings()          # 원문 파일의 머리 정보(날짜·참석자)를 회의 목록에 반영 — 파기된 회의도 목록에는 남는다
 calendar = build_calendar()
 DATA = ROOT / "data" / "project"
 
@@ -131,9 +134,10 @@ def get_decision(decision_id: str) -> dict:
 
 
 @mcp.tool()
-def propose_decision(statement: str, topic: str, decided_by: str, evidence: list[dict],
+def propose_decision(statement: str, topic: str, decided_by: str, evidence: list[dict],  # pylint: disable=too-many-arguments
                      rationale: str = "", alternatives_rejected: list[str] | None = None,
-                     project_id: str = "PRJ-OPSAI") -> dict:
+                     project_id: str = "PRJ-OPSAI", item_id: str = "", slots: dict | None = None,
+                     actor: str = "agent") -> dict:
     """추출한 결정을 승인 대기(proposed)로 원장에 올린다.
 
     승인 전에는 권위가 없다. 같은 근거로 이미 올린 승인 대기 건이 있으면 새로 만들지 않고 그 ID를 돌려준다.
@@ -145,6 +149,9 @@ def propose_decision(statement: str, topic: str, decided_by: str, evidence: list
         rationale:             결정 이유
         alternatives_rejected: 기각한 대안 목록
         project_id:            결정이 속한 프로젝트
+        item_id:               회의 기록의 결정 후보 항목 ID (있으면 원장 ID를 잇는다)
+        slots:                 칸 기록 {target, change, scope, condition}
+        actor:                 올린 사람
     Returns:
         {"proposed": 결정 ID}, 기존 건 재사용이면 "existing": True 추가
     """
@@ -152,10 +159,14 @@ def propose_decision(statement: str, topic: str, decided_by: str, evidence: list
     key = sorted((e["meeting_id"], e.get("seq")) for e in evidence)
     for d in store.decisions(project_id=project_id, topic=topic):     # 같은 근거로 이미 올린 건 재사용 (재실행 중복 방지)
         if d["status"] == "proposed" and sorted((e["meeting_id"], e.get("seq")) for e in d["evidence"]) == key:
+            if item_id:
+                records.link_decision(item_id, d["decision_id"], actor)
             return {"proposed": d["decision_id"], "existing": True}
     did = store.propose({"project_id": project_id, "topic": topic, "statement": statement,
                          "rationale": rationale, "alternatives_rejected": alternatives_rejected or [],
-                         "decided_by": decided_by, "evidence": evidence})
+                         "decided_by": decided_by, "evidence": evidence, "slots": slots or {}})
+    if item_id:
+        records.link_decision(item_id, did, actor)
     # SQLite가 원천, 벡터 DB에도 바로 반영해 다음 검색에서 승인 대기 건이 보이게 한다
     rag.ingest_decision(store.get_decision(did))
     return {"proposed": did}
@@ -174,6 +185,7 @@ def approve_decision(decision_id: str, approved_by: str, effective_from: str = "
         {"approved": 결정 ID, "superseded": 대체된 결정 ID 목록}
     """
     out = store.approve(decision_id, approved_by, effective_from or None)
+    records.log(approved_by, "decision_approved", decision_id, {"superseded": out["superseded"]})
     # 승인 건과 대체된 건 모두 active 값이 바뀌어 벡터 DB 메타데이터도 다시 적재
     for did in [decision_id, *out["superseded"]]:
         rag.ingest_decision(store.get_decision(did))
@@ -193,9 +205,123 @@ def reject_decision(decision_id: str, rejected_by: str, reason: str = "") -> dic
         {"rejected": 결정 ID}
     """
     out = store.reject(decision_id, rejected_by, reason)
+    records.log(rejected_by, "decision_rejected", decision_id, {"reason": reason})
     # status가 바뀌어 검색 필터(proposed 포함 검색)에서 빠지도록 재적재
     rag.ingest_decision(store.get_decision(decision_id))
     return out
+
+
+@mcp.tool()
+def will_supersede(decision_id: str) -> list[dict]:
+    """이 결정을 승인하면 대체될 유효 결정 목록 (승인 전 미리보기).
+
+    Args:
+        decision_id: 승인 대기 결정 ID
+    Returns:
+        [{decision_id, statement, topic}]
+    """
+    return store.will_supersede(decision_id)
+
+
+@mcp.tool()
+def update_proposed_decision(decision_id: str, actor: str, statement: str = "", topic: str = "") -> dict:
+    """[사람 전용] 승인 전 결정의 문장·주제를 고친다.
+
+    Args:
+        decision_id: 승인 대기 결정 ID
+        actor:       고친 사람
+        statement:   고친 문장 (비우면 그대로)
+        topic:       고친 주제 키 (비우면 그대로)
+    Returns:
+        {"updated": 결정 ID, "before": {...}}
+    """
+    out = store.update_proposed(decision_id, statement or None, topic or None)
+    records.log(actor, "decision_edited", decision_id, {"before": out["before"],
+                                                         "after": {"statement": statement, "topic": topic}})
+    rag.ingest_decision(store.get_decision(decision_id))
+    return out
+
+
+@mcp.tool()
+def meeting_info(meeting_id: str) -> dict:
+    """회의 정보 (날짜·제목·참석자·원문 파기 여부·저장된 요약). 원문을 파기해도 남는다.
+
+    Args:
+        meeting_id: 회의 ID
+    Returns:
+        회의 정보. 없으면 빈 dict
+    """
+    return records.meeting(meeting_id) or {}
+
+
+@mcp.tool()
+def save_meeting_record(meeting_id: str, items: list[dict], pipeline_version: str,
+                        summary: dict | None = None, actor: str = "agent") -> dict:
+    """회의 정리 결과(결정 후보·미결·할 일·요약)를 회의 기록에 저장하고, 같은 사안의 앞선 미결을 이번 결정에 잇는다.
+
+    Args:
+        meeting_id:       회의 ID
+        items:            항목 목록 (kind, seq, statement, slots, topic, label, review, evidence, state, owner, due)
+        pipeline_version: 정리에 쓴 파이프라인 버전
+        summary:          요약 {topic, lines:[{text, seqs}], direction}
+        actor:            정리를 실행한 사람·에이전트
+    Returns:
+        {"saved": 건수, "linked": [{"open", "to"}]}
+    """
+    return records.save_meeting(meeting_id, summary, items, pipeline_version, actor)
+
+
+@mcp.tool()
+def open_items(project_id: str = "", include_linked: bool = False) -> list[dict]:
+    """미결 목록 (결정으로 이어진 미결은 기본 제외).
+
+    Args:
+        project_id:     프로젝트로 한정. 비우면 전체
+        include_linked: 결정으로 이어진 미결도 포함
+    Returns:
+        미결 항목 목록
+    """
+    return records.open_items(project_id or None, include_linked)
+
+
+@mcp.tool()
+def thread_items(project_id: str, topic: str) -> list[dict]:
+    """사안(같은 프로젝트·주제)의 흐름 — 회의를 가로지른 제안·미결·결정 항목, 날짜순.
+
+    Args:
+        project_id: 프로젝트 ID
+        topic:      주제 키
+    Returns:
+        항목 목록
+    """
+    return records.thread_of_topic(project_id, topic)
+
+
+@mcp.tool()
+def decision_history(decision_id: str) -> dict:
+    """결정의 이력 — 원장 레코드, 연결된 회의 항목, 상태 변화(제안·수정·승인·반려).
+
+    Args:
+        decision_id: 결정 ID
+    Returns:
+        {"decision", "items", "events"}
+    """
+    return {"decision": store.get_decision(decision_id), "items": records.items_for_decision(decision_id),
+            "events": records.events(target=decision_id)}
+
+
+@mcp.tool()
+def close_open_item(item_id: str, actor: str, reason: str) -> dict:
+    """[사람 전용] 미결을 닫는다 (회의 밖에서 정해졌거나 하지 않기로 함).
+
+    Args:
+        item_id: 미결 항목 ID
+        actor:   닫은 사람
+        reason:  사유
+    Returns:
+        갱신된 항목
+    """
+    return records.close_open(item_id, actor, reason)
 
 
 @mcp.tool()

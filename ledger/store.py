@@ -286,6 +286,44 @@ class LedgerStore:
                       "WHERE decision_id=?", (approved_by, eff, decision_id))
         return {"approved": decision_id, "superseded": [p[0] for p in prev]}
 
+    def will_supersede(self, decision_id: str) -> list[dict]:
+        """
+        이 결정을 승인하면 대체될 유효 결정 (승인 전 미리보기)
+
+        승인은 같은 프로젝트·주제의 유효 결정을 모두 대체하므로, 주제가 틀리면 무관한 결정이 무효가 된다.
+        승인 화면에서 미리 보여 주려고 approve()와 같은 조건으로 조회한다.
+        Args:
+            decision_id: 승인 대기 결정 ID
+        Returns:
+            대체될 결정 목록 (decision_id, statement, topic)
+        """
+        d = self.get_decision(decision_id)
+        if d is None:
+            return []
+        return [{"decision_id": x["decision_id"], "statement": x["statement"], "topic": x["topic"]}
+                for x in self.decisions(project_id=d["project_id"], topic=d["topic"])
+                if x["status"] == "approved" and not x.get("superseded_by") and x["decision_id"] != decision_id]
+
+    def update_proposed(self, decision_id: str, statement: str | None = None, topic: str | None = None) -> dict:
+        """
+        승인 전 결정의 문장·주제를 사람이 고친다 (승인된 결정은 고치지 않는다 — 바꾸려면 새 결정으로 대체)
+        Args:
+            decision_id: 승인 대기 결정 ID
+            statement:   고친 결정 문장 (None이면 그대로)
+            topic:       고친 주제 키 (None이면 그대로)
+        Returns:
+            {"updated": 결정 ID, "before": {statement, topic}}
+        Raises:
+            ValueError: 승인 대기 상태가 아닐 때
+        """
+        d = self.get_decision(decision_id)
+        if d is None or d["status"] != "proposed":
+            raise ValueError(f"승인 대기 결정만 고칠 수 있습니다: {decision_id}")
+        with self._conn() as c:
+            c.execute("UPDATE decisions SET statement=?, topic=? WHERE decision_id=?",
+                      (statement or d["statement"], topic or d["topic"], decision_id))
+        return {"updated": decision_id, "before": {"statement": d["statement"], "topic": d["topic"]}}
+
     def reject(self, decision_id: str, rejected_by: str, reason: str = "") -> dict:
         """
         사람 반려

@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from ledger.rag import LedgerRAG          # noqa: E402
+from ledger.records import MeetingRecords  # noqa: E402
 from ledger.store import LedgerStore      # noqa: E402
 
 
@@ -32,6 +33,7 @@ def main() -> None:
 
     store = LedgerStore()
     print("SQLite 시드:", store.load_seed(data))
+    print("회의 목록:", MeetingRecords().sync_meetings(data), "건")
 
     rag = LedgerRAG()
     rag.reset()
