@@ -262,6 +262,11 @@ TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
                 "project": {"type": "string", "enum": list(PROJECTS)}}, "required": ["topic", "project"]}
 
 
+def topic_key(raw: str | None) -> str:
+    """모델이 주제 목록 줄을 통째로 돌려줘도('session.store: 대화 세션 저장소') 키만 남긴다. 키가 틀리면 원장 조회가 빈다."""
+    return (raw or "").strip().removeprefix("new:").split(":")[0].strip()
+
+
 def _lines(segs: list[dict]) -> str:
     return "\n".join(f"[{s['seq']}] {s['speaker']}({s['role']}): {s['text']}" for s in segs)
 
@@ -277,7 +282,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             "문장의 주제를 아래 목록의 키 하나로 고른다. 맞는 게 없으면 new:<영문 소문자>.\n" + topics
             + "\n\n문장이 어느 프로젝트 이야기인지도 고른다 (언급이 없으면 현재 프로젝트).\n" + projects,
             state["message"], TOPIC_SCHEMA)
-        topic = (out.get("topic") or "new:unknown").removeprefix("new:")
+        topic = topic_key(out.get("topic")) or "unknown"
         # 판단 기준 프로젝트: 사용자가 고른 것 > 질문에서 판단한 것 > 기본값(OPS). 어떻게 정했는지 화면에 남긴다
         if state.get("scope_project") in KEY_TO_PID:
             pid, how = KEY_TO_PID[state["scope_project"]], "직접 지정"
@@ -342,7 +347,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
         "- overview: 전체 흐름을 보고 topic(회의 주제 한 줄), discussion(논의한 내용 3~5개, 각 40자 이내), "
         "direction(앞으로의 방향 1~2문장)을 쓴다. 결정 목록을 반복하지 말고 왜 그 얘기가 나왔는지를 담는다.", user, EXTRACT_SCHEMA)
     mpid = KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)      # 회의 정리는 그 회의의 프로젝트가 기준
-    items = [{**d, "decided_seq": d["seq"], "topic": d["topic"].removeprefix("new:"), "project": mpid}
+    items = [{**d, "decided_seq": d["seq"], "topic": topic_key(d["topic"]), "project": mpid}
              for d in out.get("decisions", [])]
     return {"segments": segs, "meeting_date": segs[0]["date"],
             "attendee_roles": sorted({s["role"] for s in segs}), "items": items,
@@ -466,6 +471,9 @@ async def gate_node(state: LedgerState, deps: LedgerDeps) -> dict:
         speakers = {by_seq[x]["speaker"] for x in ev if x in by_seq}
         if owner and owner[-2:] not in said and owner not in speakers:
             owner = None                              # 원문에 이름도 없고 본인 발언도 아니면 지어낸 담당자
+        req = by_seq.get(q) if isinstance(q, int) else None
+        if owner and req and req["speaker"] == owner and re.search(r"주세요|부탁", req["text"]):
+            owner = None                              # '누가 ~해 주세요'를 말한 사람은 요청자이지 담당자가 아니다
         actions.append({**a, "owner": owner, "due": due, "evidence": _cite(by_seq, ev)})
     undecided = [{**u, "evidence": _cite(by_seq, [u.get("seq")])} for u in state.get("undecided", [])]
     evs = [{"type": "DecisionFound", "statement": d["statement"], "seq": d["decided_seq"],

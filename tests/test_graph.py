@@ -67,6 +67,22 @@ def test_gate_clears_invented_owner_and_due():
     assert b["owner"] is None and b["due"] is None
 
 
+def test_topic_key_strips_description_and_new_prefix():
+    assert G.topic_key("session.store: 대화 세션 저장소") == "session.store"
+    assert G.topic_key("new:agent.gate") == "agent.gate"
+    assert G.topic_key(None) == ""
+
+
+def test_gate_requester_is_not_owner():
+    st = {**_gate_state([], [
+        {"seq": 12, "statement": "로그 마스킹 스크립트 작성", "owner": "정한결", "due": None},
+    ]), "meeting_date": "2026-10-20", "segments": [
+        {"meeting_id": "OPS-M05", "date": "2026-10-20", "seq": 12, "ts": "", "speaker": "정한결", "role": "PM",
+         "text": "누가 로그 마스킹 스크립트 좀 만들어 주세요. 급해요."},
+    ]}
+    assert run(G.gate_node(st, deps=None))["action_items"][0]["owner"] is None
+
+
 def test_gate_takes_corrected_due_from_later_utterance():
     seg = lambda q, sp, role, t: {"meeting_id": "OPS-M03", "date": "2026-10-06", "seq": q, "ts": "",
                                   "speaker": sp, "role": role, "text": t}

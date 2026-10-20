@@ -9,7 +9,9 @@
 
 실행: uvicorn server:app --port 8100  →  브라우저 http://127.0.0.1:8100
 """
+import asyncio
 import json
+import os
 import re
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -26,11 +28,16 @@ from pydantic import BaseModel
 from agent.ledger_graph import LedgerDeps, build_ledger_graph, normalize_meeting_id
 from agent.session_store import SqliteSessionStore
 from ledger.access import AccessStore
-from ledger.llm import OLLAMA_URL, LocalLLM, build_llms
+from ledger.llm import OLLAMA_URL, LocalLLM, build_llms, warm_up
+from dataclasses import replace
 from ledger.mcp_bridge import LedgerMCP
 
 HERE = Path(__file__).parent
-VERSION = "0.6.0"
+VERSION = "0.7.0"
+# 모델 조합 (Wave 10a 티어링). 입력창 아래에서 질문마다 고른다. 조합마다 그래프를 미리 만들어 사람마다 달라도 서로 영향 없음
+PRESETS = {"accurate": ("정확", "qwen3:8b", "qwen3:8b"),
+           "fast": ("빠름", "qwen3:0.6b", "qwen3:8b"),
+           "fastest": ("가장 빠름", "qwen3:0.6b", "qwen3:0.6b")}
 BUILD = "2026-10-20"
 
 
@@ -71,12 +78,6 @@ class DecideReq(BaseModel):
     until: str = ""              # duration=until일 때 기한 (YYYY-MM-DD)
 
 
-class ModelReq(BaseModel):
-    user: str
-    fast: str
-    quality: str
-
-
 class AclReq(BaseModel):
     user: str
     meeting_id: str
@@ -109,6 +110,13 @@ async def lifespan(app: FastAPI):
                       propose_to_ledger=True, can_view=can_view_decision_for_answer)
     app.state.deps = deps
     app.state.graph = build_ledger_graph(deps)
+    app.state.graphs = {"accurate": app.state.graph}
+    if os.environ.get("LLM_BACKEND", "ollama") == "ollama":
+        for key, (_, f, q) in PRESETS.items():
+            if key != "accurate":
+                app.state.graphs[key] = build_ledger_graph(replace(deps, fast_llm=LocalLLM(f, 0.00015, "fast"),
+                                                                    quality_llm=LocalLLM(q, 0.005, "quality")))
+        asyncio.create_task(warm_up(["qwen3:8b", "qwen3:0.6b"]))     # 첫 질문 전에 모델을 메모리에 올려 둔다
     await refresh_meetings()
     yield
     await mcp.stop()
@@ -236,7 +244,7 @@ async def chat(req: ChatRequest):
 
 @app.get("/chat/stream")
 async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh", force: bool = False,
-                      project: str = "", meeting: str = ""):
+                      project: str = "", meeting: str = "", model: str = "accurate"):
     """노드가 끝날 때마다 새 이벤트를, 답변 작성 중에는 토큰을 'data: {json}\\n\\n'으로 보낸다."""
     deps = app.state.deps
 
@@ -256,12 +264,16 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             return
         # 대화방과 질문은 시작할 때 바로 저장 — 답변 도중 사용자를 바꾸거나 창을 닫아도 대화방이 남는다
         mid = (normalize_meeting_id(message) or meeting) if re.search(r"정리|요약|추출|처리|분석", message) else ""
-        app.state.access.touch_thread(thread_id, user, message, mid.split("-")[0] if mid else None, mid or None)
+        # 대화방에 범위를 기록: 회의가 있으면 그 회의·프로젝트, 아니면 사용자가 고른 프로젝트·회의
+        app.state.access.touch_thread(thread_id, user, message, (mid.split("-")[0] if mid else None) or project or None,
+                                      mid or meeting or None)
         history = deps.session_store.load(thread_id)
         deps.session_store.append(thread_id, "user", message)
 
         # 같은 요청 재사용: 원장·정책·문서·원문이 그대로면 저장된 답을 돌려준다
+        graph = app.state.graphs.get(model) or app.state.graph
         key = None if force else cache_key(user, message, project, meeting)
+        key = key and f"{key}|{model}"                       # 모델이 다르면 다른 답
         fp = await deps.mcp.call("ledger_fingerprint")
         hit = app.state.access.cache_get(key, fp) if key else None
         if hit:
@@ -277,7 +289,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             return
         seen, state = 0, {}
         try:
-            async for mode, payload in app.state.graph.astream(
+            async for mode, payload in graph.astream(
                     {"message": message, "user_id": user, "history": history, "events": [],
                      "scope_project": project, "scope_meeting": meeting},
                     stream_mode=["updates", "custom"]):
@@ -422,38 +434,18 @@ async def admin_acl_set(req: AclReq):
 
 
 # ---------------------------------------------------------------- 알림·RAG
-# ---------------------------------------------------------------- 모델 설정 (Wave 10a 티어링을 화면에서)
-ROLE_DESC = {"fast": "질문 분류 · 주제 고르기 · 예외 범위 판단", "quality": "결정 추출 · 충돌 판정 · 답변 작성"}
-
-
+# ---------------------------------------------------------------- 모델 조합 목록 (입력창 아래 선택용)
 @app.get("/models")
 async def models():
     import httpx
     try:
         async with httpx.AsyncClient(timeout=5) as c:
-            tags = (await c.get(f"{OLLAMA_URL}/api/tags")).json().get("models", [])
-        installed = sorted((m["name"] for m in tags if "embed" not in m["name"]), key=lambda n: (n.split(":")[0], n))
+            installed = {m["name"] for m in (await c.get(f"{OLLAMA_URL}/api/tags")).json().get("models", [])}
     except Exception:
-        installed = []
-    d = app.state.deps
-    return {"installed": installed, "fast": getattr(d.fast_llm, "model", d.fast_llm.name),
-            "quality": getattr(d.quality_llm, "model", d.quality_llm.name), "roles": ROLE_DESC}
-
-
-@app.post("/models")
-async def set_models(req: ModelReq):
-    """서버를 끄지 않고 역할별 모델을 바꾼다 (팀장만). 그래프 노드는 deps.fast_llm/quality_llm을 매번 읽는다."""
-    lead_only(req.user)
-    installed = (await models())["installed"]
-    for m in (req.fast, req.quality):
-        if m not in installed:
-            raise HTTPException(400, f"설치되지 않은 모델: {m}")
-    d = app.state.deps
-    d.fast_llm = LocalLLM(req.fast, 0.00015, "fast")
-    d.quality_llm = LocalLLM(req.quality, 0.005, "quality")
-    app.state.access.cache_clear()
-    app.state.access.notify(req.user, f"모델 변경: 빠른 모델 {req.fast} · 정확한 모델 {req.quality} (저장 답변 초기화)", "done")
-    return {"fast": req.fast, "quality": req.quality}
+        installed = set()
+    out = [{"key": k, "label": lab, "fast": f, "quality": q, "available": k in app.state.graphs and {f, q} <= installed}
+           for k, (lab, f, q) in PRESETS.items()]
+    return {"presets": out, "default": "accurate"}
 
 
 @app.get("/notifications")

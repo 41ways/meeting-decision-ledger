@@ -14,6 +14,7 @@ import httpx
 from langsmith import traceable
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
+KEEP_ALIVE = os.environ.get("OLLAMA_KEEP_ALIVE", "30m")   # 모델을 메모리에 붙잡아 둬서 질문마다 다시 올리는 시간(수 초)을 없앤다
 NUM_CTX = int(os.environ.get("NUM_CTX", "16384"))   # 기본 4096이면 회의록+용어집 프롬프트가 잘린다
 
 
@@ -30,7 +31,7 @@ class LocalLLM:
     async def json(self, system: str, user: str, schema: dict, think: bool = False,
                    timeout: float = 300.0, max_tokens: int = 2000) -> tuple[dict, dict]:
         # max_tokens: 작은 모델이 같은 항목을 끝없이 반복하는 경우를 끊는다 (잘리면 빈 결과로 처리)
-        payload = {"model": self.model, "stream": False, "think": think, "format": schema,
+        payload = {"model": self.model, "stream": False, "think": think, "format": schema, "keep_alive": KEEP_ALIVE,
                    "options": {"temperature": 0.0, "num_ctx": NUM_CTX, "num_predict": max_tokens},
                    "messages": [{"role": "system", "content": system},
                                 {"role": "user", "content": user}]}
@@ -53,7 +54,7 @@ class LocalLLM:
 
     @traceable(run_type="llm", name="local_llm.text")
     async def text(self, system: str, user: str, on_token=None, timeout: float = 600.0, max_tokens: int = 800) -> tuple[str, dict]:
-        payload = {"model": self.model, "stream": True, "think": False, "options": {"temperature": 0.0, "num_ctx": NUM_CTX, "num_predict": max_tokens},
+        payload = {"model": self.model, "stream": True, "think": False, "keep_alive": KEEP_ALIVE, "options": {"temperature": 0.0, "num_ctx": NUM_CTX, "num_predict": max_tokens},
                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
         chunks, tokens = [], 0
         async with httpx.AsyncClient(timeout=timeout) as c:
@@ -74,6 +75,16 @@ class LocalLLM:
         self.tokens += tokens
         return "".join(chunks), {"model": self.name, "tokens": tokens,
                                  "usd": round(tokens / 1000 * self.usd_per_1k, 6)}
+
+
+async def warm_up(models: list[str]) -> None:
+    """서버 시작 때 모델을 미리 메모리에 올린다 (첫 질문이 모델 로딩 시간만큼 느려지는 것 방지)."""
+    async with httpx.AsyncClient(timeout=180) as c:
+        for m in dict.fromkeys(models):
+            try:
+                await c.post(f"{OLLAMA_URL}/api/generate", json={"model": m, "keep_alive": KEEP_ALIVE})
+            except Exception:
+                pass
 
 
 class OpenAILLM:

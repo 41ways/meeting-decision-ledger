@@ -132,14 +132,14 @@ CACHE_ANSWER = """캐시는 논의는 있었지만 결정되지 않았습니다.
 # (thread_id, user, 제목, 프로젝트, 회의, 몇 시간 전, [(질문, 답)])
 THREADS = [
     ("demo-1", "kjh", "OPS-M04 회의 정리해줘", "OPS", "OPS-M04", 0.3, [("OPS-M04 회의 정리해줘", M04_REPORT)]),
-    ("demo-2", "kjh", "SSE는 왜 골랐어?", "OPS", None, 1.5, [("SSE는 왜 골랐어?", SSE_ANSWER)]),
+    ("demo-2", "kjh", "SSE는 왜 골랐어?", "OPS", "OPS-M02", 1.5, [("SSE는 왜 골랐어?", SSE_ANSWER)]),
     ("demo-3", "kjh", "HBE-I01 면접 요약해줘", "HBE", "HBE-I01", 3, [("HBE-I01 면접 요약해줘", I01_SUMMARY)]),
     ("demo-4", "kjh", "세션 저장소를 Redis로 바꾸면 어때?", "OPS", None, 26, [("세션 저장소를 Redis로 바꾸면 어때?", REDIS_REVIEW)]),
     ("demo-5", "kjh", "예전 고객센터 챗봇에서 웹소켓을 그만둔 이유", "CSB", None, 30, [("예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?", CSB_ANSWER)]),
-    ("demo-6", "kjh", "캐시는 어떻게 하기로 했어?", "OPS", None, 75, [("캐시는 어떻게 하기로 했어?", CACHE_ANSWER)]),
+    ("demo-6", "kjh", "캐시는 어떻게 하기로 했어?", "OPS", "OPS-M03", 75, [("캐시는 어떻게 하기로 했어?", CACHE_ANSWER)]),
     ("demo-7", "pdy", "OPS-M04 회의 정리해줘", "OPS", "OPS-M04", 0.5, [("OPS-M04 회의 정리해줘", M04_REPORT)]),
-    ("demo-8", "pdy", "SSE는 왜 골랐어?", "OPS", None, 20, [("SSE는 왜 골랐어?", SSE_ANSWER)]),
-    ("demo-9", "lsj", "캐시는 어떻게 하기로 했어?", "OPS", None, 2, [("캐시는 어떻게 하기로 했어?", CACHE_ANSWER)]),
+    ("demo-8", "pdy", "SSE는 왜 골랐어?", "OPS", "OPS-M02", 20, [("SSE는 왜 골랐어?", SSE_ANSWER)]),
+    ("demo-9", "lsj", "캐시는 어떻게 하기로 했어?", "OPS", "OPS-M03", 2, [("캐시는 어떻게 하기로 했어?", CACHE_ANSWER)]),
 ]
 
 
