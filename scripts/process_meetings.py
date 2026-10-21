@@ -18,9 +18,12 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv()   # ledger.llm이 import 시점에 OLLAMA_URL 등을 읽는다
 
+from agent.crosscheck import build_checkers  # noqa: E402
 from agent.ledger_graph import LedgerDeps, build_ledger_graph  # noqa: E402
 from ledger.llm import build_llms  # noqa: E402
 from ledger.mcp_bridge import LedgerMCP  # noqa: E402
+from ledger.metrics import MetricsStore, extract  # noqa: E402
+from ledger.pipeline_registry import version_of  # noqa: E402
 
 
 def meeting_ids(args: list[str]) -> list[str]:
@@ -47,10 +50,13 @@ async def main(ids: list[str]) -> None:
     mcp = LedgerMCP()
     await mcp.start()
     try:
-        graph = build_ledger_graph(LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, propose_to_ledger=False))
+        deps = LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, propose_to_ledger=False,
+                          checkers=build_checkers())
+        graph, metrics, ver = build_ledger_graph(deps), MetricsStore(), version_of(deps)
         for mid in ids:
             t0 = time.perf_counter()
             st = await graph.ainvoke({"message": f"{mid} 회의 정리해줘", "user_id": "agent", "history": [], "events": []})
+            metrics.record(extract(st, time.perf_counter() - t0, ver, "process", "agent"))   # 감시용 기록 (동작 무관)
             rep = st.get("report") or {}
             print(f"{mid}: 결정 {len(rep.get('items', []))} · 미결 {len(rep.get('undecided', []))} · "
                   f"할 일 {len(rep.get('action_items', []))} · 이어진 미결 {len(rep.get('linked', []))} "

@@ -47,8 +47,8 @@ class LocalLLM:
         self.tokens = 0
 
     @traceable(run_type="llm", name="local_llm.json")
-    async def json(self, system: str, user: str, schema: dict, think: bool = False,
-                   timeout: float = 300.0, max_tokens: int = 2000) -> tuple[dict, dict]:
+    async def json(self, system: str, user: str, schema: dict, think: bool = False,  # pylint: disable=too-many-arguments
+                   timeout: float = 300.0, max_tokens: int = 2000, num_ctx: int | None = None) -> tuple[dict, dict]:
         """
         JSON 스키마를 강제한 응답을 받아 dict로 반환
 
@@ -60,6 +60,7 @@ class LocalLLM:
             think:  qwen3 thinking 사용 여부 (판단이 중요한 단계만 True)
             timeout:  HTTP 타임아웃(초)
             max_tokens:  생성 토큰 상한 (num_predict)
+            num_ctx:  컨텍스트 길이. None이면 기본값(NUM_CTX). 짧은 판정용 작은 모델은 줄여서 메모리를 아낀다
         Returns:
             (파싱된 결과, 사용량) 튜플. 파싱 실패 시 결과는 {}이고 사용량에 parse_error=True
         Raises:
@@ -67,7 +68,7 @@ class LocalLLM:
         """
         # max_tokens: 작은 모델이 같은 항목을 끝없이 반복하는 경우를 끊는다 (잘리면 빈 결과로 처리)
         payload = {"model": self.model, "stream": False, "think": think, "format": schema, "keep_alive": KEEP_ALIVE,
-                   "options": {"temperature": 0.0, "num_ctx": NUM_CTX, "num_predict": max_tokens},
+                   "options": {"temperature": 0.0, "num_ctx": num_ctx or NUM_CTX, "num_predict": max_tokens},
                    "messages": [{"role": "system", "content": system},
                                 {"role": "user", "content": user}]}
         t0 = time.perf_counter()

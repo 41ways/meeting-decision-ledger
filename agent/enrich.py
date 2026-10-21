@@ -13,7 +13,7 @@ from pathlib import Path
 from ledger import aliases
 from ledger.aliases import parse_glossary  # noqa: F401  pylint: disable=unused-import  # 용어집 해석은 별칭 색인과 한곳에서
 
-PIPELINE_VERSION = "2026-10-21.1"    # 주제 배정: 별칭 일치 먼저
+# 파이프라인 버전은 ledger/pipeline_registry.py가 모델·프롬프트·임계값·주제 목록·코드 지문으로 계산한다
 _USERS = Path(__file__).resolve().parent.parent / "data" / "project" / "users.json"
 LEADS = [u["name"] for u in json.loads(_USERS.read_text(encoding="utf-8"))["users"] if u["role"] == "팀장"] \
     if _USERS.exists() else []

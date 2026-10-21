@@ -291,44 +291,64 @@ class LedgerStore:
                       "WHERE decision_id=?", (approved_by, eff, decision_id))
         return {"approved": decision_id, "superseded": [p[0] for p in prev]}
 
-    def will_supersede(self, decision_id: str) -> list[dict]:
+    def will_supersede(self, decision_id: str, topic: str | None = None) -> list[dict]:
         """
         이 결정을 승인하면 대체될 유효 결정 (승인 전 미리보기)
 
         승인은 같은 프로젝트·주제의 유효 결정을 모두 대체하므로, 주제가 틀리면 무관한 결정이 무효가 된다.
-        승인 화면에서 미리 보여 주려고 approve()와 같은 조건으로 조회한다.
+        승인 화면에서 미리 보여 주려고 approve()와 같은 조건으로 조회한다. 수정 화면에서 주제를 바꿔 보는
+        경우를 위해 topic으로 가정한 주제를 넣을 수 있다.
         Args:
             decision_id: 승인 대기 결정 ID
+            topic:       가정할 주제 키 (None이면 지금 주제)
         Returns:
-            대체될 결정 목록 (decision_id, statement, topic)
+            대체될 결정 목록 (decision_id, statement, topic, effective_from)
         """
         d = self.get_decision(decision_id)
         if d is None:
             return []
-        return [{"decision_id": x["decision_id"], "statement": x["statement"], "topic": x["topic"]}
-                for x in self.decisions(project_id=d["project_id"], topic=d["topic"])
+        return [{"decision_id": x["decision_id"], "statement": x["statement"], "topic": x["topic"],
+                 "effective_from": x.get("effective_from")}
+                for x in self.decisions(project_id=d["project_id"], topic=topic or d["topic"])
                 if x["status"] == "approved" and not x.get("superseded_by") and x["decision_id"] != decision_id]
 
-    def update_proposed(self, decision_id: str, statement: str | None = None, topic: str | None = None) -> dict:
+    def update_proposed(self, decision_id: str, statement: str | None = None,  # pylint: disable=too-many-arguments
+                        topic: str | None = None, rationale: str | None = None,
+                        alternatives: list[str] | None = None, slots: dict | None = None) -> dict:
         """
-        승인 전 결정의 문장·주제를 사람이 고친다 (승인된 결정은 고치지 않는다 — 바꾸려면 새 결정으로 대체)
+        승인 전 결정을 사람이 고친다 (승인된 결정은 고치지 않는다 — 바꾸려면 새 결정으로 대체)
         Args:
-            decision_id: 승인 대기 결정 ID
-            statement:   고친 결정 문장 (None이면 그대로)
-            topic:       고친 주제 키 (None이면 그대로)
+            decision_id:  승인 대기 결정 ID
+            statement:    고친 결정 문장 (None이면 그대로)
+            topic:        고친 주제 키 (None이면 그대로)
+            rationale:    고친 이유 (None이면 그대로)
+            alternatives: 고친 기각 대안 목록 (None이면 그대로)
+            slots:        고친 칸 기록 {target, change, scope, condition} (None이면 그대로)
         Returns:
-            {"updated": 결정 ID, "before": {statement, topic}}
+            {"updated": 결정 ID, "before": 고치기 전 값, "after": 고친 뒤 값}
         Raises:
             ValueError: 승인 대기 상태가 아닐 때
         """
         d = self.get_decision(decision_id)
         if d is None or d["status"] != "proposed":
             raise ValueError(f"승인 대기 결정만 고칠 수 있습니다: {decision_id}")
+        keys = ("statement", "topic", "rationale", "alternatives_rejected", "slots")
+        before = {k: d.get(k) for k in keys}
+        after = {"statement": statement or d["statement"], "topic": topic or d["topic"],
+                 "rationale": d.get("rationale") if rationale is None else rationale,
+                 "alternatives_rejected": (d.get("alternatives_rejected") or []) if alternatives is None else alternatives,
+                 "slots": (d.get("slots") or {}) if slots is None else slots}
+        # extra(JSON)에는 원장 컬럼 밖의 값(칸 기록 등)이 함께 있어 통째로 덮지 않고 slots만 바꾼다
         with self._conn() as c:
-            c.execute("UPDATE decisions SET statement=?, topic=? WHERE decision_id=?",
-                      (statement or d["statement"], topic or d["topic"], decision_id))
-            term_index.index_decision(c, {**d, "statement": statement or d["statement"], "topic": topic or d["topic"]})
-        return {"updated": decision_id, "before": {"statement": d["statement"], "topic": d["topic"]}}
+            row = c.execute("SELECT extra FROM decisions WHERE decision_id=?", (decision_id,)).fetchone()
+            extra = {**json.loads(row["extra"] or "{}"), "slots": after["slots"]}
+            c.execute("UPDATE decisions SET statement=?, topic=?, rationale=?, alternatives_rejected=?, extra=? "
+                      "WHERE decision_id=?",
+                      (after["statement"], after["topic"], after["rationale"],
+                       json.dumps(after["alternatives_rejected"], ensure_ascii=False),
+                       json.dumps(extra, ensure_ascii=False), decision_id))
+            term_index.index_decision(c, {**d, **after})       # 문장·주제·이유가 바뀌면 찾는 말도 바뀐다
+        return {"updated": decision_id, "before": before, "after": after}
 
     def reject(self, decision_id: str, rejected_by: str, reason: str = "") -> dict:
         """

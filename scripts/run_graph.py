@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv()   # ledger.llm이 import 시점에 OLLAMA_URL·NUM_CTX 등을 읽으므로 그보다 먼저
+from agent.crosscheck import build_checkers  # noqa: E402
 from agent.ledger_graph import LedgerDeps, build_ledger_graph  # noqa: E402
 from ledger.llm import build_llms  # noqa: E402
 from ledger.mcp_bridge import LedgerMCP  # noqa: E402
@@ -25,7 +26,7 @@ async def main(msg: str, out: str | None):
     mcp = LedgerMCP()
     await mcp.start()
     try:                # 실행이 실패해도 MCP 자식 프로세스는 반드시 종료
-        graph = build_ledger_graph(LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp))
+        graph = build_ledger_graph(LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, checkers=build_checkers()))
         t0 = time.perf_counter()
         state = await graph.ainvoke({"message": msg, "thread_id": "cli", "history": []})
         sec = round(time.perf_counter() - t0, 1)
