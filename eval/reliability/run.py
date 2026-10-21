@@ -43,7 +43,8 @@ REL = D.REL
 CACHE = REL / ".cache"
 CODE = ["agent", "ledger", "mcp_ledger_server.py"]
 KINDS = ("meetings", "opinions", "questions")
-OTHER_EVAL = r"run_eval|reliability/run.py|process_meetings"
+OTHER_EVAL = r"run_eval|reliability/run.py|process_meetings|list_scaling"
+NAME = {"value": ""}       # --name — 같은 분할을 코드·설정을 바꿔 여러 번 잴 때 결과 파일을 나눈다
 
 # 임시 루트에서 회의 전사문 1건을 R1에 넣는 보조 스크립트 (MCP 서버가 꺼진 동안 별도 프로세스로 돈다 — 벡터 DB를 두 프로세스가 동시에 쓰지 않게)
 INGEST_HELPER = '''import json, sys
@@ -301,6 +302,9 @@ class Runner:
         with sqlite3.connect(self.records.db_path) as c:
             c.execute("DELETE FROM items")
             c.execute("DELETE FROM threads")
+            # 낱말 색인이 있는 코드면 미결 색인 줄도 지운다 — 아래 save_meeting이 정답 항목으로 다시 쓴다
+            if c.execute("SELECT 1 FROM sqlite_master WHERE name='term_index'").fetchone():
+                c.execute("DELETE FROM term_index WHERE kind='O'")
         for mid in self.applied:
             m = self.gold["meetings"][mid]
             segs = {s["seq"]: s for s in json.loads((D.MEETINGS / f"{mid}.json").read_text())["segments"]}
@@ -425,6 +429,8 @@ def tag(split: str) -> str:
     Returns:
         'dev' 또는 'dev_crosscheck' 등
     """
+    if NAME["value"]:
+        return f"{split}_{NAME['value']}"
     return split + ("_crosscheck" if os.environ.get("CROSSCHECK", "0") == "1" else "")
 
 
@@ -909,6 +915,7 @@ async def amain(args) -> None:
     Args:
         args: 명령행 인자
     """
+    NAME["value"] = args.name or ""
     gold = D.load_gold()
     err, _, _ = D.check(gold)
     if args.limit:          # 작성 중 빠른 확인 — 규모 목표 미달은 넘어간다
@@ -958,4 +965,5 @@ if __name__ == "__main__":
     ap.add_argument("--resume", action="store_true", help="이전 원자료(.cache/raw_<split>.json)에 있는 항목은 건너뜀")
     ap.add_argument("--rescore", action="store_true", help="실행 없이 원자료로 다시 채점")
     ap.add_argument("--keep", action="store_true", help="임시 루트를 지우지 않음 (디버깅)")
+    ap.add_argument("--name", help="결과 파일 이름표 (results_<split>_<name>). 없으면 교차검증 여부로 정함")
     asyncio.run(amain(ap.parse_args()))

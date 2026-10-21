@@ -103,6 +103,11 @@ def build_data_dir(dst: Path, meetings: list[str]) -> None:
             docs[(d["doc_id"], d["doc_version"])] = d
         man["documents"] = list(docs.values())
         _w(dst / "r2_docs" / "manifest.json", man)
+        if (dst / "topic_aliases.json").exists():         # 낱말 색인 코드(별칭 파일)가 있는 버전에서만
+            al = _j(dst / "topic_aliases.json")
+            for k, v in _j(WORLD / "topic_aliases.json")["aliases"].items():
+                al["aliases"].setdefault(k, v)
+            _w(dst / "topic_aliases.json", al)
         for f in (WORLD / "r2_docs").glob("*.md"):
             shutil.copy(f, dst / "r2_docs" / f.name)
         _w(dst / "r3_ledger" / "decisions_seed.json", {"decisions": merged_seed()})
