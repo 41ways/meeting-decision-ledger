@@ -515,3 +515,29 @@ def test_route_phrasings_reach_the_right_path_without_llm(msg, mode):
     deps = G.LedgerDeps(fast_llm=_NoLLM(), quality_llm=_NoLLM(), mcp=None)
     out = run(G.route_node({"message": msg, "events": []}, deps))
     assert out["mode"] == mode
+
+
+class TruncatingLLM(FakeLLM):
+    """회의 추출 출력이 잘린다 — 첫 n번은 해석 실패"""
+    def __init__(self, fails):
+        self.fails, self.extract_calls = fails, 0
+
+    async def json(self, system, user, schema, **kw):
+        if "decisions" in schema["properties"]:
+            self.extract_calls += 1
+            if self.extract_calls <= self.fails:
+                return {}, {"tokens": 1, "parse_error": True}
+        return await super().json(system, user, schema, **kw)
+
+
+def test_truncated_extraction_is_retried_once():
+    llm = TruncatingLLM(fails=1)
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=llm, mcp=FakeMCP()))
+    st = run(graph.ainvoke({"message": "OPS-M04 회의 정리해줘", "events": []}))
+    assert llm.extract_calls == 2 and st["items"]                  # 두 번째에 해석되면 결정이 나온다
+
+
+def test_extraction_failing_twice_is_an_error_not_no_decisions():
+    graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=TruncatingLLM(fails=2), mcp=FakeMCP()))
+    with pytest.raises(RuntimeError, match="결정이 없다는 뜻이 아닙니다"):
+        run(graph.ainvoke({"message": "OPS-M04 회의 정리해줘", "events": []}))

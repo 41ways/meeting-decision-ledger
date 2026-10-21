@@ -55,7 +55,11 @@ async def main(ids: list[str]) -> None:
         graph, metrics, ver = build_ledger_graph(deps), MetricsStore(), version_of(deps)
         for mid in ids:
             t0 = time.perf_counter()
-            st = await graph.ainvoke({"message": f"{mid} 회의 정리해줘", "user_id": "agent", "history": [], "events": []})
+            try:
+                st = await graph.ainvoke({"message": f"{mid} 회의 정리해줘", "user_id": "agent", "history": [], "events": []})
+            except RuntimeError as e:          # 추출 실패는 그 회의만 건너뛰고 눈에 띄게 남긴다
+                print(f"{mid}: 실패 — {e}", flush=True)
+                continue
             metrics.record(extract(st, time.perf_counter() - t0, ver, "process", "agent"))   # 감시용 기록 (동작 무관)
             rep = st.get("report") or {}
             print(f"{mid}: 결정 {len(rep.get('items', []))} · 미결 {len(rep.get('undecided', []))} · "

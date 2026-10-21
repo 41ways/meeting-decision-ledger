@@ -619,8 +619,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             f"## 회의 전체 흐름 (요약용, 발언 앞부분만)\n{outline}\n\n"
             + ("## 용어집 (이 회의에 나온 오인식)\n" + "\n".join(gl_rows) + "\n\n" if gl_rows else "")
             + f"## 회의 {state['meeting_id']} ({segs[0]['date']}) — 후보 발언과 앞 맥락만\n" + "\n".join(lines))
-    out, usage = await deps.quality_llm.json(
-        "후보 발언을 결정·할 일로 분류하고 요약한다.\n"
+    extract_system = ("후보 발언을 결정·할 일로 분류하고 요약한다.\n"
         "- decisions: 확정한 발언 seq, 그 결정의 제안 발언 proposal_seq, 결정 내용을 명사형 한 줄로(예: '실시간 전송을 WebSocket으로 변경'), topic.\n"
         "  statement는 원문을 베끼지 말고 '무엇을 어떻게'만 25자 이내로 쓴다 (예: '운영 로그 원문을 외부 LLM으로 비교').\n"
         "  STT 오인식(예: 버니게이트)은 용어집 표기(권위 게이트)로 고쳐 쓴다.\n"
@@ -629,7 +628,19 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
         "  '누가 ~해 주세요'처럼 담당자 없는 요청도 할 일로 뽑고 owner는 null.\n"
         "- undecided: 논의했지만 확정하지 않은 주제.\n"
         "- overview: 전체 흐름을 보고 topic(회의 주제 한 줄), discussion(논의한 내용 3~5개, 각 40자 이내), "
-        "direction(앞으로의 방향 1~2문장)을 쓴다. 결정 목록을 반복하지 말고 왜 그 얘기가 나왔는지를 담는다.", user, EXTRACT_SCHEMA)
+        "direction(앞으로의 방향 1~2문장)을 쓴다. 결정 목록을 반복하지 말고 왜 그 얘기가 나왔는지를 담는다.")
+    out, usage = await deps.quality_llm.json(extract_system, user, EXTRACT_SCHEMA, max_tokens=3000)
+    if usage.get("parse_error"):
+        # 출력이 잘려 해석하지 못하면 빈 결과가 '결정 없음'으로 조용히 넘어간다 — 한 번 더, 더 길게 허용하고 짧게 쓰게
+        out, retry_usage = await deps.quality_llm.json(
+            extract_system + "\n- 출력이 길어지지 않게 각 항목 문장은 짧게, discussion은 3개까지만.", user, EXTRACT_SCHEMA,
+            max_tokens=4500)
+        # 두 호출을 한 사용량으로 합친다 (extra_calls로 호출 수를 세고, 파싱 실패 기록은 첫 호출 몫으로 남김)
+        usage = {**retry_usage, "tokens": usage.get("tokens", 0) + retry_usage.get("tokens", 0), "extra_calls": 1,
+                 "parse_error": True}
+        if retry_usage.get("parse_error"):
+            raise RuntimeError(f"{state['meeting_id']} 회의 정리 실패: 모델 출력이 잘려 해석하지 못했습니다(2회). "
+                               "결정이 없다는 뜻이 아닙니다 — 다시 시도하거나 회의를 나눠 정리하세요.")
     # 누락 재확인: 코드가 '결정?'으로 표시한 후보 중 모델이 어디에도 분류하지 않은 발언만 한 번 더 묻는다
     # (이미 분류된 결과는 건드리지 않아 다른 결정을 흔들지 않는다 — Wave 7 replan과 같은 '부족하면 한 번 더')
     classified = {x.get("seq") for k in ("decisions", "action_items", "undecided") for x in out.get(k, [])}
@@ -642,7 +653,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             "아래 표시된 발언이 회의에서 무언가를 정한 '결정'인지 하나씩 판정한다. 진행 안내·질문·회상·보류는 결정이 아니다. "
             "'그건 ~로 해요', '~로 걸러요'처럼 진행자가 방법을 단정하면 결정이다. 결정이면 statement(무엇을 어떻게, 25자 이내), "
             "topic(주제 목록 키), proposal_seq(그 결정의 제안 발언, 없으면 같은 번호)를 쓴다.\n\n## 주제 목록\n" + topics,
-            f"## 판정할 발언 번호: {missed}\n\n## 앞 맥락 포함 발언\n{ctx}", RECHECK_SCHEMA, max_tokens=500)
+            f"## 판정할 발언 번호: {missed}\n\n## 앞 맥락 포함 발언\n{ctx}", RECHECK_SCHEMA, max_tokens=1200)
         for r in rc.get("items", []):
             if r.get("is_decision") and r.get("seq") in missed and r.get("statement"):
                 out.setdefault("decisions", []).append({
