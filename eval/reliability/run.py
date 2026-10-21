@@ -112,42 +112,52 @@ def pctl(xs: list[float], q: float) -> float | None:
 
 
 # ---------------------------------------------------------------- 임시 루트
-def code_hash() -> str:
+def code_hash(tmp: Path) -> str:
     """
     기본 적재 캐시 키 — 세계·시연 데이터·적재 코드가 바뀌면 달라진다
+    Args:
+        tmp: 코드와 data/project를 펼친 임시 루트
     Returns:
         SHA-1 앞 12자리
     """
     h = hashlib.sha1()
-    files = sorted([*D.BASE.rglob("*"), *D.WORLD.rglob("*"), ROOT / "ledger" / "rag.py", ROOT / "ledger" / "store.py",
-                    ROOT / "ledger" / "records.py", ROOT / "scripts" / "ingest.py"])
+    files = sorted([*(tmp / "data" / "project").rglob("*"), *D.WORLD.rglob("*"), *(tmp / "ledger").glob("*.py"),
+                    tmp / "scripts" / "ingest.py"])
     for f in files:
         if f.is_file():
-            h.update(str(f.relative_to(ROOT)).encode())
+            h.update(f.name.encode())
             h.update(f.read_bytes())
     return h.hexdigest()[:12]
 
 
-def make_root() -> Path:
+def make_root(rev: str | None = None) -> Path:
     """
     임시 루트를 만들고 기본 세계(시연 데이터 + 데이터셋 세계, 데이터셋 회의 없음)를 적재한다
 
     적재(임베딩)는 몇 분 걸려 결과를 .cache에 두고 같은 입력이면 재사용한다.
+    rev를 주면 작업 트리 대신 그 커밋의 코드·시연 데이터로 돈다 (기준선을 나중 코드와 섞지 않고 다시 재려고).
+    Args:
+        rev: git 커밋 (없으면 작업 트리)
     Returns:
         임시 루트 경로 (LEDGER_STORE = 루트/store)
     Raises:
         subprocess.CalledProcessError: 적재 스크립트가 실패할 때
     """
     tmp = Path(tempfile.mkdtemp(prefix="ledger_rel_"))
-    for c in CODE:
-        src = ROOT / c
-        (shutil.copytree if src.is_dir() else shutil.copy)(src, tmp / c)
-    (tmp / "scripts").mkdir()
-    shutil.copy(ROOT / "scripts" / "ingest.py", tmp / "scripts" / "ingest.py")
+    if rev:
+        arc = subprocess.run(["git", "-C", str(ROOT), "archive", rev, *CODE, "scripts/ingest.py", "data/project"],
+                             capture_output=True, check=True).stdout
+        subprocess.run(["tar", "-x", "-C", str(tmp)], input=arc, check=True)
+    else:
+        for c in CODE:
+            src = ROOT / c
+            (shutil.copytree if src.is_dir() else shutil.copy)(src, tmp / c)
+        (tmp / "scripts").mkdir()
+        shutil.copy(ROOT / "scripts" / "ingest.py", tmp / "scripts" / "ingest.py")
     (tmp / "_rel_ingest.py").write_text(INGEST_HELPER, encoding="utf-8")
     D.build_data_dir(tmp / "data" / "project", [])
     env = {**os.environ, "LEDGER_STORE": str(tmp / "store")}
-    cached = CACHE / f"base_{code_hash()}"
+    cached = CACHE / f"base_{code_hash(tmp)}"
     if cached.exists():
         shutil.copytree(cached, tmp / "store")
     else:
@@ -228,7 +238,12 @@ class Runner:
         if self.mcp:
             await self.mcp.stop()
         D.build_data_dir(self.root / "data" / "project", [mid])
-        subprocess.run([sys.executable, str(self.root / "_rel_ingest.py"), mid], env=os.environ, check=True)
+        for attempt in range(3):          # 임베딩 시간 초과는 환경 문제라 다시 시도
+            if subprocess.run([sys.executable, str(self.root / "_rel_ingest.py"), mid], env=os.environ).returncode == 0:
+                break
+            if attempt == 2:
+                raise RuntimeError(f"{mid} 전사문 적재 실패")
+            await asyncio.sleep(30)
         self.mcp = self.LedgerMCP()
         await self.mcp.start()
         self.deps = self.LedgerDeps(fast_llm=self.llm, quality_llm=self.llm, mcp=self.mcp, checkers=self.checkers)
@@ -246,18 +261,54 @@ class Runner:
             {"state", "sec", "calls", "tokens", "error"}
         """
         self.deps.today = today
-        t = time.perf_counter()
-        try:
-            st = await self.graph.ainvoke({"message": msg, "history": [], "events": [], "user_id": "",
-                                           "scope_project": scope or "", "context_refs": refs or []})
-            err = None
-        except Exception as e:  # pylint: disable=broad-exception-caught  # 한 건 실패로 전체 측정을 멈추지 않는다
-            st, err = {}, repr(e)
+        for attempt in range(3):
+            t = time.perf_counter()
+            try:
+                st = await self.graph.ainvoke({"message": msg, "history": [], "events": [], "user_id": "",
+                                               "scope_project": scope or "", "context_refs": refs or []})
+                err = None
+            except Exception as e:  # pylint: disable=broad-exception-caught  # 한 건 실패로 전체 측정을 멈추지 않는다
+                st, err = {}, repr(e)
+            # Ollama를 다른 프로세스와 나눠 쓰면 임베딩 모델이 늦게 올라와 시간 초과가 난다 — 환경 문제라 다시 돌린다
+            if not (err and "imeout" in err) and not self.env_failed(st):
+                break
+            await asyncio.sleep(30)
         u = st.get("usage") or {}
         xc = [{k: e.get(k) for k in ("kind", "target", "votes", "outcome")} for e in st.get("events", [])
               if e.get("type") == "CrossChecked"]
         return {"state": st, "sec": round(time.perf_counter() - t, 2), "calls": u.get("llm_calls", 0),
-                "tokens": u.get("tokens", 0), "error": err, "xcheck": xc}
+                "tokens": u.get("tokens", 0), "error": err, "xcheck": xc, "retries": attempt}
+
+    @staticmethod
+    def env_failed(st: dict) -> bool:
+        """
+        도구 호출이 환경 문제(시간 초과)로 실패한 흔적이 있는지 — 있으면 판정이 '조회 실패'로 바뀌어 측정이 오염된다
+        Args:
+            st: 그래프 최종 상태
+        Returns:
+            흔적이 있으면 True
+        """
+        items = (st.get("report") or {}).get("items") or []
+        notes = [n for i in items for n in (i.get("review") or {}).get("notes", []) + (i.get("research") or {}).get("notes", [])]
+        return any("조회 실패" in n or "imeout" in n for n in notes)
+
+    async def call_ok(self, name: str, **args):
+        """
+        원장 반영용 MCP 호출 — 도구가 오류 문자열을 돌려주면(임베딩 시간 초과 등) 기다렸다 다시 부른다
+        Args:
+            name: 도구 이름
+            **args: 도구 인자
+        Returns:
+            도구 결과 (dict)
+        Raises:
+            RuntimeError: 세 번 모두 실패할 때
+        """
+        for _ in range(3):
+            r = await self.mcp.call(name, **args)
+            if isinstance(r, dict):
+                return r
+            await asyncio.sleep(30)
+        raise RuntimeError(f"{name} 실패: {r}")
 
     async def apply_gold(self, mid: str) -> None:
         """
@@ -275,20 +326,20 @@ class Runner:
         self.led.apply(mid, m)
         for gd in sorted(m["decisions"], key=lambda x: x["seq"]):
             if gd["outcome"] == "confirms":
-                await self.mcp.call("approve_decision", decision_id=self.led.gid[gd["id"]], approved_by=lead,
+                await self.call_ok("approve_decision", decision_id=self.led.gid[gd["id"]], approved_by=lead,
                                     effective_from=m["date"])
                 continue
-            r = await self.mcp.call("propose_decision", statement=gd["statement"], topic=gd["topic"],
+            r = await self.call_ok("propose_decision", statement=gd["statement"], topic=gd["topic"],
                                     decided_by=gd["decided_by"], project_id=pid, rationale=gd.get("rationale", ""),
                                     alternatives_rejected=gd.get("alternatives_rejected", []),
                                     evidence=[{"meeting_id": mid, "seq": q, "quote": segs[q]} for q in gd["evidence_seq"]])
             if r.get("proposed") != self.led.gid[gd["id"]] or gd["id"] in before:
                 raise RuntimeError(f"{gd['id']}: 원장 번호 {r.get('proposed')} ≠ 시뮬레이션 {self.led.gid[gd['id']]}")
             if gd["outcome"] == "approved":
-                await self.mcp.call("approve_decision", decision_id=r["proposed"], approved_by=lead,
+                await self.call_ok("approve_decision", decision_id=r["proposed"], approved_by=lead,
                                     effective_from=m["date"])
             elif gd["outcome"] == "rejected":
-                await self.mcp.call("reject_decision", decision_id=r["proposed"], rejected_by=lead,
+                await self.call_ok("reject_decision", decision_id=r["proposed"], rejected_by=lead,
                                     reason="; ".join(c.get("detail", "") for c in gd.get("conflicts", [])))
         self.applied.append(mid)
         self.reset_records()
@@ -930,7 +981,7 @@ async def amain(args) -> None:
     if others and not args.rescore:
         print("주의: 다른 평가가 돌고 있다 — 응답 시간이 오염된다\n  " + "\n  ".join(others))
     if not args.rescore:
-        root = make_root()
+        root = make_root(args.rev)
         try:
             raw = await Runner(root, gold, args.split, only, args.limit, raw).run()
         finally:
@@ -939,7 +990,7 @@ async def amain(args) -> None:
             else:
                 print("임시 루트:", root)
     s = summarize(gold, raw)
-    commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True,
+    commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", args.rev or "HEAD"], capture_output=True,
                             text=True).stdout.strip()
     meta = {"run_at": datetime.now().strftime("%Y-%m-%d %H:%M"), "commit": commit,
             "wall_min": round((time.perf_counter() - t0) / 60, 1), "others": "; ".join(others),
@@ -965,5 +1016,6 @@ if __name__ == "__main__":
     ap.add_argument("--resume", action="store_true", help="이전 원자료(.cache/raw_<split>.json)에 있는 항목은 건너뜀")
     ap.add_argument("--rescore", action="store_true", help="실행 없이 원자료로 다시 채점")
     ap.add_argument("--keep", action="store_true", help="임시 루트를 지우지 않음 (디버깅)")
+    ap.add_argument("--rev", help="이 커밋의 코드·시연 데이터로 실행 (없으면 작업 트리)")
     ap.add_argument("--name", help="결과 파일 이름표 (results_<split>_<name>). 없으면 교차검증 여부로 정함")
     asyncio.run(amain(ap.parse_args()))
