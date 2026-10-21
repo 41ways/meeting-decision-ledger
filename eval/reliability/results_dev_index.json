@@ -10,6 +10,7 @@
    "questions": 100
   },
   "model": "qwen3:8b",
+  "split": "dev",
   "backend": "ollama",
   "crosscheck": false,
   "crosscheck_models": null

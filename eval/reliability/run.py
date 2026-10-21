@@ -1049,7 +1049,7 @@ async def amain(args) -> None:
                             text=True).stdout.strip()
     meta = {"run_at": datetime.now().strftime("%Y-%m-%d %H:%M"), "commit": commit,
             "wall_min": round((time.perf_counter() - t0) / 60, 1), "others": "; ".join(others),
-            "n": {k: len(raw.get(k, {})) for k in KINDS}, "model": "qwen3:8b",
+            "n": {k: len(raw.get(k, {})) for k in KINDS}, "model": "qwen3:8b", "split": args.split,
             "backend": os.environ.get("LLM_BACKEND", "ollama"), "crosscheck": os.environ.get("CROSSCHECK", "0") == "1",
             "crosscheck_models": os.environ.get("CROSSCHECK_MODELS", "qwen3:0.6b,qwen2.5:0.5b")
             if os.environ.get("CROSSCHECK", "0") == "1" else None}
