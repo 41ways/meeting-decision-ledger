@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from collections import defaultdict
 
@@ -19,11 +20,24 @@ import run as R
 CONFIRM = re.compile(r"걸로|겠습니다|확정|하죠|합시다|바꾸죠|가죠|그렇게 하|갑시다")
 NOT_CONFIRM = re.compile(r"확정은 아닙|아직 확정|결론 내지|다음에 다시|보고 정할|검토해")
 ASSIGN = re.compile(r"까지|주세요|부탁")
-# 권한표 주제 연결표 — 파일로 빠진 버전(data/project/auth_topics.json)이면 데이터셋 세계 연결표까지 합친다
-_AT = D.BASE / "auth_topics.json"
-AUTH_TOPIC = ({*json.loads(_AT.read_text(encoding="utf-8"))["map"],
-               *json.loads((D.WORLD / "auth_topics.json").read_text(encoding="utf-8"))["map"]} if _AT.exists() else
-              {"schedule", "budget", "perf.latency", "scope.core", "answer.grounding", "llm.external", "meeting.retention"})
+OLD_AUTH = {"schedule", "budget", "perf.latency", "scope.core", "answer.grounding", "llm.external", "meeting.retention"}
+
+
+def auth_topics(commit: str) -> set[str]:
+    """
+    잰 코드가 쓰던 권한표 주제 연결표 (결과 파일의 커밋 기준)
+
+    연결표가 파일(data/project/auth_topics.json)로 빠진 커밋이면 데이터셋 세계 연결표까지 합친 것, 아니면 코드에 박혀 있던 7개.
+    Args:
+        commit: 결과 메타의 커밋
+    Returns:
+        권한표에 연결된 주제 키 집합
+    """
+    r = subprocess.run(["git", "-C", str(D.ROOT), "show", f"{commit}:data/project/auth_topics.json"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return OLD_AUTH
+    return {*json.loads(r.stdout)["map"], *json.loads((D.WORLD / "auth_topics.json").read_text(encoding="utf-8"))["map"]}
 
 
 def segs_of(mid: str) -> dict:
@@ -37,13 +51,14 @@ def segs_of(mid: str) -> dict:
     return {s["seq"]: s for s in json.loads((D.MEETINGS / f"{mid}.json").read_text(encoding="utf-8"))["segments"]}
 
 
-def meetings(g: dict, raw: dict, idm: dict) -> dict:
+def meetings(g: dict, raw: dict, idm: dict, auth: set[str]) -> dict:
     """
     결정 놓침·틀린 결정·충돌 놓침을 원인별로
     Args:
         g:   정답
         raw: 회의 실행 결과
         idm: 정답 ID → 원장 ID
+        auth: 잰 코드의 권한표 주제 연결표
     Returns:
         {표 이름: {원인: [항목 표기]}}
     """
@@ -91,7 +106,7 @@ def meetings(g: dict, raw: dict, idm: dict) -> dict:
                     continue
                 k = ("결정을 못 뽑음" if not d else
                      "판정 보류(주제 불확실 등) → 사람에게" if d["status"] == "needs_approval" else
-                     "권한: 주제가 권한표 연결표에 없음" if c["type"] == "authority" and d["topic"] not in AUTH_TOPIC
+                     "권한: 주제가 권한표 연결표에 없음" if c["type"] == "authority" and d["topic"] not in auth
                      and c["against"][0] != "AUTH-01" else
                      "권한: 금액·기간 기준·참석자" if c["type"] == "authority" else
                      "주제가 달라 비교 대상 못 찾음" if d["topic"] != gd["topic"] else
@@ -142,9 +157,10 @@ def main(path: str) -> None:
         path: eval/reliability 아래 결과 JSON 파일 이름
     """
     g = D.load_gold()
-    raw = json.loads((D.REL / path).read_text(encoding="utf-8"))["raw"]
+    res = json.loads((D.REL / path).read_text(encoding="utf-8"))
+    raw = res["raw"]
     idm = raw.get("id_map", {})
-    tabs = {**meetings(g, raw.get("meetings", {}), idm), **questions(g, raw, idm)}
+    tabs = {**meetings(g, raw.get("meetings", {}), idm, auth_topics(res["meta"]["commit"])), **questions(g, raw, idm)}
     rows = [f"## 부록 — 오류 항목 ID ({path})", "",
             "회의 항목은 `회의 ID#발언 번호` 또는 정답 결정 ID, 질문은 `질문 ID(기대 상태)`. 원장 ID는 결과 JSON의 raw.id_map."]
     for name, tab in tabs.items():
