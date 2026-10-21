@@ -291,133 +291,52 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 | 열람 승인 | 정한결이 관리자 콘솔에서 '이 사람만'으로 승인 | 윤하린에게 "열람 요청이 승인되었습니다", 이후 OPS-M04 열람 가능 |
 | 결정 승인 | 서지후가 정리한 M04의 OPS-0011(런북 캐시)을 정한결이 승인 | 서지후에게 "승인 요청이 승인되었습니다", 정한결에게 "OPS-0011 승인했습니다", 확인 → 열람 범위 체크 |
 
-화면 이름을 누르면 아래로 펼쳐져 크게 보이고, 사진을 누르면 원본 크기로 열립니다.
+사진을 누르면 원본 크기로 열립니다.
 
-<details>
-<summary>첫 화면 — 프로젝트·회의·모델은 입력창 아래에서</summary>
+<table>
+<tr><th width="50%">첫 화면 — 프로젝트·회의·모델은 입력창 아래에서</th><th width="50%">회의 선택 메뉴 (날짜 달력 아이콘 옆)</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/home.jpg"><img src="docs/images/home.jpg" width="100%" alt="첫 화면 — 프로젝트·회의·모델은 입력창 아래에서"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/scope_menu.jpg"><img src="docs/images/scope_menu.jpg" width="100%" alt="회의 선택 메뉴 (날짜 달력 아이콘 옆)"></a></td></tr>
+</table>
 
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/home.jpg"><img src="docs/images/home.jpg" width="100%" alt="첫 화면 — 프로젝트·회의·모델은 입력창 아래에서"></a>
+<table>
+<tr><th width="50%">회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점</th><th width="50%">근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회)</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/m04_report.jpg"><img src="docs/images/m04_report.jpg" width="100%" alt="회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/question_answer.jpg"><img src="docs/images/question_answer.jpg" width="100%" alt="근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회)"></a></td></tr>
+</table>
 
-</details>
+<table>
+<tr><th width="50%">근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름</th><th width="50%">의견 검토 — 충돌과 해결 방향</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/sse_flow.jpg"><img src="docs/images/sse_flow.jpg" width="100%" alt="근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/opinion_question.jpg"><img src="docs/images/opinion_question.jpg" width="100%" alt="의견 검토 — 충돌과 해결 방향"></a></td></tr>
+</table>
 
-<details>
-<summary>회의 선택 메뉴 (날짜 달력 아이콘 옆)</summary>
+<table>
+<tr><th width="50%">관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의</th><th width="50%">미결함 — 경과일·후속 할 일·결정 없이 닫기</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_approve.jpg"><img src="docs/images/admin_approve.jpg" width="100%" alt="관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/open_items.jpg"><img src="docs/images/open_items.jpg" width="100%" alt="미결함 — 경과일·후속 할 일·결정 없이 닫기"></a></td></tr>
+</table>
 
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/scope_menu.jpg"><img src="docs/images/scope_menu.jpg" width="100%" alt="회의 선택 메뉴 (날짜 달력 아이콘 옆)"></a>
+<table>
+<tr><th width="50%">면접 전사문 — 질문·답변 요약, 공정성 점검</th><th width="50%">일정 달력 — 회의 상세</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/i01_interview.jpg"><img src="docs/images/i01_interview.jpg" width="100%" alt="면접 전사문 — 질문·답변 요약, 공정성 점검"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/meeting_detail.jpg"><img src="docs/images/meeting_detail.jpg" width="100%" alt="일정 달력 — 회의 상세"></a></td></tr>
+</table>
 
-</details>
+<table>
+<tr><th width="33%">일정 추가 — 초안 카드와 겹침 경고</th><th width="33%">겹침 확인 대화상자</th><th width="33%">일정 달력 — 추가된 일정 상세</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_add.jpg"><img src="docs/images/schedule_add.jpg" width="100%" alt="일정 추가 — 초안 카드와 겹침 경고"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_conflict.jpg"><img src="docs/images/schedule_conflict.jpg" width="100%" alt="겹침 확인 대화상자"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_calendar.jpg"><img src="docs/images/schedule_calendar.jpg" width="100%" alt="일정 달력 — 추가된 일정 상세"></a></td></tr>
+</table>
 
-<details>
-<summary>회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점</summary>
+<table>
+<tr><th width="50%">관리자 콘솔 — 열람 요청 (범위·기간)</th><th></th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_requests.jpg"><img src="docs/images/admin_requests.jpg" width="100%" alt="관리자 콘솔 — 열람 요청 (범위·기간)"></a></td><td></td></tr>
+</table>
 
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/m04_report.jpg"><img src="docs/images/m04_report.jpg" width="100%" alt="회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점"></a>
+<table>
+<tr><th width="50%">회의 접근 권한 (역할별)</th><th width="50%">팀장 알림</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_acl.jpg"><img src="docs/images/admin_acl.jpg" width="100%" alt="회의 접근 권한 (역할별)"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/notify_lead.jpg"><img src="docs/images/notify_lead.jpg" width="100%" alt="팀장 알림"></a></td></tr>
+</table>
 
-</details>
-
-<details>
-<summary>근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회)</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/question_answer.jpg"><img src="docs/images/question_answer.jpg" width="100%" alt="근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회)"></a>
-
-</details>
-
-<details>
-<summary>근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/sse_flow.jpg"><img src="docs/images/sse_flow.jpg" width="100%" alt="근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름"></a>
-
-</details>
-
-<details>
-<summary>의견 검토 — 충돌과 해결 방향</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/opinion_question.jpg"><img src="docs/images/opinion_question.jpg" width="100%" alt="의견 검토 — 충돌과 해결 방향"></a>
-
-</details>
-
-<details>
-<summary>관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_approve.jpg"><img src="docs/images/admin_approve.jpg" width="100%" alt="관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의"></a>
-
-</details>
-
-<details>
-<summary>미결함 — 경과일·후속 할 일·결정 없이 닫기</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/open_items.jpg"><img src="docs/images/open_items.jpg" width="100%" alt="미결함 — 경과일·후속 할 일·결정 없이 닫기"></a>
-
-</details>
-
-<details>
-<summary>면접 전사문 — 질문·답변 요약, 공정성 점검</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/i01_interview.jpg"><img src="docs/images/i01_interview.jpg" width="100%" alt="면접 전사문 — 질문·답변 요약, 공정성 점검"></a>
-
-</details>
-
-<details>
-<summary>일정 달력 — 회의 상세</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/meeting_detail.jpg"><img src="docs/images/meeting_detail.jpg" width="100%" alt="일정 달력 — 회의 상세"></a>
-
-</details>
-
-<details>
-<summary>일정 추가 — 초안 카드와 겹침 경고</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_add.jpg"><img src="docs/images/schedule_add.jpg" width="100%" alt="일정 추가 — 초안 카드와 겹침 경고"></a>
-
-</details>
-
-<details>
-<summary>겹침 확인 대화상자</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_conflict.jpg"><img src="docs/images/schedule_conflict.jpg" width="100%" alt="겹침 확인 대화상자"></a>
-
-</details>
-
-<details>
-<summary>일정 달력 — 추가된 일정 상세</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_calendar.jpg"><img src="docs/images/schedule_calendar.jpg" width="100%" alt="일정 달력 — 추가된 일정 상세"></a>
-
-</details>
-
-<details>
-<summary>관리자 콘솔 — 열람 요청 (범위·기간)</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_requests.jpg"><img src="docs/images/admin_requests.jpg" width="100%" alt="관리자 콘솔 — 열람 요청 (범위·기간)"></a>
-
-</details>
-
-<details>
-<summary>회의 접근 권한 (역할별)</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_acl.jpg"><img src="docs/images/admin_acl.jpg" width="100%" alt="회의 접근 권한 (역할별)"></a>
-
-</details>
-
-<details>
-<summary>팀장 알림</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/notify_lead.jpg"><img src="docs/images/notify_lead.jpg" width="100%" alt="팀장 알림"></a>
-
-</details>
-
-<details>
-<summary>설정 — RAG 저장소 보기</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/settings_rag.jpg"><img src="docs/images/settings_rag.jpg" width="100%" alt="설정 — RAG 저장소 보기"></a>
-
-</details>
-
-<details>
-<summary>사용자 선택 (역할별 시연)</summary>
-
-<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/login.jpg"><img src="docs/images/login.jpg" width="100%" alt="사용자 선택 (역할별 시연)"></a>
-
-</details>
+<table>
+<tr><th width="50%">설정 — RAG 저장소 보기</th><th width="50%">사용자 선택 (역할별 시연)</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/settings_rag.jpg"><img src="docs/images/settings_rag.jpg" width="100%" alt="설정 — RAG 저장소 보기"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/login.jpg"><img src="docs/images/login.jpg" width="100%" alt="사용자 선택 (역할별 시연)"></a></td></tr>
+</table>
 
 ### 7.2 오류·예외 상황 테스트
 
