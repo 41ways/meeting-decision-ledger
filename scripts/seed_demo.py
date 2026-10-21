@@ -256,7 +256,7 @@ def main():
             sess.append(tid, "user", q)
             sess.append(tid, "assistant", a)
         acc.touch_thread(tid, uid, title, key, mid)
-        if tid in ("demo-6", "demo-9"):           # 이어 묻기('이거 누가 승인했어?')가 실제로 동작하게 직전 답의 대상을 넣는다
+        if tid in ("demo-6", "demo-9", "demo-10"):           # 이어 묻기('이거 누가 승인했어?')가 실제로 동작하게 직전 답의 대상을 넣는다
             acc.set_thread_refs(tid, ["OPS-0011", "OPS-M04"])
         # touch_thread는 갱신 시각을 지금으로 찍는다. 목록에 시간차가 보이게 THREADS의 '몇 시간 전'으로 되돌린다
         acc.conn.execute("UPDATE threads SET updated=? WHERE thread_id=?",
