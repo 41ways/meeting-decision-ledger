@@ -541,3 +541,10 @@ def test_extraction_failing_twice_is_an_error_not_no_decisions():
     graph = G.build_ledger_graph(G.LedgerDeps(fast_llm=FakeLLM(), quality_llm=TruncatingLLM(fails=2), mcp=FakeMCP()))
     with pytest.raises(RuntimeError, match="결정이 없다는 뜻이 아닙니다"):
         run(graph.ainvoke({"message": "OPS-M04 회의 정리해줘", "events": []}))
+
+
+def test_validate_rejects_pending_wording_when_basis_is_approved():
+    st = {"mode": "question", "draft": "OPS-0007은 아직 승인 대기입니다.", "events": [],
+          "items": [{"research": {"authority": "decision", "current": {"decision_id": "OPS-0007"}, "pending": []}}]}
+    out = run(G.validate_node(st, deps=None))
+    assert "승인 대기" in (out["validation_feedback"] or "")
