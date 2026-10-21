@@ -34,9 +34,24 @@ def run(coro):
     ("그건 권위 게이트로 코드에서 걸러요.", "PL", True),            # 진행자의 단정 발언
     ("예전에 롱폴링 쓰다가 SSE로 바꾸고 나서 줄었죠.", "AI 개발", False),  # 회상
     ("결과 공유해 주시면 보고 정할게요. 아직 확정은 아닙니다.", "PL", False),  # 보류
+    ("알림 연동 얘기로 넘어가죠.", "PL", False),                                # 진행 발언 ('가죠' 포함)
+    ("전화 호출은 비용 확인하고 다음 주에 다시 보죠.", "PM", False),            # 진행자의 미루기
+    ("BI는 지난번에 사내 태블로 서버로 정했잖아요.", "PL", False),              # 회상
+    ("웹훅으로 보내는 건 어때요?", "PM", False),                                # 진행자의 질문
+    ("SSE로 가죠. 부하 보고 나중에 다시 보죠.", "PL", True),                    # 확정 + 재검토 여지
 ])
 def test_is_decision_utterance(text, role, expected):
     assert G.is_decision_utterance({"text": text, "role": role}) is expected
+
+
+@pytest.mark.parametrize("text,is_assign", [
+    ("웹훅 전송만 5xx일 때 3번까지 재시도하는 걸로 가시죠.", False),
+    ("항목당 10장까지 열어 둘게요.", False),
+    ("서지후 님 17일까지 설계 공유해 주세요.", True),
+    ("금요일까지 정리해서 올려 드릴게요.", True),
+])
+def test_assign_means_deadline_not_any_kkaji(text, is_assign):
+    assert bool(G.ASSIGN.search(text)) is is_assign
 
 
 # ---------------------------------------------------------------- gate
@@ -482,3 +497,21 @@ def test_opinion_conflict_gets_suggestions_without_evidence():
     item = st["items"][0]
     assert item["review"]["status"] == "conflict" and item["label"] == "확인 필요"
     assert any(s["ai"] for s in item["suggestions"]) and "해결 방향" in st["final"]
+
+
+class _NoLLM:
+    async def json(self, *a, **k):
+        raise AssertionError("규칙으로 정해져야 하는 문장인데 모델을 불렀다")
+
+
+@pytest.mark.parametrize("msg,mode", [
+    ("정산 테이블은 OCR 솔루션 번들 MySQL에 같이 두기로 했죠?", "question"),
+    ("알림 메시지에 고객사 이름도 넣기로 했어요?", "question"),
+    ("현장 사진을 휴대폰에 임시 저장해도 될까요?", "opinion"),
+    ("야간 배치를 5시로 옮겨 봐도 될까요?", "opinion"),
+    ("대화 이력은 며칠 보관하기로 했어요?", "question"),
+])
+def test_route_phrasings_reach_the_right_path_without_llm(msg, mode):
+    deps = G.LedgerDeps(fast_llm=_NoLLM(), quality_llm=_NoLLM(), mcp=None)
+    out = run(G.route_node({"message": msg, "events": []}, deps))
+    assert out["mode"] == mode

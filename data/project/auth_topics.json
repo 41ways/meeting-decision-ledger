@@ -1,0 +1,12 @@
+{
+ "_note": "결정 주제 → 권한표(R4 AUTH-*) 주제. 목록에 없는 주제는 기술 선택(tech.stack, PL 권한)으로 본다. 새 주제를 만들면 여기도 넣는다.",
+ "map": {
+  "schedule": "schedule",
+  "budget": "budget",
+  "perf.latency": "scope",
+  "scope.core": "scope",
+  "answer.grounding": "scope",
+  "llm.external": "security",
+  "meeting.retention": "security"
+ }
+}

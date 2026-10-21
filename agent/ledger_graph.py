@@ -78,27 +78,42 @@ NOT_CONFIRM = re.compile(r"확정은 아닙|아직 확정|결론 내지|다음�
 # 확정하면서 재검토 여지를 남기는 표현 — 이런 결정 앞의 논의는 미결로 남길 수 있다
 REOPEN = re.compile(r"나중에|바꿀 수|다시 보|재검토")
 CHAIR_ROLES = ("PM", "PL")      # 진행자급의 단정 발언('코드에서 걸러요')도 결정으로 인정
+# 진행 발언 — '알림 연동 얘기로 넘어가죠'는 '가죠'가 들어 있어도 결정이 아니다
+TRANSITION = re.compile(r"넘어가|넘어갈게|다음 안건|안건으로|얘기로 가|얘기해 볼까|얘기 좀 해")
+# 회상 — '지난번에 태블로로 정했잖아요'는 이미 정한 것을 말할 뿐 이번 회의의 결정이 아니다
+RECALL = re.compile(r"정했잖|했잖아|정했었|했었죠|했었어|(지난번|저번|전번)에?.{0,20}(정했|했죠|하기로 했)")
+# 미루기 — 확정 표현 없이 '다음 주에 다시 보죠'만 있으면 결정이 아니다 (확정 + '나중에 다시 보죠'는 결정)
+HOLD = re.compile(r"다시 보죠|다시 봅시다|다시 보자|다시 얘기|다음에 보|나중에 정|더 보고|보류|미루죠|미뤄 두")
+# 묻는 말 — 진행자라도 질문은 결정이 아니다
+ASKING = re.compile(r"\?|까요|나요|인가요|어때요|어떻게 생각|있을까|없을까|맞죠|되죠")
 
 
 def is_decision_utterance(seg: dict) -> bool:
     """
     발언이 결정(확정) 발언인지 규칙으로 판별
 
-    보류 표현이 있으면 확정 표현이 섞여 있어도 결정이 아니다.
-    보류 표현이 없으면 확정 표현이 있거나 진행자(PM·PL) 발언일 때 결정으로 본다.
+    보류 표현이 있으면 확정 표현이 섞여 있어도 결정이 아니다. 진행·회상 발언도 결정이 아니다.
+    확정 표현이 있으면 결정. 없으면 진행자(PM·PL)의 단정 발언일 때만 결정으로 본다
+    — 진행자의 질문·미루기는 결정이 아니다 (진행자 발언을 무조건 인정했더니 처음 보는 회의에서 틀린 결정의 절반이 이것).
     Args:
         seg: 회의 발언 (text·role 포함)
     Returns:
         결정 발언이면 True
     """
     # 보류를 먼저 본다 — '아직 확정은 아닙니다'에도 '확정'이 들어 있어 CONFIRM만 보면 결정으로 잡힌다
-    if NOT_CONFIRM.search(seg["text"]):
+    t = seg["text"]
+    if NOT_CONFIRM.search(t) or TRANSITION.search(t) or RECALL.search(t):
         return False
-    return bool(CONFIRM.search(seg["text"])) or seg["role"] in CHAIR_ROLES
+    if CONFIRM.search(t):
+        return True
+    return seg["role"] in CHAIR_ROLES and not (HOLD.search(t) or ASKING.search(t))
 
 # 주제 → 권한표(R4 AUTH-*) 주제. 목록에 없으면 기술 선택(tech.stack)
+# 연결표는 data/project/auth_topics.json — 주제를 더할 때 같이 관리한다 (코드에 박아 두었더니 새 주제가 전부 기술 선택으로 떨어졌다)
+_AUTH_FILE = Path(__file__).resolve().parent.parent / "data" / "project" / "auth_topics.json"
 AUTH_TOPIC = {"schedule": "schedule", "budget": "budget", "perf.latency": "scope", "scope.core": "scope",
-              "answer.grounding": "scope", "llm.external": "security", "meeting.retention": "security"}
+              "answer.grounding": "scope", "llm.external": "security", "meeting.retention": "security",
+              **(json.loads(_AUTH_FILE.read_text(encoding="utf-8")).get("map", {}) if _AUTH_FILE.exists() else {})}
 
 
 @dataclass
@@ -266,10 +281,12 @@ async def route_node(state: LedgerState, deps: LedgerDeps) -> dict:
     elif is_fact_question(msg):
         mode = "fact"
     # 의견: 제안·권유 어미 ('바꾸면 어때?', '하자')
-    elif re.search(r"어떨까|어때|바꾸면|바꾸자|하자|쓰면|쓰자|제안|넣자", msg):
+    elif re.search(r"어떨까|어때|바꾸면|바꾸자|하자|쓰면|쓰자|제안|넣자"
+                   r"|해도 될까|해도 되|봐도 될까|봐도 되|받아도 되|써도 되|넣어도 되|괜찮나요|괜찮을까|괜찮겠", msg):
         mode = "opinion"
     # 질의: 과거 결정의 이유·시점·주체를 묻는 표현
-    elif re.search(r"왜|언제|누가|정해졌|하기로|했어요\?|했나|이유|몇 초|어떻게 됐", msg):
+    elif re.search(r"왜|언제|누가|정해졌|하기로|했어요\?|했나|이유|몇 초|어떻게 됐"
+                   r"|기로 했|기로 한|로 했죠|했죠\?|했던가|맞죠\?|맞나요|됐나요|됐어요\?|결정됐|정했", msg):
         mode = "question"
     else:
         out, usage = await deps.fast_llm.json(
@@ -446,7 +463,9 @@ RECHECK_SCHEMA = {"type": "object", "properties": {"items": {"type": "array", "i
     "topic": {"type": "string"}, "proposal_seq": {"type": "integer"}}, "required": ["seq", "is_decision"]}}},
     "required": ["items"]}
 
-ASSIGN = re.compile(r"까지|주세요|부탁")
+# 할 일 배정: 날짜·요일·기간 앞의 '까지'만 기한으로 본다 — '3번까지 재시도', '10장까지'는 결정 내용이다
+DEADLINE = r"(\d{1,2}\s*일|\d{1,2}\s*/\s*\d{1,2}|[월화수목금토일]요일|내일|모레|오늘|이번\s*주|다음\s*주|주말|월말|말일|퇴근\s*전|오전|오후|금주|차주)"
+ASSIGN = re.compile(DEADLINE + r"\s*(중으로|안으로|안에)?\s*까지|주세요|부탁")
 
 TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
                 "project": {"type": "string", "enum": list(PROJECTS)}}, "required": ["topic", "project"]}
@@ -882,6 +901,10 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
                                          project_key=PID_TO_KEY.get(pid, pid))
             pick_usage.extend(picked["usages"])
             res, disc, why = retrieve.merge(res, picked, pid)
+            # 프로젝트를 고르거나 질문에서 정했으면 다른 프로젝트 결정은 답의 근거로 쓰지 않는다
+            # (영업 대시보드를 물었는데 현장 앱 결정으로 답하던 오류 — 참고 표시도 모델이 답으로 써 버렸다)
+            if item.get("project_how") in ("직접 지정", "질문에서 판단"):
+                res = {**res, "advisory": []}
             ids = [d["decision_id"] for d in picked["decisions"]] + [o["item_id"] for o in picked["opens"]]
             keys = {retrieve.key(c) for c in picked["decisions"] + picked["opens"]}
             pick_evs.append({"type": "CandidatesPicked", "how": picked["how"], "tier": picked["tier"],
