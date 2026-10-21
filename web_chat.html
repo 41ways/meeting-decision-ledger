@@ -662,7 +662,7 @@ tr.lock td { color: var(--muted); }
                   <span v-for="d in mon.policy.review" :key="d.decision_id"><span class="mono">{{ d.decision_id }}</span> 재검토 필요 — {{ d.rules.map(r => r.rule_id + ' ' + r.change).join(', ') }}</span>
                 </div>
                 <table class="atable" style="margin-top:10px">
-                  <tr><th style="width:56px">묶음</th><th>지표</th><th style="width:140px">기준선</th><th style="width:140px">최근</th><th style="width:210px">검정</th><th style="width:56px">판정</th></tr>
+                  <tr><th style="width:56px">묶음</th><th style="min-width:180px">지표</th><th style="width:110px">기준선</th><th style="width:110px">최근</th><th style="width:150px">검정</th><th style="width:56px">판정</th></tr>
                   <tr v-for="f in mon.findings" :key="f.group + f.metric">
                     <td class="muted">{{ f.group }}</td><td>{{ f.metric }}</td>
                     <td class="mono">{{ monVal(f.base) }}</td><td class="mono">{{ monVal(f.recent) }}</td>
@@ -967,7 +967,7 @@ const PickMenu = {
     }
     const outside = e => { if (open.value && root.value && !root.value.contains(e.target)) open.value = false; };
     document.addEventListener('mousedown', outside);
-    return { mon, loadMonitor, monStatus, monVal, open, up, maxH, hi, root, list, cur, toggle, pick, key };
+    return { open, up, maxH, hi, root, list, cur, toggle, pick, key };
   },
   template: `<div class="dd" :class="{ open }" ref="root">
     <button type="button" class="dd-btn" :class="btnClass" :style="{ width }" :title="title" @click="toggle" @keydown="key" aria-haspopup="listbox" :aria-expanded="open">
@@ -1414,7 +1414,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { ed, edPreview, moreCtx, edChanges, saveEdit, sel, openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { mon, loadMonitor, monStatus, monVal, ed, edPreview, moreCtx, edChanges, saveEdit, sel, openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
