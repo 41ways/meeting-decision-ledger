@@ -131,6 +131,15 @@ def test_promote_script_pass_then_reject_then_rollback(tmp_path, monkeypatch):
     assert (ROOT / PR.THRESHOLD_FILE).read_text(encoding="utf-8") == th
 
 
+def test_eval_crash_is_recorded_not_promoted(tmp_path):
+    regf = tmp_path / "reg.json"
+    args = ["--registry", str(regf), "--allow-busy", "--eval-cmd", f"{promote.PY} -c raise(SystemExit(3))"]
+    assert promote.main(args) == 1
+    reg = PR.Registry(regf)
+    cur = PR.version_id(PR.components("ollama:qwen3:8b", "ollama:qwen3:8b"))
+    assert reg.get(cur)["evals"][-1]["verdict"] == "eval_failed" and reg.champion() is None
+
+
 def test_apply_thresholds_rewrites_constants(tmp_path, monkeypatch):
     (tmp_path / "ledger").mkdir()
     shutil.copy(ROOT / PR.THRESHOLD_FILE, tmp_path / PR.THRESHOLD_FILE)

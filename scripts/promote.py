@@ -331,7 +331,15 @@ def main(argv: list[str] | None = None) -> int:
             print("\n".join("  " + o for o in others))
             return 2
         print("평가 실행:", " ".join(runner["cmd"]), flush=True)
-        scores, kept = run_eval(runner, vid)
+        try:
+            scores, kept = run_eval(runner, vid)
+        except subprocess.CalledProcessError as e:
+            # 평가가 끝까지 못 돌면 판정할 수 없다 — 거부와 구분해 '평가 실패'로 남기고 상태는 그대로 둔다
+            reg.add_eval(vid, {"runner": a.runner, "at": datetime.now().isoformat(timespec="seconds"),
+                               "verdict": "eval_failed", "error": f"종료 코드 {e.returncode}"})
+            reg.save()
+            print(f"\n평가 실패 (종료 코드 {e.returncode}) — 승격 판정 없음. 위 오류를 확인하고 다시 실행합니다.")
+            return 1
 
     j = judge_promotion(base, scores, a.tolerance)
     print_table(j, left)
