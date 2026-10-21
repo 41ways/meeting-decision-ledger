@@ -461,7 +461,8 @@ class Runner:
         Returns:
             {"meetings": {...}, "opinions": {...}, "questions": {...}, "id_map": {...}}
         """
-        out = {k: dict(self.raw.get(k, {})) for k in KINDS}
+        # 이어 돌리기: 오류로 끝난 항목은 다시 돈다 (잠자기·일시정지 뒤 연결이 끊긴 경우)
+        out = {k: {i: v for i, v in self.raw.get(k, {}).items() if not v.get("error")} for k in KINDS}
         try:
             for n, mid in enumerate(self.timeline, 1):
                 m = self.gold["meetings"][mid]
