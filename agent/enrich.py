@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 
-PIPELINE_VERSION = "2026-10-20.2"
+# 파이프라인 버전은 ledger/pipeline_registry.py가 모델·프롬프트·임계값·주제 목록·코드 지문으로 계산한다
 _USERS = Path(__file__).resolve().parent.parent / "data" / "project" / "users.json"
 LEADS = [u["name"] for u in json.loads(_USERS.read_text(encoding="utf-8"))["users"] if u["role"] == "팀장"] \
     if _USERS.exists() else []
