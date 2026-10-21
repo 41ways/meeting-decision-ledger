@@ -198,6 +198,10 @@ def test_open_item_key_has_no_colon_and_maps_back():
     assert "(발언: 캐시는 대상부터" in R._line(op)
     chosen, _ = run(R.read_list(PickLLM(["O:OPS-M03-10"]), "Redis 캐시?", [op]))
     assert chosen == [op]
+    # 모델이 줄을 통째로 돌려줘도 맨 앞 키만 쓴다. 후보에 없는 키·키 모양이 아닌 것은 버린다
+    line = "D:OPS-0008 [확정] PRJ-OPSAI · session.store · 대화 이력은 PostgreSQL에 저장한다."
+    chosen, _ = run(R.read_list(PickLLM([line, "D:OPS-9999", "OPS-0008", 3]), "대화 이력?", [cand(8)]))
+    assert [c["decision_id"] for c in chosen] == ["OPS-0008"]
 
 
 def test_notice_text_and_chunking():

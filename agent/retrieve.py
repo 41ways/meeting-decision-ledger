@@ -75,6 +75,24 @@ def key(c: dict) -> str:
     return "O:" + c["item_id"].replace(":open:", "-")
 
 
+PICKED_KEY = re.compile(r"[DO]:[A-Z]{3}-[A-Z0-9-]+")
+
+
+def pick_key(raw) -> str:
+    """
+    모델이 돌려준 선택에서 후보 키만 뽑는다
+
+    모델이 ID 대신 후보 줄을 통째로 돌려주기도 한다('D:OPS-0008 [확정] … 대화 이력은 …').
+    맨 앞의 키만 쓰고, 그래도 후보에 없는 키면 호출 측이 버린다.
+    Args:
+        raw: 모델 출력의 ids 원소
+    Returns:
+        키 (D:OPS-0008, O:OPS-M03-10). 키 모양이 없으면 빈 문자열
+    """
+    m = PICKED_KEY.match(raw.strip()) if isinstance(raw, str) else None
+    return m.group(0) if m else ""
+
+
 def est_tokens(text: str) -> int:
     """
     목록 글의 토큰 수 어림 (qwen3 토크나이저에서 한글·영문 섞인 줄이 대략 1.6자당 1토큰)
@@ -123,7 +141,7 @@ async def read_list(llm, question: str, cands: list[dict], budget: int = LIST_TO
         out, usage = await llm.json(PICK_SYSTEM, f"## 질문\n{question}\n\n## 후보\n" + "\n".join(part),
                                     PICK_SCHEMA, max_tokens=200)
         usages.append(usage)
-        chosen += [keys[i.strip()] for i in out.get("ids", []) if isinstance(i, str) and i.strip() in keys]
+        chosen += [keys[k] for k in (pick_key(i) for i in out.get("ids", [])) if k in keys]
     seen, uniq = set(), []
     for c in chosen:
         if key(c) not in seen:
