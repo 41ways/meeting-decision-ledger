@@ -1,0 +1,35 @@
+{
+ "_note": "신뢰도 검증 데이터셋용 가상 인물. data/project/users.json 뒤에 붙는다. 권한 위반·규정 위반 발언은 이 목록의 인물만 한다 (기존 users.json 인물은 정상 행동만).",
+ "users": [
+  {"user_id": "mts", "name": "마태수", "role": "팀원", "title": "협력사 PM", "team": "OPS 협력사", "project": "OPS", "speaker_role": "협력사"},
+  {"user_id": "djy", "name": "도재윤", "role": "팀원", "title": "프론트엔드", "team": "AI플랫폼팀", "project": "OPS", "speaker_role": "프론트엔드"},
+  {"user_id": "kyn", "name": "권유나", "role": "팀원", "title": "QA", "team": "품질팀", "project": "OPS", "speaker_role": "QA"},
+  {"user_id": "psw", "name": "피승우", "role": "팀원", "title": "운영", "team": "운영팀", "project": "OPS", "speaker_role": "운영팀"},
+
+  {"user_id": "ngh", "name": "남궁현", "role": "담당자", "title": "PM", "team": "재무시스템팀", "project": "EXP", "speaker_role": "PM"},
+  {"user_id": "sde", "name": "석다은", "role": "담당자", "title": "PL", "team": "재무시스템팀", "project": "EXP", "speaker_role": "PL"},
+  {"user_id": "pdh", "name": "편도훈", "role": "팀원", "title": "백엔드", "team": "재무시스템팀", "project": "EXP", "speaker_role": "백엔드"},
+  {"user_id": "yma", "name": "여민아", "role": "팀원", "title": "프론트엔드", "team": "재무시스템팀", "project": "EXP", "speaker_role": "프론트엔드"},
+  {"user_id": "gbr", "name": "금보람", "role": "팀원", "title": "재무팀 현업", "team": "재무팀", "project": "EXP", "speaker_role": "재무팀"},
+  {"user_id": "bgt", "name": "방규태", "role": "팀원", "title": "OCR 협력사 PM", "team": "협력사", "project": "EXP", "speaker_role": "협력사"},
+  {"user_id": "cyh", "name": "차윤호", "role": "팀원", "title": "백엔드", "team": "재무시스템팀", "project": "EXP", "speaker_role": "백엔드"},
+
+  {"user_id": "pjh", "name": "표지환", "role": "담당자", "title": "PM", "team": "설비IT팀", "project": "FLD", "speaker_role": "PM"},
+  {"user_id": "esy", "name": "은서율", "role": "담당자", "title": "PL", "team": "설비IT팀", "project": "FLD", "speaker_role": "PL"},
+  {"user_id": "mjw", "name": "맹주원", "role": "팀원", "title": "모바일", "team": "설비IT팀", "project": "FLD", "speaker_role": "모바일"},
+  {"user_id": "shn", "name": "소하늘", "role": "팀원", "title": "백엔드", "team": "설비IT팀", "project": "FLD", "speaker_role": "백엔드"},
+  {"user_id": "gbs", "name": "길봉수", "role": "팀원", "title": "현장팀 대표", "team": "설비운영팀", "project": "FLD", "speaker_role": "현장팀"},
+  {"user_id": "jto", "name": "진태오", "role": "팀원", "title": "협력사 모바일 개발", "team": "협력사", "project": "FLD", "speaker_role": "협력사"},
+  {"user_id": "ghy", "name": "국하윤", "role": "팀원", "title": "디자이너", "team": "설비IT팀", "project": "FLD", "speaker_role": "디자인"},
+
+  {"user_id": "ycw", "name": "용채원", "role": "담당자", "title": "PM", "team": "영업IT팀", "project": "SLS", "speaker_role": "PM"},
+  {"user_id": "ths", "name": "탁현승", "role": "담당자", "title": "PL", "team": "영업IT팀", "project": "SLS", "speaker_role": "PL"},
+  {"user_id": "syj", "name": "설유진", "role": "팀원", "title": "데이터 엔지니어", "team": "영업IT팀", "project": "SLS", "speaker_role": "데이터"},
+  {"user_id": "bms", "name": "봉민석", "role": "팀원", "title": "프론트엔드", "team": "영업IT팀", "project": "SLS", "speaker_role": "프론트엔드"},
+  {"user_id": "ejs", "name": "엄지수", "role": "팀원", "title": "영업기획 현업", "team": "영업기획팀", "project": "SLS", "speaker_role": "영업기획"},
+  {"user_id": "bjk", "name": "반재경", "role": "팀원", "title": "영업본부 과장", "team": "영업본부", "project": "SLS", "speaker_role": "영업본부"},
+  {"user_id": "dgj", "name": "독고준", "role": "팀원", "title": "협력사 BI 컨설턴트", "team": "협력사", "project": "SLS", "speaker_role": "협력사"},
+
+  {"user_id": "yss", "name": "육성재", "role": "팀원", "title": "보안", "team": "정보보호팀", "project": "EXP,FLD,SLS", "speaker_role": "보안"}
+ ]
+}

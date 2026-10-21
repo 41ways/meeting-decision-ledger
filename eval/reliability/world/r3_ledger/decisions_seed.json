@@ -1,0 +1,659 @@
+{
+ "_note": "data/project 시드에 합친다. 같은 decision_id는 이 파일 값으로 바꾼다. OPS-0011~0020은 시연 회의 OPS-M03~M05를 팀장이 검토한 결과(정답셋 기준), 나머지는 새 프로젝트 착수 회의(원문 없음) 결정.",
+ "decisions": [
+  {
+   "decision_id": "OPS-0005",
+   "project_id": "PRJ-OPSAI",
+   "topic": "perf.latency",
+   "statement": "응답 시간 기준을 첫 진행 표시 2초 이내, 최종 답변 30초 이내로 변경한다.",
+   "rationale": "사내 모델로 조사·검증까지 5초는 불가능, 진행 표시가 보이면 기다릴 수 있음",
+   "alternatives_rejected": [
+    "최종 답변 5초 유지"
+   ],
+   "decided_by": "정한결",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-09-29",
+   "superseded_by": "OPS-0018",
+   "evidence": [
+    {
+     "meeting_id": "OPS-M02",
+     "seq": 4,
+     "quote": "첫 진행 표시는 2초 안, 최종 답변은 30초 안으로 하고 요구사항정의서 개정할게요."
+    }
+   ],
+   "r2_updates": [
+    {
+     "doc_id": "REQ",
+     "from": "v1.0",
+     "to": "v1.1"
+    }
+   ]
+  },
+  {
+   "decision_id": "OPS-0010",
+   "project_id": "PRJ-OPSAI",
+   "topic": "llm.tiering",
+   "statement": "분류·계획은 작은 모델, 작성·검증은 큰 모델로 나누는 모델 티어링을 적용한다.",
+   "rationale": "비용 절감",
+   "alternatives_rejected": [],
+   "decided_by": "노영오 (제안)",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-10-20",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M02",
+     "seq": 14,
+     "quote": "비용 줄이려면 분류는 작은 모델, 작성은 큰 모델로 나누는 것도 제안드려요."
+    },
+    {
+     "meeting_id": "OPS-M02",
+     "seq": 15,
+     "quote": "모델 티어링은 좋은데 품질 영향을 먼저 봐야 해요."
+    },
+    {
+     "meeting_id": "OPS-M05",
+     "seq": 10,
+     "quote": "네 분류와 계획은 작은 모델, 작성과 검증은 큰 모델로 나누는 걸로 확정하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "OPS-0011",
+   "project_id": "PRJ-OPSAI",
+   "topic": "answer.validation",
+   "statement": "작성 뒤 검증 노드를 두고, 불합격이면 재작성은 최대 1회로 한다.",
+   "rationale": "근거 없는 답이 그대로 나가는 것 방지, 무한 재작성 방지",
+   "alternatives_rejected": [
+    "재작성 무제한"
+   ],
+   "decided_by": "서지후",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-10-06",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M03",
+     "seq": 3,
+     "quote": "작성 뒤에 검증 노드를 두고, 불합격이면 피드백 주고 재작성은 최대 1회만 하는 걸로 하겠습니다. 무한 반복은 안 돼요."
+    }
+   ]
+  },
+  {
+   "decision_id": "OPS-0012",
+   "project_id": "PRJ-OPSAI",
+   "topic": "agent.gate",
+   "statement": "needs_analysis와 작업 목록이 어긋나면 권위 게이트가 코드에서 걸러 낸다.",
+   "rationale": "LLM 판단만 믿으면 분석 단계를 건너뛰는 오류",
+   "alternatives_rejected": [],
+   "decided_by": "서지후",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-10-06",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M03",
+     "seq": 5,
+     "quote": "그건 버니게이트로 코드에서 걸러요. 모델 판단은 제안으로만 받고요."
+    }
+   ]
+  },
+  {
+   "decision_id": "OPS-0013",
+   "project_id": "PRJ-OPSAI",
+   "topic": "error.retry",
+   "statement": "타임아웃만 재시도하도록 with_retry로 공통화하고, 다른 오류는 즉시 실패시킨다.",
+   "rationale": "재시도해도 결과가 같은 오류는 시간만 씀",
+   "alternatives_rejected": [
+    "모든 오류 3회 재시도"
+   ],
+   "decided_by": "서지후",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-10-06",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M03",
+     "seq": 7,
+     "quote": "타임아웃만 재시도하게 with_retry로 공통화합시다. 다른 오류는 바로 실패 처리하고요."
+    }
+   ]
+  },
+  {
+   "decision_id": "OPS-0014",
+   "project_id": "PRJ-OPSAI",
+   "topic": "cache",
+   "statement": "캐시는 런북 문서에만 적용하고 모니터링 조회는 매번 새로 한다.",
+   "rationale": "모니터링 수치는 실시간이어야 함",
+   "alternatives_rejected": [
+    "모니터링 조회 캐시"
+   ],
+   "decided_by": "서지후",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-10-13",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 10,
+     "quote": "캐시 후보 정리해 왔는데 런북 문서만 캐시하는 게 맞을 것 같아요. 모니터링 수치는 빼고요."
+    },
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 11,
+     "quote": "좋습니다. 캐시는 런북 문서에만 적용하고 모니터링 조회는 매번 새로 하는 걸로 하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "OPS-0015",
+   "project_id": "PRJ-OPSAI",
+   "topic": "realtime.transport",
+   "statement": "실시간 전송을 WebSocket으로 바꾼다.",
+   "rationale": "진단 중단 버튼을 위한 양방향 통신",
+   "alternatives_rejected": [],
+   "decided_by": "서지후",
+   "approved_by": null,
+   "status": "rejected",
+   "effective_from": null,
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 3,
+     "quote": "멈추려면 화면에서 서버로도 신호를 보내야 하니까 양방향이 필요해요. 실시간 전송을 웹소켓으로 바꾸는 게 깔끔합니다."
+    },
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 4,
+     "quote": "그럼 실시간 전송은 웹소켓으로 바꾸는 걸로 하죠."
+    }
+   ],
+   "rejection_reason": "유효 결정 OPS-0007(SSE)·정책 ARC-02와 충돌. 중단 버튼은 별도 HTTP 요청으로 처리 — 정한결 반려"
+  },
+  {
+   "decision_id": "OPS-0016",
+   "project_id": "PRJ-OPSAI",
+   "topic": "schedule",
+   "statement": "운영 반영을 2주 미룬다.",
+   "rationale": "WebSocket 전환 작업량",
+   "alternatives_rejected": [],
+   "decided_by": "서지후",
+   "approved_by": null,
+   "status": "rejected",
+   "effective_from": null,
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 6,
+     "quote": "근데 웹소켓으로 바꾸면 작업량이 늘어서 일정이 빠듯해요. 운영 반영을 2주 미루면 될 것 같아요."
+    },
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 7,
+     "quote": "네 그럼 운영 반영은 2주 미루는 걸로 하겠습니다."
+    }
+   ],
+   "rejection_reason": "2주 이상 지연은 본부장 승인 사항(AUTH-03) — 정한결 반려"
+  },
+  {
+   "decision_id": "OPS-0017",
+   "project_id": "PRJ-OPSAI",
+   "topic": "llm.external",
+   "statement": "실제 운영 로그를 외부 LLM API에 넣어 품질을 비교한다.",
+   "rationale": "샘플만으로는 비교가 부족",
+   "alternatives_rejected": [],
+   "decided_by": "서지후",
+   "approved_by": null,
+   "status": "rejected",
+   "effective_from": null,
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 8,
+     "quote": "품질 비교할 때 샘플만으로는 부족해서, 실제 운영 로그를 외부 LLM API에 그대로 넣어서 비교하고 싶어요."
+    },
+    {
+     "meeting_id": "OPS-M04",
+     "seq": 9,
+     "quote": "보안 예외 승인 받은 게 있으니까 그렇게 진행하죠."
+    }
+   ],
+   "rejection_reason": "운영 로그 원문 외부 전송 금지(SEC-01). W-001은 마스킹 샘플만 — 김태림 반려"
+  },
+  {
+   "decision_id": "OPS-0018",
+   "project_id": "PRJ-OPSAI",
+   "topic": "perf.latency",
+   "statement": "최종 답변 기준을 60초 이내로 바꾸고 요구사항정의서를 개정한다.",
+   "rationale": "사내 모델로 조사·검증까지 30초 안에 끝내기 어려움",
+   "alternatives_rejected": [
+    "최종 답변 30초 유지"
+   ],
+   "decided_by": "정한결",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-10-20",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M05",
+     "seq": 4,
+     "quote": "그럼 최종 답변 기준을 60초로 늘리겠습니다. 요구사항 변경이니까 제가 승인하고 정의서도 개정할게요."
+    }
+   ],
+   "r2_updates": [
+    {
+     "doc_id": "REQ",
+     "from": "v1.1",
+     "to": "v1.2"
+    }
+   ]
+  },
+  {
+   "decision_id": "OPS-0019",
+   "project_id": "PRJ-OPSAI",
+   "topic": "session.store",
+   "statement": "대화 저장 DB를 MySQL로 바꾼다.",
+   "rationale": "구 정책 v2의 표준 DB",
+   "alternatives_rejected": [],
+   "decided_by": "서지후",
+   "approved_by": null,
+   "status": "rejected",
+   "effective_from": null,
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M05",
+     "seq": 5,
+     "quote": "대화 저장 DB 말인데요, MySQL로 가도 되지 않나요? 사내 위키에는 MySQL이 표준이라고 되어 있던데요."
+    },
+    {
+     "meeting_id": "OPS-M05",
+     "seq": 6,
+     "quote": "운영팀 다른 시스템이 MySQL이라 맞추는 것도 방법이긴 하네요. 대화 저장은 MySQL로 바꾸죠."
+    }
+   ],
+   "rejection_reason": "현행 ARC-01 표준은 PostgreSQL, OPS-0008과 충돌 — 정한결 반려"
+  },
+  {
+   "decision_id": "OPS-0020",
+   "project_id": "PRJ-OPSAI",
+   "topic": "meeting.retention",
+   "statement": "회의 원문은 90일 뒤 파기하고, 결정 근거 인용만 원장에 남긴다.",
+   "rationale": "SEC-02 현행 기준",
+   "alternatives_rejected": [],
+   "decided_by": "정한결",
+   "approved_by": "정한결",
+   "status": "approved",
+   "effective_from": "2026-10-20",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "OPS-M05",
+     "seq": 8,
+     "quote": "네 회의 원문은 90일 지나면 파기하고 결정 근거 인용만 원장에 남기는 걸로 하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "EXP-0001",
+   "project_id": "PRJ-EXPAUTO",
+   "topic": "tech.backend",
+   "statement": "백엔드는 Spring Boot로 구현한다.",
+   "rationale": "사내 ERP 연동 라이브러리가 Java 기반",
+   "alternatives_rejected": [
+    "Node.js"
+   ],
+   "decided_by": "석다은",
+   "approved_by": "석다은",
+   "status": "approved",
+   "effective_from": "2026-10-13",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "EXP-M00",
+     "seq": null,
+     "quote": "백엔드는 ERP 연동 라이브러리 재사용하려면 스프링 부트로 가는 게 맞습니다. 그렇게 하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "EXP-0002",
+   "project_id": "PRJ-EXPAUTO",
+   "topic": "exp.ocr",
+   "statement": "OCR은 사내 문서 인식 엔진 DocuRead로 시작한다.",
+   "rationale": "외부 전송 없이 사내에서 처리, 추가 비용 없음",
+   "alternatives_rejected": [
+    "외부 OCR SaaS"
+   ],
+   "decided_by": "석다은",
+   "approved_by": "석다은",
+   "status": "approved",
+   "effective_from": "2026-10-13",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "EXP-M00",
+     "seq": null,
+     "quote": "OCR은 일단 사내 도큐리드로 시작하겠습니다. 인식률은 써 보면서 봅시다."
+    }
+   ]
+  },
+  {
+   "decision_id": "EXP-0003",
+   "project_id": "PRJ-EXPAUTO",
+   "topic": "db.rdbms",
+   "statement": "정산 데이터는 PostgreSQL에 저장한다.",
+   "rationale": "사내 표준 RDBMS(ARC-01)",
+   "alternatives_rejected": [
+    "MySQL"
+   ],
+   "decided_by": "석다은",
+   "approved_by": "석다은",
+   "status": "approved",
+   "effective_from": "2026-10-13",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "EXP-M00",
+     "seq": null,
+     "quote": "정산 데이터는 사내 표준대로 PostgreSQL에 넣겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "EXP-0004",
+   "project_id": "PRJ-EXPAUTO",
+   "topic": "exp.erp",
+   "statement": "ERP 전표 연동은 하루 1회 야간 배치로 한다.",
+   "rationale": "ERP 쪽 실시간 인터페이스가 없음",
+   "alternatives_rejected": [
+    "실시간 API 연동"
+   ],
+   "decided_by": "석다은",
+   "approved_by": "석다은",
+   "status": "approved",
+   "effective_from": "2026-10-13",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "EXP-M00",
+     "seq": null,
+     "quote": "ERP는 실시간 인터페이스가 없으니까 야간 배치 하루 한 번으로 갑시다."
+    }
+   ]
+  },
+  {
+   "decision_id": "EXP-0005",
+   "project_id": "PRJ-EXPAUTO",
+   "topic": "budget",
+   "statement": "외부 솔루션 비용은 월 300만 원 이내로 쓴다.",
+   "rationale": "부서 예산 한도",
+   "alternatives_rejected": [],
+   "decided_by": "남궁현",
+   "approved_by": "남궁현",
+   "status": "approved",
+   "effective_from": "2026-10-13",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "EXP-M00",
+     "seq": null,
+     "quote": "외부 솔루션 비용은 월 300만 원 안에서 쓰는 걸로 하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "EXP-0006",
+   "project_id": "PRJ-EXPAUTO",
+   "topic": "exp.notify",
+   "statement": "결재 알림을 사내 메일과 함께 사내 메신저로도 보낸다.",
+   "rationale": "메일은 확인이 늦음",
+   "alternatives_rejected": [],
+   "decided_by": "여민아 (제안)",
+   "approved_by": null,
+   "status": "proposed",
+   "effective_from": null,
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "EXP-M00",
+     "seq": null,
+     "quote": "메일만으로는 팀장님들이 결재를 늦게 보셔서 메신저로도 알림을 보내면 좋겠어요."
+    }
+   ]
+  },
+  {
+   "decision_id": "EXP-0007",
+   "project_id": "PRJ-EXPAUTO",
+   "topic": "exp.approval",
+   "statement": "100만 원 이상 경비는 팀장·본부장 2단계 결재로 바꾸고 요구사항정의서를 개정한다.",
+   "rationale": "고액 경비 통제 강화 요청(재무팀)",
+   "alternatives_rejected": [
+    "모두 팀장 1단계 유지"
+   ],
+   "decided_by": "남궁현",
+   "approved_by": "남궁현",
+   "status": "approved",
+   "effective_from": "2026-10-20",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "EXP-M00",
+     "seq": null,
+     "quote": "100만 원 넘는 건은 본부장님까지 2단계로 가는 걸로 하고 정의서 고치겠습니다."
+    }
+   ],
+   "r2_updates": [
+    {
+     "doc_id": "EREQ",
+     "from": "v1.0",
+     "to": "v1.1"
+    }
+   ]
+  },
+  {
+   "decision_id": "FLD-0001",
+   "project_id": "PRJ-FIELDAPP",
+   "topic": "fld.framework",
+   "statement": "앱은 Flutter로 개발한다 (안드로이드 우선).",
+   "rationale": "나중에 iOS로 넓힐 때 코드 재사용",
+   "alternatives_rejected": [
+    "안드로이드 네이티브(Kotlin)"
+   ],
+   "decided_by": "은서율",
+   "approved_by": "은서율",
+   "status": "approved",
+   "effective_from": "2026-10-14",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "FLD-M00",
+     "seq": null,
+     "quote": "iOS 확장 생각하면 플러터로 가겠습니다. 안드로이드부터 냅니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "FLD-0002",
+   "project_id": "PRJ-FIELDAPP",
+   "topic": "fld.auth",
+   "statement": "로그인은 사내 SSO(OIDC)와 연동한다.",
+   "rationale": "사내 계정 하나로 관리, 퇴사자 자동 차단",
+   "alternatives_rejected": [
+    "앱 전용 계정"
+   ],
+   "decided_by": "은서율",
+   "approved_by": "은서율",
+   "status": "approved",
+   "effective_from": "2026-10-14",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "FLD-M00",
+     "seq": null,
+     "quote": "로그인은 사내 SSO에 OIDC로 붙이는 걸로 하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "FLD-0003",
+   "project_id": "PRJ-FIELDAPP",
+   "topic": "fld.offline",
+   "statement": "단말 로컬 저장은 암호화한 SQLite로 하고 연결되면 자동 동기화한다.",
+   "rationale": "지하 현장 오프라인 점검, SEC-05",
+   "alternatives_rejected": [
+    "로컬 저장 없이 온라인 전용"
+   ],
+   "decided_by": "은서율",
+   "approved_by": "은서율",
+   "status": "approved",
+   "effective_from": "2026-10-14",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "FLD-M00",
+     "seq": null,
+     "quote": "오프라인은 암호화 SQLite에 쌓았다가 연결되면 올리는 걸로 갑시다."
+    }
+   ]
+  },
+  {
+   "decision_id": "FLD-0004",
+   "project_id": "PRJ-FIELDAPP",
+   "topic": "fld.push",
+   "statement": "푸시 알림은 사내 푸시 게이트웨이를 쓴다.",
+   "rationale": "외부 푸시 서비스로 설비 정보가 나가지 않게",
+   "alternatives_rejected": [
+    "FCM 직접 연동"
+   ],
+   "decided_by": "은서율",
+   "approved_by": "은서율",
+   "status": "approved",
+   "effective_from": "2026-10-14",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "FLD-M00",
+     "seq": null,
+     "quote": "푸시는 사내 게이트웨이 쓰겠습니다. 외부로 설비 정보 안 나가게요."
+    }
+   ]
+  },
+  {
+   "decision_id": "FLD-0005",
+   "project_id": "PRJ-FIELDAPP",
+   "topic": "privacy.location",
+   "statement": "GPS는 상시 수집하지 않고 설비 QR 스캔 위치만 기록한다.",
+   "rationale": "위치정보 최소 수집(SEC-04)",
+   "alternatives_rejected": [
+    "GPS 상시 수집"
+   ],
+   "decided_by": "표지환",
+   "approved_by": "육성재",
+   "status": "approved",
+   "effective_from": "2026-10-14",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "FLD-M00",
+     "seq": null,
+     "quote": "위치는 QR 스캔으로만 남기고 GPS 상시 수집은 안 하는 걸로 하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "SLS-0001",
+   "project_id": "PRJ-SALESDASH",
+   "topic": "sls.bi_tool",
+   "statement": "대시보드는 사내 Tableau Server로 구축한다.",
+   "rationale": "사내 표준 BI, 추가 보안 검토 불필요",
+   "alternatives_rejected": [
+    "외부 BI SaaS"
+   ],
+   "decided_by": "탁현승",
+   "approved_by": "탁현승",
+   "status": "approved",
+   "effective_from": "2026-10-15",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "SLS-M00",
+     "seq": null,
+     "quote": "BI는 사내 태블로 서버로 갑니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "SLS-0002",
+   "project_id": "PRJ-SALESDASH",
+   "topic": "sls.refresh",
+   "statement": "실적 데이터는 매일 오전 7시 1회 배치로 갱신한다.",
+   "rationale": "DW 확정 테이블이 새벽 6시에 마감",
+   "alternatives_rejected": [
+    "1시간마다 갱신"
+   ],
+   "decided_by": "탁현승",
+   "approved_by": "탁현승",
+   "status": "approved",
+   "effective_from": "2026-10-15",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "SLS-M00",
+     "seq": null,
+     "quote": "DW 마감이 6시니까 7시에 하루 한 번 돌리겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "SLS-0003",
+   "project_id": "PRJ-SALESDASH",
+   "topic": "db.rdbms",
+   "statement": "집계 마트는 PostgreSQL에 둔다.",
+   "rationale": "사내 표준 RDBMS(ARC-01)",
+   "alternatives_rejected": [],
+   "decided_by": "탁현승",
+   "approved_by": "탁현승",
+   "status": "approved",
+   "effective_from": "2026-10-15",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "SLS-M00",
+     "seq": null,
+     "quote": "집계 마트는 PostgreSQL로 하겠습니다."
+    }
+   ]
+  },
+  {
+   "decision_id": "SLS-0004",
+   "project_id": "PRJ-SALESDASH",
+   "topic": "budget",
+   "statement": "라이선스 추가 비용은 월 200만 원 이내로 한다.",
+   "rationale": "영업IT팀 예산",
+   "alternatives_rejected": [],
+   "decided_by": "용채원",
+   "approved_by": "용채원",
+   "status": "approved",
+   "effective_from": "2026-10-15",
+   "superseded_by": null,
+   "evidence": [
+    {
+     "meeting_id": "SLS-M00",
+     "seq": null,
+     "quote": "라이선스 추가는 월 200만 원 안에서만 쓰겠습니다."
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "_note": "데이터셋 새 주제 → 권한표(R4 AUTH-*) 주제. data/project/auth_topics.json에 합친다. 세계 권한 규칙(AUTHORING.md 1절)에서 정했다 — 기준 문서에 적힌 업무 규칙은 범위(PM, AUTH-02), 개인정보·데이터 노출은 보안(보안 담당, AUTH-05). 나머지는 기술 선택(PL). 정답지를 보고 고르지 않았다.",
+ "map": {
+  "exp.approval": "scope",
+  "fld.checklist": "scope",
+  "sls.metric": "scope",
+  "privacy.location": "security",
+  "mobile.storage": "security",
+  "sls.access": "security",
+  "sls.export": "security"
+ }
+}

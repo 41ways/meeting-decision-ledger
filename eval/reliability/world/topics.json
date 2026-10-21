@@ -1,0 +1,32 @@
+{
+ "_note": "신뢰도 검증 데이터셋에서 더하는 주제 키. data/project/topics.json에 합친다. 같은 프로젝트에서 같은 주제로 승인된 결정은 앞 결정을 대체하므로, 별개 사안은 다른 키를 쓴다.",
+ "topics": {
+  "answer.validation": "답변 검증 노드·재작성 기준",
+  "agent.gate": "권위 게이트 (LLM 판단과 작업 목록 불일치를 코드로 거름)",
+  "error.retry": "오류 재시도 정책",
+  "ops.alert": "장애 알림 연동 (메신저·호출 시스템)",
+  "ops.feedback": "운영자 답변 평가·피드백 수집",
+  "qa.test": "테스트·품질 검증 방식",
+  "exp.ocr": "영수증 인식(OCR) 엔진·방식",
+  "exp.approval": "경비 결재선·승인 단계 규칙",
+  "exp.erp": "ERP 전표 연동 방식",
+  "exp.card": "법인카드 사용 내역 수집",
+  "exp.notify": "결재 요청·반려 알림 채널",
+  "exp.mileage": "출장 유류비·마일리지 계산",
+  "receipt.retention": "경비 증빙(영수증 원본·전자 전표) 보관 기간",
+  "fld.framework": "모바일 앱 개발 프레임워크",
+  "fld.offline": "오프라인 저장·동기화",
+  "fld.push": "푸시 알림",
+  "fld.photo": "점검 사진 촬영·저장",
+  "fld.auth": "앱 로그인·인증",
+  "fld.checklist": "점검표 양식·항목",
+  "privacy.location": "작업자 위치정보 수집",
+  "mobile.storage": "모바일 단말 데이터 저장·암호화",
+  "sls.bi_tool": "BI 도구 선택",
+  "sls.refresh": "실적 데이터 갱신 주기",
+  "sls.metric": "실적 지표 정의 (매출 인식 기준 등)",
+  "sls.access": "대시보드 열람 권한 범위",
+  "sls.export": "엑셀 내려받기",
+  "data.source": "경영 보고 수치의 원천 데이터"
+ }
+}
