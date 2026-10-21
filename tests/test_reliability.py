@@ -55,3 +55,9 @@ def test_meeting_error_counts_as_miss():
     m = R.summarize(g, raw)["metrics"]
     assert m["회의 처리 오류"]["k"] == 1
     assert m["결정 재현율"]["k"] == 0 and m["결정 재현율"]["n"] == len(g["meetings"][mid]["decisions"])
+
+
+def test_label_after_notice_line():
+    final = "※ 색인에서 찾지 못해 OPS 기록 전체 21건을 읽었습니다\n\n[확인 필요] 논의는 있었지만 결정되지 않음."
+    assert R.label_of(final) == "확인 필요"
+    assert R.answer_ok({"expected_state": "미결", "expected_ids": []}, {"final": final}, {})

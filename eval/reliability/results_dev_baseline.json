@@ -135,6 +135,13 @@
    "hi": 25.4,
    "ci": "boot"
   },
+  "회의 처리 오류": {
+   "k": 0,
+   "n": 20,
+   "pct": 0.0,
+   "lo": 0.0,
+   "hi": 16.1
+  },
   "의견 판정 정확": {
    "k": 12,
    "n": 30,
@@ -591,7 +598,8 @@
    "tokens": 278544,
    "calls_per_item": 11.9,
    "tokens_per_item": 13927,
-   "errors": 0
+   "errors": 0,
+   "paused_excluded": 0
   },
   "opinions": {
    "n": 30,
@@ -601,7 +609,8 @@
    "tokens": 57211,
    "calls_per_item": 3.2,
    "tokens_per_item": 1907,
-   "errors": 0
+   "errors": 0,
+   "paused_excluded": 0
   },
   "questions": {
    "n": 100,
@@ -611,7 +620,8 @@
    "tokens": 289372,
    "calls_per_item": 3.8,
    "tokens_per_item": 2894,
-   "errors": 0
+   "errors": 0,
+   "paused_excluded": 0
   }
  },
  "handoff_reasons": {

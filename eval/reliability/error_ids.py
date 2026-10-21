@@ -138,7 +138,7 @@ def questions(g: dict, raw: dict, idm: dict) -> dict:
              "사실 조회 되묻기" if (p.get("final") or "").startswith(R.CLARIFY) else
              "다른 프로젝트 결정으로 답함" if other and q.get("kind") != "cross_project" else
              "무관한 승인 대기를 씀" if "승인 대기" in short and q["expected_state"] != "승인 대기" else
-             f"{q['expected_state']} → 라벨 {p.get('label')}")
+             f"{q['expected_state']} → 라벨 {R.label_of(p.get('final'))}")
         out["질문 오답"][k].append(f"{qid}({q['expected_state']})")
     og = {o["id"]: o for o in g["opinions"]}
     for oid, p in raw.get("opinions", {}).items():

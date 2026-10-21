@@ -447,11 +447,10 @@ class Runner:
         r = await self.go(self.led.text(q["text"]), today, q.get("scope_project"), refs)
         st = r.pop("state")
         final = st.get("final") or ""
-        lab = re.match(r"\[([^\]]+)\]", final)
         its = (st.get("report") or {}).get("items") or [{}]
         res = its[0].get("research") or {}
         reasons = list(its[0].get("check_reasons") or []) + [n for n in res.get("notes", []) if "주제" in n]
-        return {**r, "final": final, "label": lab.group(1) if lab else None, "mode": st.get("mode"),
+        return {**r, "final": final, "label": label_of(final), "mode": st.get("mode"),
                 "refs": (st.get("report") or {}).get("refs", []), "reasons": reasons,
                 "authority": res.get("authority")}
 
@@ -677,6 +676,18 @@ def score_opinions(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]:
     return c, auto, by
 
 
+def label_of(final: str | None) -> str | None:
+    """
+    답의 상태 라벨 — 줄 맨 앞의 '[확정]' 같은 표시 (앞에 '※ 색인에서 …' 안내 줄이 붙어도 찾는다)
+    Args:
+        final: 최종 답
+    Returns:
+        라벨. 없으면 None
+    """
+    m = re.search(r"^\[([^\]\n]+)\]", final or "", re.M)
+    return m.group(1) if m else None
+
+
 def answer_ok(q: dict, p: dict, idm: dict) -> bool:
     """
     질문 답 채점 — 기대 상태와 근거 ID·핵심어
@@ -687,8 +698,9 @@ def answer_ok(q: dict, p: dict, idm: dict) -> bool:
     Returns:
         정답이면 True
     """
-    final, label = p.get("final") or "", p.get("label")
-    short = final.split("\n\n### ")[0]
+    final, label = p.get("final") or "", label_of(p.get("final"))
+    # 답 문장 = 근거 블록 앞까지, '※' 안내 줄은 뺀다
+    short = "\n".join(x for x in final.split("\n\n### ")[0].splitlines() if not x.startswith("※"))
     # 날짜는 '2026-12-07'과 '12월 7일'을 같은 값으로 본다 (핵심어 비교용으로 뒤에 덧붙임)
     short += " " + " ".join(f"{int(mo)}월 {int(dd)}일" for _, mo, dd in re.findall(r"(\d{4})-(\d{2})-(\d{2})", short))
     ids = [idm.get(a.strip("{}"), a.strip("{}")) for a in q.get("expected_ids", [])]
@@ -724,6 +736,7 @@ def score_questions(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]
     g = {q["id"]: q for q in gold["questions"]}
     for qid, p in raw.items():
         q = g[qid]
+        p["label"] = label_of(p.get("final"))       # 저장된 라벨 말고 답에서 다시 읽는다 (안내 줄이 앞에 붙는 버전 대응)
         ok = answer_ok(q, p, idm)
         p["ok"] = ok
         c["n"] += 1
