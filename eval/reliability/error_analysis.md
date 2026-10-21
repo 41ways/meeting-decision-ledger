@@ -53,7 +53,7 @@
 | 원인 | 건수 | 예 |
 |---|---|---|
 | gate: '까지·주세요'가 섞이면 할 일로 보고 결정에서 뺌 | 12 | OPS-M12-D2 PL "웹훅 전송만 5xx일 때 **3번까지** 재시도하는 걸로 가시죠" / FLD-M01-D5 "항목당 **10장까지** 열어 둘게요" |
-| 추출 LLM이 결정으로 분류하지 않음 | 6 | EXP-M04-D2 PL "그걸로 하시죠. 현황판 실시간 갱신은 웹소켓으로 갑니다." |
+| 추출 LLM이 결정으로 분류하지 않음 | 6 | 5건이 EXP-M04 한 회의 — **추출이 통째로 비었다**(LLM 2회·140초, 결정·할 일·미결 0건). 추출 JSON이 잘려 해석에 실패하면 빈 결과로 넘어가는 조용한 폴백으로 보인다. 나머지 1건 FLD-M04-D3 |
 | gate: 확정 표현 목록 밖이고 진행자도 아님 | 4 | FLD-M02-D1 협력사 "FCM으로 바꾸는 게 낫습니다. 제가 이번 주에 붙여 놓을게요." (권한 밖 결정) |
 
 놓친 결정에 충돌이 몰려 있다 — 권한 밖 결정은 진행자가 아닌 사람이 '~할게요'로 정하는 경우가 많아 규칙에 안 걸린다.
@@ -108,6 +108,8 @@
 
 ## 고칠 곳 후보 (개발 셋 기준, 우선순위)
 
+0. 회의 추출이 해석 실패로 비면 '결정 없음'이 아니라 오류로 드러내기 (EXP-M04: 결정 5·할 일·미결이 통째로 사라짐).
+
 1. gate 할 일 판별: '까지'를 날짜·요일 앞에서만 기한으로 보기 (결정 놓침 12건, 충돌 놓침 상당수).
 2. 진행자 단정 인정 범위: 질문·안내·보류 표현이면 진행자라도 결정 아님 (틀린 결정 41건).
 3. 의견·질문 경로 규칙: '~해도 될까요/되죠/괜찮나요', '~하기로 했죠?' (경로 오분류 25건).
@@ -115,3 +117,75 @@
 5. 권한표 주제 연결표를 주제 목록과 함께 관리 (새 주제가 늘면 기술 선택으로 떨어짐), 금액·기간 기준값 비교.
 
 이 목록은 개발 셋에서만 나왔다. 고친 뒤에도 시험 셋은 한 번만 잰다.
+
+## 부록 — 오류 항목 ID (results_dev_baseline.json)
+
+회의 항목은 `회의 ID#발언 번호` 또는 정답 결정 ID, 질문은 `질문 ID(기대 상태)`. 원장 ID는 결과 JSON의 raw.id_map.
+
+### 결정 놓침 (22건)
+
+| 원인 | 건수 | 항목 |
+|---|---|---|
+| gate: '까지·주세요·부탁'을 할 일로 봄 | 12 | FLD-M01-D5 (#27 협력사), OPS-M12-D1 (#4 PM), OPS-M12-D2 (#10 PL), OPS-M13-D4 (#25 PM), OPS-M13-D5 (#27 PM), EXP-M03-D1 (#8 PL), EXP-M03-D3 (#18 PL), FLD-M03-D1 (#7 현장팀), SLS-M04-D5 (#27 영업본부), EXP-M05-D2 (#12 PM), FLD-M05-D3 (#13 협력사), SLS-M05-D4 (#19 영업본부) |
+| 추출 LLM이 결정으로 안 뽑음 | 6 | EXP-M04-D1 (#10 PM), EXP-M04-D2 (#17 PL), EXP-M04-D3 (#21 PM), EXP-M04-D4 (#25 PM), EXP-M04-D5 (#28 PL), FLD-M04-D3 (#18 PM) |
+| gate: 확정 표현 밖 + 진행자 아님 | 4 | EXP-M02-D5 (#26 백엔드), FLD-M02-D1 (#8 협력사), FLD-M04-D1 (#4 보안), FLD-M05-D4 (#16 협력사) |
+
+### 틀린 결정 (72건)
+
+| 원인 | 건수 | 항목 |
+|---|---|---|
+| 그 밖의 발언(진행자) | 24 | OPS-M11#6, OPS-M11#10, EXP-M01#32, EXP-M01#14, EXP-M01#28, FLD-M01#4, SLS-M01#4, OPS-M12#26, OPS-M12#8, EXP-M02#1, FLD-M02#5, FLD-M02#11, OPS-M13#21, EXP-M03#11, FLD-M03#33, SLS-M03#5, SLS-M03#19, OPS-M14#14, FLD-M04#3, FLD-M04#16, FLD-M04#25, EXP-M05#4, FLD-M05#1, FLD-M05#21 |
+| 보류(미결) 발언 | 12 | OPS-M11#16, FLD-M01#31, FLD-M01#33, OPS-M12#21, EXP-M02#28, OPS-M13#17, FLD-M03#30, SLS-M03#28, OPS-M14#22, EXP-M05#29, FLD-M05#33, SLS-M05#23 |
+| 함정(회상) | 9 | FLD-M01#5, SLS-M01#15, OPS-M12#25, OPS-M12#18, OPS-M13#20, EXP-M03#3, FLD-M03#4, OPS-M14#19, OPS-M15#20 |
+| 같은 결정 중복 | 7 | EXP-M01#29, SLS-M01#30, OPS-M13#4, FLD-M03#13, SLS-M03#21, SLS-M04#6, SLS-M05#3 |
+| 할 일 배정·수락 | 6 | OPS-M11#29, EXP-M01#20, FLD-M01#19, EXP-M02#33, OPS-M13#29, SLS-M05#33 |
+| 그 밖의 발언(참석자) | 5 | SLS-M02#6, EXP-M03#9, EXP-M03#31, SLS-M05#15, SLS-M05#16 |
+| 함정(번복 전 결정) | 4 | EXP-M01#6, SLS-M01#22, FLD-M03#12, OPS-M14#7 |
+| 함정(회의 밖 결정) | 2 | OPS-M11#5, FLD-M02#27 |
+| 함정(보류) | 1 | OPS-M11#33 |
+| 함정(수락) | 1 | FLD-M03#8 |
+| 함정(잡담) | 1 | OPS-M14#29 |
+
+### 충돌·변경 놓침 (61건)
+
+| 원인 | 건수 | 항목 |
+|---|---|---|
+| 결정을 못 뽑음 | 28 | FLD-M01-D5 baseline:FREQ-03, FLD-M01-D5 authority:AUTH-02, OPS-M12-D2 change_approved:OPS-0013, EXP-M02-D5 policy:FIN-01, EXP-M02-D5 baseline:EREQ-06, FLD-M02-D1 past_decision:FLD-0004, FLD-M02-D1 policy:SEC-03, EXP-M03-D1 authority:AUTH-04, EXP-M03-D1 past_decision:EXP-0005, EXP-M03-D3 authority:AUTH-02, EXP-M03-D3 past_decision:EXP-0007, EXP-M03-D3 baseline:EREQ-02, FLD-M03-D1 policy:SEC-04, FLD-M03-D1 past_decision:{FLD-M01-D3}, FLD-M03-D1 authority:AUTH-05, EXP-M04-D1 policy:SEC-03, EXP-M04-D1 authority:AUTH-05, EXP-M04-D1 past_decision:EXP-0002, EXP-M04-D2 policy:ARC-02, EXP-M04-D3 confirms:{EXP-M01-D5}, FLD-M04-D1 confirms:{FLD-M03-D5}, SLS-M04-D5 policy:SEC-01, SLS-M04-D5 authority:AUTH-02/AUTH-05, FLD-M05-D3 policy:OPS-01, FLD-M05-D4 past_decision:{FLD-M04-D2}, SLS-M05-D4 policy:DATA-01, SLS-M05-D4 baseline:SREQ-04, SLS-M05-D4 past_decision:{SLS-M04-D1} |
+| 판정 보류(주제 불확실 등) → 사람에게 | 13 | OPS-M12-D4 policy:SEC-01, OPS-M12-D4 past_decision:OPS-0004, FLD-M02-D2 change_approved:FREQ-08, FLD-M03-D6 past_decision:{FLD-M02-D2}, FLD-M03-D6 baseline:FREQ-08, FLD-M03-D6 authority:AUTH-02, OPS-M14-D3 change_approved:OPS-0009, SLS-M04-D3 authority:AUTH-02, SLS-M04-D3 past_decision:{SLS-M01-D4}, OPS-M15-D2 authority:AUTH-02, SLS-M05-D1 confirms:{SLS-M03-D5}, SLS-M05-D3 authority:AUTH-02/AUTH-05, SLS-M05-D3 past_decision:{SLS-M03-D1} |
+| 주제가 달라 비교 대상 못 찾음 | 8 | FLD-M02-D4 baseline:FREQ-03, SLS-M02-D4 baseline:SREQ-05, SLS-M03-D4 past_decision:SLS-0004, OPS-M14-D1 confirms:{OPS-M13-D5}, OPS-M14-D5 policy:OPS-01, OPS-M14-D5 past_decision:{OPS-M11-D1}, SLS-M04-D4 policy:SEC-03, SLS-M04-D4 past_decision:{SLS-M01-D3} |
+| 권한: 주제가 권한표 연결표에 없음 | 6 | OPS-M11-D5 authority:AUTH-03, SLS-M02-D2 authority:AUTH-02, SLS-M02-D4 authority:AUTH-02, SLS-M03-D4 authority:AUTH-04, FLD-M04-D4 authority:AUTH-04, SLS-M04-D4 authority:AUTH-05 |
+| 같은 주제인데 다름을 못 봄 | 3 | EXP-M02-D3 change_approved:EREQ-08, OPS-M13-D1 baseline:REQ-03, EXP-M05-D4 baseline:EREQ-07 |
+| 권한: 금액·기간 기준·참석자 | 2 | OPS-M13-D1 authority:AUTH-02, EXP-M05-D4 authority:AUTH-03 |
+| 정책을 못 찾았거나 같다고 판정 | 1 | EXP-M02-D4 policy:ARC-01 |
+
+### 질문 오답 (44건)
+
+| 원인 | 건수 | 항목 |
+|---|---|---|
+| 경로 오분류(chat) | 13 | OPS-Q10(찾지 못함), EXP-Q07(확정), EXP-Q11(찾지 못함), FLD-Q06(확정), SLS-Q06(승인 대기), SLS-Q08(미결), FLD-Q15(확정), SLS-Q14(확정), SLS-Q15(확정), OPS-Q18(확정), OPS-Q24(확정), EXP-Q21(승인 대기), EXP-Q24(확정) |
+| 무관한 승인 대기를 씀 | 10 | FLD-Q03(확정), OPS-Q07(찾지 못함), OPS-Q09(미결), FLD-Q08(미결), FLD-Q09(찾지 못함), SLS-Q09(찾지 못함), EXP-Q25(찾지 못함), FLD-Q23(미결), FLD-Q24(찾지 못함), FLD-Q25(찾지 못함) |
+| 다른 프로젝트 결정으로 답함 | 6 | SLS-Q04(찾지 못함), FLD-Q16(찾지 못함), EXP-Q19(찾지 못함), FLD-Q20(찾지 못함), SLS-Q19(찾지 못함), SLS-Q25(찾지 못함) |
+| 확정 → 라벨 확인 필요 | 3 | OPS-Q02(확정), OPS-Q11(확정), OPS-Q22(확정) |
+| 승인 대기 → 라벨 확정 | 3 | SLS-Q07(승인 대기), OPS-Q14(승인 대기), OPS-Q23(승인 대기) |
+| 사실 조회 되묻기 | 3 | OPS-Q20(찾지 못함), EXP-Q22(미결), SLS-Q24(찾지 못함) |
+| 찾지 못함 → 라벨 확정 | 1 | OPS-Q05(찾지 못함) |
+| 승인 대기 → 라벨 미결 | 1 | OPS-Q13(승인 대기) |
+| 미결 → 라벨 확인 필요 | 1 | OPS-Q15(미결) |
+| 경로 오분류(meeting) | 1 | FLD-Q11(승인 대기) |
+| 미결 → 라벨 확정 | 1 | SLS-Q13(미결) |
+| 승인 대기 → 라벨 확인 필요 | 1 | FLD-Q21(승인 대기) |
+
+### 의견 오답 (18건)
+
+| 원인 | 건수 | 항목 |
+|---|---|---|
+| 경로 오분류(question) | 6 | OPS-O01, FLD-O01, SLS-O03, FLD-O04, EXP-O08, FLD-O07 |
+| 경로 오분류(chat) | 3 | SLS-O01, FLD-O05, SLS-O06 |
+| needs_approval → no_conflict | 3 | EXP-O03, FLD-O06, OPS-O07 |
+| no_conflict → needs_approval | 2 | OPS-O03, OPS-O06 |
+| no_conflict → conflict | 2 | EXP-O06, SLS-O07 |
+| 경로 오분류(fact) | 1 | EXP-O02 |
+| needs_approval → conflict | 1 | SLS-O08 |
+
+
+부록은 `.venv/bin/python eval/reliability/error_ids.py <결과 JSON>`으로 다시 만든다 — 고친 뒤 같은 분류로 다시 세어 비교할 수 있다.
