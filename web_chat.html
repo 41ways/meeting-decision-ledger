@@ -464,6 +464,7 @@ tr.lock td { color: var(--muted); }
             <button :class="{ on: atab === 'open' }" @click="atab = 'open'; loadOpen()">미결<span class="cnt">{{ openItems.length }}</span></button>
             <button :class="{ on: atab === 'acl' }" @click="atab = 'acl'; loadAcl()">회의 접근 권한</button>
             <button :class="{ on: atab === 'his' }" @click="atab = 'his'">처리 이력</button>
+            <button :class="{ on: atab === 'mon' }" @click="atab = 'mon'; loadMonitor()">품질 감시<span class="cnt" v-if="mon && mon.alerts">{{ mon.alerts }}</span></button>
           </div>
           <div v-if="atab === 'dec'">
             <p class="note">승인하면 같은 주제의 기존 결정은 지우지 않고 '대체됨'으로 표시합니다. 승인 뒤 '확인'에서 이 결정을 볼 수 있는 범위를 정합니다 (기본: 근거 회의 참석자).</p>
@@ -535,6 +536,36 @@ tr.lock td { color: var(--muted); }
                 <td><button class="btn" @click="closeOpen(o)">닫기</button></td>
               </tr>
             </table>
+          </div>
+          <div v-if="atab === 'mon'">
+            <p class="note">파이프라인 버전과 드리프트 판정입니다. champion 승격 직후 요청(기준선)과 최근 요청을 비교합니다. 비율은 차이가 10%p 이상이고 유의하면 경보, 차이만 크면 주의입니다. 승격·롤백은 scripts/promote.py로 합니다.</p>
+            <p v-if="!mon" class="muted">불러오는 중</p>
+            <template v-else>
+              <p class="note">실행 <span class="mono">{{ mon.running.id }}</span> · {{ monStatus(mon.running.status) }} · champion <span class="mono">{{ mon.champion ? mon.champion.id : '없음' }}</span> · 기준선 {{ mon.window.base.count }}건 · 최근 {{ mon.window.recent.count }}건 · <span :class="mon.alerts ? 'st-bad' : 'st-ok'">경보 {{ mon.alerts }}</span> · <span :class="mon.warnings ? 'st-wait' : ''">주의 {{ mon.warnings }}</span></p>
+              <div v-if="mon.policy && mon.policy.changed" class="perm">
+                <span class="st-bad">정책 개정 {{ mon.policy.seen }} → {{ mon.policy.current }}</span>
+                <span v-if="!mon.policy.review.length">다시 볼 승인 결정 없음</span>
+                <span v-for="d in mon.policy.review" :key="d.decision_id"><span class="mono">{{ d.decision_id }}</span> 재검토 필요 — {{ d.rules.map(r => r.rule_id + ' ' + r.change).join(', ') }}</span>
+              </div>
+              <table style="margin-top:10px">
+                <tr><th style="width:56px">묶음</th><th>지표</th><th style="width:140px">기준선</th><th style="width:140px">최근</th><th style="width:200px">검정</th><th style="width:56px">판정</th></tr>
+                <tr v-for="f in mon.findings" :key="f.group + f.metric">
+                  <td class="muted">{{ f.group }}</td><td>{{ f.metric }}</td>
+                  <td class="mono">{{ monVal(f.base) }}</td><td class="mono">{{ monVal(f.recent) }}</td>
+                  <td class="mono muted" :title="f.rule">{{ f.test }}</td>
+                  <td :class="{ '경보': 'st-bad', '주의': 'st-wait', '정상': 'st-ok' }[f.level] || 'muted'">{{ f.level }}</td>
+                </tr>
+              </table>
+              <table style="margin-top:14px">
+                <tr><th>버전</th><th style="width:90px">상태</th><th style="width:150px">승격</th><th style="width:80px">커밋</th><th style="width:70px">요청</th><th style="width:80px">평균 초</th><th style="width:150px">사람 신호 (승인·반려·수정)</th></tr>
+                <tr v-for="v in mon.versions" :key="v.id">
+                  <td class="mono">{{ v.id }}</td><td :class="v.status === 'champion' ? 'st-ok' : ''">{{ monStatus(v.status) }}</td>
+                  <td class="mono">{{ v.promoted_at ? when(v.promoted_at) : '—' }}</td><td class="mono">{{ (v.commit || '—').slice(0, 7) }}</td>
+                  <td class="mono">{{ v.requests }}</td><td class="mono">{{ v.avg_sec ?? '—' }}</td>
+                  <td class="mono">{{ mon.human[v.id] ? mon.human[v.id].approved + '·' + mon.human[v.id].rejected + '·' + mon.human[v.id].edited : '—' }}</td>
+                </tr>
+              </table>
+            </template>
           </div>
           <div v-if="atab === 'his'">
             <table>
@@ -959,6 +990,10 @@ createApp({
     }
     async function loadAcl() { acl.value = (await api(`/admin/acl?user=${me.value.user_id}`)).meetings; }
     const openItems = ref([]);
+    const mon = ref(null);           // 품질 감시 (GET /admin/monitor)
+    async function loadMonitor() { if (me.value?.role === '팀장') mon.value = await api(`/admin/monitor?user=${me.value.user_id}`); }
+    const monStatus = s => ({ champion: '운영 중(champion)', challenger: '후보(challenger)', retired: '내림(retired)' }[s] || '미등록');
+    const monVal = v => v === null || v === undefined ? '—' : typeof v === 'object' ? (Object.entries(v).map(([k, n]) => k + ' ' + n).join(' · ') || '—') : v;
     async function loadOpen() { if (me.value?.role === '팀장') openItems.value = (await api(`/open-items?user=${me.value.user_id}`)).items; }
     async function closeOpen(o) {
       const reason = await ask({ title: '미결 닫기', message: `${o.meeting_id} '${o.statement}' — 결정 없이 닫는 사유를 적어 주세요 (예: 회의 밖에서 하지 않기로 함).`, input: '', placeholder: '사유', ok: '닫기' });
@@ -1161,7 +1196,7 @@ createApp({
       if (saved && users.value.some(u => u.user_id === saved)) await login(saved);
       if (me.value && qs.get('thread')) { const t = threads.value.find(x => x.thread_id === qs.get('thread')); if (t) await openThread(t); }
       if (me.value && qs.get('page')) go(qs.get('page'));
-      if (me.value && qs.get('tab')) { atab.value = qs.get('tab'); if (qs.get('tab') === 'acl') loadAcl(); }
+      if (me.value && qs.get('tab')) { atab.value = qs.get('tab'); if (qs.get('tab') === 'acl') loadAcl(); if (qs.get('tab') === 'mon') loadMonitor(); }
       if (me.value && qs.get('prj')) { drawer.value = true; await loadMeetings(); await loadProjects(); await pickPrj(qs.get('prj')); }
       if (me.value && qs.get('mtg')) { drawer.value = true; await loadMeetings(); await loadProjects(); const m = meetings.value.find(x => x.meeting_id === qs.get('mtg')); if (m) await pickMeeting(m); }
       if (me.value && qs.get('mini')) openMini();
@@ -1171,7 +1206,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { mon, loadMonitor, monStatus, monVal, openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,

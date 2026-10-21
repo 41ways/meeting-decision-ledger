@@ -9,10 +9,12 @@
 
 실행: uvicorn server:app --port 8100  →  브라우저 http://127.0.0.1:8100
 """
+# pylint: disable=too-many-lines  # 화면이 부르는 엔드포인트를 한곳에서 찾게 둔다 (새 묶음은 ledger/*_api.py 라우터로)
 import asyncio
 import json
 import os
 import re
+import time
 from contextlib import asynccontextmanager
 from dataclasses import replace
 from datetime import date
@@ -36,6 +38,7 @@ from ledger.calendar import build_calendar
 from ledger.calendar_api import router as calendar_router
 from ledger.llm import OLLAMA_URL, LocalLLM, build_llms, warm_up
 from ledger.mcp_bridge import LedgerMCP
+from ledger import monitor_api
 
 HERE = Path(__file__).parent
 VERSION = "0.7.0"
@@ -231,6 +234,9 @@ async def lifespan(application: FastAPI):
     application.state.graph = build_ledger_graph(deps)
     # 기본 그래프(build_llms 기준)를 'accurate'로 등록. OpenAI 백엔드면 이 하나만 쓴다
     application.state.graphs = {"accurate": application.state.graph}
+    # 파이프라인 버전 등록·요청 지표 저장소 (승격은 scripts/promote.py, 감시는 GET /admin/monitor)
+    monitor_api.setup(application.state, fast.name, quality.name,
+                      PRESETS if os.environ.get("LLM_BACKEND", "ollama") == "ollama" else {})
     if os.environ.get("LLM_BACKEND", "ollama") == "ollama":
         for key, (_, f, q) in PRESETS.items():
             if key != "accurate":
@@ -253,6 +259,7 @@ async def lifespan(application: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(calendar_router)     # 일정 목록·확인·저장 (ledger/calendar_api.py)
+app.include_router(monitor_api.router)  # 품질 감시 (ledger/monitor_api.py)
 
 
 def lead_only(user: str) -> None:
@@ -452,9 +459,10 @@ async def _run(message: str, thread_id: str, user: str) -> dict:
     Returns:
         그래프 최종 상태
     """
-    deps = app.state.deps
+    deps, t0 = app.state.deps, time.perf_counter()
     result = await app.state.graph.ainvoke({"message": message, "user_id": user,
                                             "history": deps.session_store.load(thread_id), "events": []})
+    monitor_api.record(app.state, result, t0, user)
     deps.session_store.append(thread_id, "user", message)
     deps.session_store.append(thread_id, "assistant", result["final"])
     after_run(user, thread_id, message, result)
@@ -539,6 +547,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             yield sse({"type": "FinalAnswer", "reply": f"{denied} 열람 권한이 없습니다. 아래에서 열람 요청을 보내면 팀장이 승인합니다."})
             yield "data: [DONE]\n\n"
             return
+        t0 = time.perf_counter()
         # 대화방과 질문은 시작할 때 바로 저장 — 답변 도중 사용자를 바꾸거나 창을 닫아도 대화방이 남는다
         mid = (normalize_meeting_id(message) or meeting) if re.search(r"정리|요약|추출|처리|분석", message) else ""
         # 대화방에 범위를 기록: 회의가 있으면 그 회의·프로젝트, 아니면 사용자가 고른 프로젝트·회의
@@ -570,6 +579,8 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
                        "opinion": hit.get("opinion")})
             deps.session_store.append(thread_id, "assistant", hit["final"])
             app.state.access.set_thread_refs(thread_id, hit.get("refs") or [])
+            monitor_api.record(app.state, {"mode": hit.get("mode"), "events": hit.get("events", []),
+                                           "message": message}, t0, user, model, cached=True)
             yield "data: [DONE]\n\n"
             return
         # seen: 이미 보낸 이벤트 수. 노드는 누적된 events 목록 전체를 돌려주므로 새로 붙은 것만 보낸다
@@ -597,6 +608,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
             # 연결 계열 예외(ConnectError 등)는 원인이 대부분 Ollama 미실행이라 조치 안내로 바꾼다
             hint = "LLM 서버(Ollama)에 연결할 수 없습니다. ollama serve 확인" if "Connect" in type(e).__name__ else repr(e)
             deps.session_store.append(thread_id, "assistant", "오류: " + hint)
+            monitor_api.record(app.state, {**state, "message": message}, t0, user, model, error=hint[:200])
             yield sse({"type": "Error", "message": hint})
             yield "data: [DONE]\n\n"
             return
@@ -623,6 +635,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
         deps.session_store.append(thread_id, "assistant", final)
         app.state.access.set_thread_refs(thread_id, report.get("refs") or [])
         after_run(user, thread_id, message, state)
+        monitor_api.record(app.state, {**state, "message": message}, t0, user, model)
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(gen(), media_type="text/event-stream")
@@ -703,6 +716,7 @@ async def propose(req: ProposalReq):
     r = await app.state.deps.mcp.call("propose_decision", statement=req.statement, topic=req.topic,
                                       decided_by=name, evidence=[], project_id=req.project_id)
     app.state.access.record_proposal(r["proposed"], req.user, req.source)
+    monitor_api.link_decision(app.state, r["proposed"])     # 사람 신호(승인·반려)를 버전에 묶는다
     return r
 
 

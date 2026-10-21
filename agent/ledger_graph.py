@@ -39,6 +39,7 @@ from langsmith import traceable
 from agent import enrich, retrieve
 from agent.facts import fact_answer, is_fact_question
 from agent.schedule_add import events_as_meetings, schedule_add_node
+from ledger import pipeline_registry
 from ledger.schedule_parse import is_add_request
 from ledger.thresholds import MIN_TOPIC_SCORE
 
@@ -207,7 +208,7 @@ def _usage(state, *us) -> dict:
         state: 현재 그래프 상태 (기존 usage)
         *us: LLM 호출별 사용량 dict. None은 LLM을 부르지 않은 경우라 건너뛴다
     Returns:
-        누적한 usage dict (llm_calls, tokens)
+        누적한 usage dict (llm_calls, tokens, parse_errors)
     """
     u = dict(state.get("usage") or {"llm_calls": 0, "tokens": 0})
     for x in us:
@@ -215,6 +216,8 @@ def _usage(state, *us) -> dict:
             # extra_calls — 한 노드 안에서 추가로 부른 호출(예외 범위 문항)을 한 usage에 합쳐 온 경우
             u["llm_calls"] += 1 + x.get("extra_calls", 0)
             u["tokens"] += x.get("tokens", 0)
+            # 파싱 실패는 기록만 한다 (요청별 지표·드리프트 감시용). 처리는 각 노드가 이미 한다
+            u["parse_errors"] = u.get("parse_errors", 0) + bool(x.get("parse_error"))
     return u
 
 
@@ -1615,7 +1618,7 @@ async def finalize_node(state: LedgerState, deps: LedgerDeps) -> dict:
     if state["mode"] == "meeting" and state.get("segments"):
         # 회의 정리 결과를 회의 기록에 남긴다 — 다음 회의·질문이 이 기록(미결·할 일·요약)을 이어 쓴다
         saved = await deps.mcp.call("save_meeting_record", meeting_id=state["meeting_id"],
-                                    pipeline_version=enrich.PIPELINE_VERSION, summary=state.get("summary"),
+                                    pipeline_version=pipeline_registry.version_of(deps), summary=state.get("summary"),
                                     actor=state.get("user_id") or "agent", items=_record_items(state))
     if deps.propose_to_ledger and state["mode"] == "meeting":
         for d in state["items"]:
