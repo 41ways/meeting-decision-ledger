@@ -786,6 +786,9 @@ async def _decision_detail(d: dict) -> dict:
                       for i in items if i["kind"] == "open"]}
 
 
+_BG: set = set()   # 응답 뒤에도 이어서 도는 작업 (참조를 쥐어 GC로 사라지지 않게)
+
+
 @app.post("/decisions/{decision_id}/edit")
 async def edit_decision(decision_id: str, req: EditReq):
     """
@@ -794,20 +797,31 @@ async def edit_decision(decision_id: str, req: EditReq):
         decision_id: 승인 대기 결정 ID
         req:         수정 내용
     Returns:
-        {"updated", "before"}
+        {"updated", "before", "after", "changed", "reindexed": 20초 안에 색인까지 끝났는지}
     Raises:
         HTTPException: 403 — 팀장이 아님 / 400 — 승인 대기 상태가 아님
     """
     lead_only(req.user)
     if req.topic and req.topic not in await _topic_keys():
         raise HTTPException(400, f"주제 목록에 없는 키입니다: {req.topic}")
+    mcp = app.state.deps.mcp
     try:
-        return await app.state.deps.mcp.call("update_proposed_decision", decision_id=decision_id,
-                                             actor=app.state.access.user(req.user)["name"],
-                                             statement=req.statement, topic=req.topic, rationale=req.rationale,
-                                             alternatives_rejected=req.alternatives, slots=req.slots)
+        out = await mcp.call("update_proposed_decision", decision_id=decision_id,
+                             actor=app.state.access.user(req.user)["name"],
+                             statement=req.statement, topic=req.topic, rationale=req.rationale,
+                             alternatives_rejected=req.alternatives, slots=req.slots, reindex=False)
     except Exception as e:  # pylint: disable=broad-exception-caught  # MCP 도구 오류 메시지를 그대로 전달
         raise HTTPException(400, str(e)) from e
+    if isinstance(out, str):   # 도구 오류는 문자열로 돌아온다 (예: 승인 대기 아님)
+        raise HTTPException(400, out)
+    # 원장·이력은 이미 바뀌었다. 색인은 임베딩 모델이 바쁘면 오래 걸리므로 20초까지만 기다리고 나머지는 뒤에서 끝낸다
+    task = asyncio.create_task(mcp.call("reindex_decision", decision_id=decision_id))
+    _BG.add(task)
+    task.add_done_callback(_BG.discard)
+    done, _ = await asyncio.wait({task}, timeout=20)
+    # 도구 안의 오류(임베딩 시간 초과 등)는 예외가 아니라 오류 문장으로 돌아온다
+    ok = bool(done) and task.exception() is None and isinstance(task.result(), dict)
+    return {**out, "reindexed": ok}
 
 
 async def _topics() -> list[dict]:

@@ -1168,11 +1168,11 @@ createApp({
       }
       ed.saving = true;
       try {
-        await post(`/decisions/${ed.d.decision_id}/edit`, { user: me.value.user_id, statement: ed.f.statement.trim(), topic: ed.f.topic,
+        const r = await post(`/decisions/${ed.d.decision_id}/edit`, { user: me.value.user_id, statement: ed.f.statement.trim(), topic: ed.f.topic,
           rationale: ed.f.rationale.trim(), alternatives: ed.f.alts.split('\n').map(s => s.trim()).filter(Boolean), slots: ed.f.slots });
         const n = edChanges.value.length;
         ed.open = false;
-        await ask({ title: `${ed.d.decision_id} 수정 저장`, message: `${n}건을 고쳐 원장·검색 색인·이력에 반영했습니다.`, cancel: '' });
+        await ask({ title: `${ed.d.decision_id} 수정 저장`, message: r.reindexed ? `${n}건을 고쳐 원장·검색 색인·이력에 반영했습니다.` : `${n}건을 고쳐 원장·이력에 반영했습니다. 검색 색인은 모델이 바빠 뒤에서 갱신 중입니다.`, cancel: '' });
         loadAdmin();
       } catch (e) { await ask({ title: '수정 실패', message: String(e.message || e), cancel: '' }); }
       finally { ed.saving = false; }

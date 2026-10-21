@@ -227,7 +227,8 @@ def will_supersede(decision_id: str, topic: str = "") -> list[dict]:
 @mcp.tool()
 def update_proposed_decision(decision_id: str, actor: str, statement: str = "",  # pylint: disable=too-many-arguments
                              topic: str = "", rationale: str | None = None,
-                             alternatives_rejected: list[str] | None = None, slots: dict | None = None) -> dict:
+                             alternatives_rejected: list[str] | None = None, slots: dict | None = None,
+                             reindex: bool = True) -> dict:
     """[사람 전용] 승인 전 결정을 고치고 검색 색인(R3)과 이력을 함께 갱신한다.
 
     Args:
@@ -238,16 +239,32 @@ def update_proposed_decision(decision_id: str, actor: str, statement: str = "", 
         rationale:             고친 이유 (None이면 그대로)
         alternatives_rejected: 고친 기각 대안 (None이면 그대로)
         slots:                 고친 칸 기록 (None이면 그대로)
+        reindex:               False면 색인은 건너뛴다 (호출 측이 reindex_decision을 따로 부른다)
     Returns:
-        {"updated", "before", "after", "reindexed": True}
+        {"updated", "before", "after", "changed", "reindexed"}
     """
     out = store.update_proposed(decision_id, statement or None, topic or None, rationale, alternatives_rejected, slots)
     changed = {k: {"before": out["before"][k], "after": out["after"][k]}
                for k in out["after"] if out["before"].get(k) != out["after"][k]}
     records.log(actor, "decision_edited", decision_id, {"changed": changed})
     # 원장만 바꾸면 검색 색인이 옛 문장·주제로 남아 엉뚱하게 찾힌다 — 같은 자리에서 다시 적재
+    if reindex:
+        rag.ingest_decision(store.get_decision(decision_id))
+    return {**out, "changed": list(changed), "reindexed": reindex}
+
+
+@mcp.tool()
+def reindex_decision(decision_id: str) -> dict:
+    """결정 하나를 검색 색인(R3)에 다시 적재한다 (임베딩이 필요해 모델이 바쁘면 오래 걸린다).
+
+    Args:
+        decision_id: 결정 ID
+    Returns:
+        {"reindexed": 결정 ID}
+    """
     rag.ingest_decision(store.get_decision(decision_id))
-    return {**out, "changed": list(changed), "reindexed": True}
+    records.log("agent", "decision_reindexed", decision_id, {})
+    return {"reindexed": decision_id}
 
 
 @mcp.tool()
