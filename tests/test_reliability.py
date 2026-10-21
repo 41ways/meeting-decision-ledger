@@ -45,3 +45,13 @@ def test_intervals():
     b = R.boot_rate([(3, 5), (4, 4), (1, 6), (5, 5)])
     assert b["k"] == 13 and b["n"] == 20 and b["lo"] <= b["pct"] <= b["hi"]
     assert R.rate(0, 0)["pct"] is None
+
+
+def test_meeting_error_counts_as_miss():
+    g = D.load_gold()
+    mid = next(m for m, v in g["meetings"].items() if v["split"] == "dev")
+    raw = {"meetings": {mid: {"decisions": [], "action_items": [], "undecided": [], "sec": 1.0, "calls": 2,
+                              "tokens": 10, "error": "RuntimeError('추출 해석 실패')"}}, "id_map": {}}
+    m = R.summarize(g, raw)["metrics"]
+    assert m["회의 처리 오류"]["k"] == 1
+    assert m["결정 재현율"]["k"] == 0 and m["결정 재현율"]["n"] == len(g["meetings"][mid]["decisions"])

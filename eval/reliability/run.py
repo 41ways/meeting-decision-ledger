@@ -882,7 +882,9 @@ def summarize(gold: dict, raw: dict) -> dict:
             "할 일 담당·기한 모두 정확": rate_m("act_both", "act_gt"),
             "미결 재현율": rate_m("und_hit", "und_gt"), "미결 정밀도": rate_m("und_pred_ok", "und_pred"),
             "충돌·변경 탐지율": rate_m("conf_hit", "conf_gt"),
-            "충돌 오탐(충돌 없는 결정 중)": rate_m("fa", "fa_base")})
+            "충돌 오탐(충돌 없는 결정 중)": rate_m("fa", "fa_base"),
+            # 추출 실패 등으로 회의 처리가 오류로 끝나면 그 회의 결정은 전부 놓친 것으로 센다 (0건으로 조용히 넘기지 않음)
+            "회의 처리 오류": rate(mc["error"], len(raw["meetings"]))})
     if raw.get("opinions"):
         m.update({"의견 판정 정확": rate(oc["ok"], oc["n"]), "의견 근거 일치": rate(oc["basis_ok"], oc["basis_n"]),
                   "의견 경로 오분류(의견으로 처리 안 함)": rate(oc["misrouted"], oc["n"])})
