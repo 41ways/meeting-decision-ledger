@@ -448,5 +448,8 @@ def find_candidates(store, records, project_id: str, topics: list[str], decision
         inside = [x for x in cands if period[0] <= (x.get("date") or "") <= period[1]]
         dropped = bool(cands) and not inside
         cands = inside or cands
-    cands.sort(key=lambda x: (x["kind"] != "decision", x.get("date") or "", x.get("decision_id") or x.get("item_id")))
+    # 질문에 적힌 결정 ID는 맨 앞에 — 긴 목록 가운데 묻히지 않게
+    asked = set(decision_ids)
+    cands.sort(key=lambda x: (x.get("decision_id") not in asked, x["kind"] != "decision", x.get("date") or "",
+                              x.get("decision_id") or x.get("item_id")))
     return {"candidates": cands, "tier": tier, "period_dropped": dropped}

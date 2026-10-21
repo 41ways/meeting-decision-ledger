@@ -83,6 +83,8 @@ def test_index_id_crosses_project_and_meeting_scope(db):
     assert {"OPS-0007", "OPS-0008"} <= set(m02) and "OPS-0001" not in m02
     both = ids(T.find_candidates(s, r, "PRJ-OPSAI", ["session.store"], [], ["OPS-M02"], []))
     assert both == ["OPS-0008"]                                          # 주제와 회의가 함께면 둘 다 맞는 것
+    first = ids(T.find_candidates(s, r, "PRJ-OPSAI", ["realtime.transport"], ["OPS-0007"], [], []))
+    assert first[0] == "OPS-0007" and "OPS-0005" in first                # 질문에 적힌 ID는 맨 앞
 
 
 def test_index_word_tier_and_period(db):

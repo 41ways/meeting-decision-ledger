@@ -866,7 +866,9 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
             pick_evs.append({"type": "CandidatesPicked", "how": picked["how"], "tier": picked["tier"],
                              "shown": picked["shown"], "picked": ids, "check": why,
                              "aliases": [a for h in picked["topics"] for a in h["aliases"]],
-                             "via": {k: v for k, v in picked["via"].items() if k[2:] in ids}})
+                             "via": {k: v for k, v in picked["via"].items() if k[2:] in ids},
+                             # 사람이 확인할 때 AI가 고르지 않은 색인 후보도 함께 보이게
+                             "not_picked": [k for k in picked["via"] if k[2:] not in ids][:10]})
             if picked["full_read"]:
                 fr = picked["full_read"]
                 pick_evs.append({"type": "FullReadFallback", **{k: v for k, v in fr.items() if k != "notice"},
