@@ -162,13 +162,30 @@ def make_root(rev: str | None = None) -> Path:
         shutil.copytree(cached, tmp / "store")
     else:
         t = time.perf_counter()
-        subprocess.run([sys.executable, str(tmp / "scripts" / "ingest.py")], env=env, check=True,
-                       stdout=subprocess.DEVNULL)
+        for attempt in range(3):
+            if subprocess.run([sys.executable, str(tmp / "scripts" / "ingest.py")], env=env,
+                              stdout=subprocess.DEVNULL).returncode == 0:
+                break
+            if attempt == 2:
+                raise RuntimeError("기본 세계 적재 실패")
+            unwedge()
         print(f"기본 세계 적재 {time.perf_counter() - t:.0f}초")
         CACHE.mkdir(exist_ok=True)
         shutil.copytree(tmp / "store", cached)
     os.environ["LEDGER_STORE"] = str(tmp / "store")
     return tmp
+
+
+def unwedge() -> None:
+    """
+    Ollama 모델을 내린다 — 멈춘 요청이 8b를 붙잡고 있으면 임베딩 모델이 못 올라와 모든 검색이 시간 초과된다
+
+    16GB 맥북에서는 8b와 임베딩 모델이 번갈아 올라간다. 내려도 다음 요청 때 다시 올라온다.
+    """
+    out = subprocess.run(["ollama", "ps"], capture_output=True, text=True).stdout.splitlines()[1:]
+    for line in out:
+        if line.split():
+            subprocess.run(["ollama", "stop", line.split()[0]], capture_output=True)
 
 
 def other_evals() -> list[str]:
@@ -243,7 +260,7 @@ class Runner:
                 break
             if attempt == 2:
                 raise RuntimeError(f"{mid} 전사문 적재 실패")
-            await asyncio.sleep(30)
+            unwedge()
         self.mcp = self.LedgerMCP()
         await self.mcp.start()
         self.deps = self.LedgerDeps(fast_llm=self.llm, quality_llm=self.llm, mcp=self.mcp, checkers=self.checkers)
@@ -272,7 +289,8 @@ class Runner:
             # Ollama를 다른 프로세스와 나눠 쓰면 임베딩 모델이 늦게 올라와 시간 초과가 난다 — 환경 문제라 다시 돌린다
             if not (err and "imeout" in err) and not self.env_failed(st):
                 break
-            await asyncio.sleep(30)
+            unwedge()
+            await asyncio.sleep(5)
         u = st.get("usage") or {}
         xc = [{k: e.get(k) for k in ("kind", "target", "votes", "outcome")} for e in st.get("events", [])
               if e.get("type") == "CrossChecked"]
@@ -307,7 +325,8 @@ class Runner:
             r = await self.mcp.call(name, **args)
             if isinstance(r, dict):
                 return r
-            await asyncio.sleep(30)
+            unwedge()
+            await asyncio.sleep(5)
         raise RuntimeError(f"{name} 실패: {r}")
 
     async def apply_gold(self, mid: str) -> None:
@@ -563,6 +582,7 @@ def score_meetings(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]:
                     | set(d["changes"]) | set(d["confirms"])
                 c["by_ok"] += d["decided_by"] == gd["decided_by"]
                 c["topic_ok"] += d["topic"] == gd["topic"]
+                c["topic_empty"] += not d["topic"]         # 정답 주제는 모두 목록 안 — 빈 주제(새 주제)로 둔 것
                 c["label_ok"] += d["label"] == gd["expected_label"] or bool(gd.get("ambiguous"))
             for x in rel_exp:
                 c["conf_gt"] += 1
@@ -839,6 +859,7 @@ def summarize(gold: dict, raw: dict) -> dict:
             "결정 재현율": rate_m("dec_hit", "dec_gt"), "결정 정밀도": rate_m("dec_hit", "dec_pred"),
             "결정자 정확(맞힌 결정 중)": rate_m("by_ok", "dec_hit"),
             "주제 정확(맞힌 결정 중)": rate_m("topic_ok", "dec_hit"),
+            "새 주제로 둔 비율(정답 주제는 목록 안)": rate_m("topic_empty", "dec_hit"),
             "라벨 정확(맞힌 결정 중)": rate_m("label_ok", "dec_hit"),
             "함정 발언 오추출": rate_m("trap_hit", "traps"),
             "할 일 재현율": rate_m("act_hit", "act_gt"),
