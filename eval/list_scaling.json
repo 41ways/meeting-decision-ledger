@@ -1,0 +1,5213 @@
+{
+ "50": {
+  "full": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 6.31,
+    "tokens": 2196,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 6.24,
+    "tokens": 2189,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.67
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "CSB-0004",
+     "OPS-0007"
+    ],
+    "sec": 5.58,
+    "tokens": 2179,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 5.08,
+    "tokens": 2167,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.1
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 5.12,
+    "tokens": 2175,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.73
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 4.97,
+    "tokens": 2166,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 4.94,
+    "tokens": 2170,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.33
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 4.87,
+    "tokens": 2170,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.33
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 7.01,
+    "tokens": 2211,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.2
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 7.01,
+    "tokens": 2209,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.2
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 4.84,
+    "tokens": 2165,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.57
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 4.8,
+    "tokens": 2171,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.57
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 4.38,
+    "tokens": 2158,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 4.79,
+    "tokens": 2165,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 6.6,
+    "tokens": 2200,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.27
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 4.77,
+    "tokens": 2170,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.27
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 6.24,
+    "tokens": 2197,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 6.03,
+    "tokens": 2187,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.67
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 4.76,
+    "tokens": 2169,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.61
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 9,
+    "in_list": true,
+    "picked": [
+     "OPS-0009",
+     "OPS-1000",
+     "OPS-0001",
+     "OPS-0005",
+     "OPS-0002",
+     "OPS-0008",
+     "OPS-0007",
+     "OPS-0004",
+     "OPS-0006",
+     "OPS-1005"
+    ],
+    "sec": 9.43,
+    "tokens": 2257,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.61
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 4.81,
+    "tokens": 2168,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.1
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-0008",
+     "CSB-0004"
+    ],
+    "sec": 7.96,
+    "tokens": 2232,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.41
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-1019"
+    ],
+    "sec": 6.42,
+    "tokens": 2207,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.73
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-0004",
+     "CSB-0005"
+    ],
+    "sec": 5.49,
+    "tokens": 2181,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": [
+     0.41
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 4.35,
+    "tokens": 2163,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 4.37,
+    "tokens": 2157,
+    "calls": 1,
+    "shown": 50,
+    "how": "full",
+    "pos": []
+   }
+  ],
+  "chunked": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 3.84,
+    "tokens": 2196,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 4.05,
+    "tokens": 2189,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.67
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "CSB-0004",
+     "OPS-0007"
+    ],
+    "sec": 3.1,
+    "tokens": 2179,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 2.26,
+    "tokens": 2167,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.1
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 2.31,
+    "tokens": 2175,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.73
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 2.04,
+    "tokens": 2166,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 1.97,
+    "tokens": 2170,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.33
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 1.95,
+    "tokens": 2170,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.33
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 4.22,
+    "tokens": 2211,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.2
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 4.35,
+    "tokens": 2209,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.2
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 2.15,
+    "tokens": 2165,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.57
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 1.93,
+    "tokens": 2171,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.57
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 1.68,
+    "tokens": 2158,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 1.97,
+    "tokens": 2165,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 3.93,
+    "tokens": 2200,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.27
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 2.29,
+    "tokens": 2170,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.27
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 3.49,
+    "tokens": 2197,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 3.2,
+    "tokens": 2187,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.67
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 2.26,
+    "tokens": 2169,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.61
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 9,
+    "in_list": true,
+    "picked": [
+     "OPS-0009",
+     "OPS-1000",
+     "OPS-0001",
+     "OPS-0005",
+     "OPS-0002",
+     "OPS-0008",
+     "OPS-0007",
+     "OPS-0004",
+     "OPS-0006",
+     "OPS-1005"
+    ],
+    "sec": 6.77,
+    "tokens": 2257,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.61
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 1.8,
+    "tokens": 2168,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.1
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-0008",
+     "CSB-0004"
+    ],
+    "sec": 5.21,
+    "tokens": 2232,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.41
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-1019"
+    ],
+    "sec": 3.65,
+    "tokens": 2207,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.73
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-0004",
+     "CSB-0005"
+    ],
+    "sec": 2.92,
+    "tokens": 2181,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": [
+     0.41
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 1.7,
+    "tokens": 2163,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 1.67,
+    "tokens": 2157,
+    "calls": 1,
+    "shown": 50,
+    "how": "chunked",
+    "pos": []
+   }
+  ],
+  "narrowed": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 1.2,
+    "tokens": 274,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 0.9,
+    "tokens": 214,
+    "calls": 1,
+    "shown": 2,
+    "how": "색인",
+    "pos": [
+     0.67
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 3.68,
+    "tokens": 1807,
+    "calls": 1,
+    "shown": 41,
+    "how": "전체",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 2.45,
+    "tokens": 202,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.1
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 0.99,
+    "tokens": 190,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.73
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 0.9,
+    "tokens": 201,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 0.96,
+    "tokens": 194,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.33
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 0.98,
+    "tokens": 194,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.33
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 0.91,
+    "tokens": 200,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.2
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 0.99,
+    "tokens": 198,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.2
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 1.08,
+    "tokens": 255,
+    "calls": 1,
+    "shown": 2,
+    "how": "색인",
+    "pos": [
+     0.57
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 0.86,
+    "tokens": 207,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.57
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 0.86,
+    "tokens": 202,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 0.84,
+    "tokens": 200,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 0.86,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.27
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.55,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.27
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 0.99,
+    "tokens": 275,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 0.89,
+    "tokens": 213,
+    "calls": 1,
+    "shown": 2,
+    "how": "색인",
+    "pos": [
+     0.67
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 1.02,
+    "tokens": 290,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.61
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-1000",
+     "OPS-1001",
+     "OPS-1005",
+     "OPS-0009"
+    ],
+    "sec": 2.48,
+    "tokens": 319,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.61
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 0.98,
+    "tokens": 203,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.1
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.99,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.41
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": [
+     0.73
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.97,
+    "tokens": 187,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.41
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   }
+  ]
+ },
+ "100": {
+  "full": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "OPS-1050"
+    ],
+    "sec": 9.56,
+    "tokens": 4146,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.12
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 10.87,
+    "tokens": 4157,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 10.73,
+    "tokens": 4164,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 9.11,
+    "tokens": 4135,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.46
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 10.87,
+    "tokens": 4168,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.78
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 9.04,
+    "tokens": 4134,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 10.93,
+    "tokens": 4173,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.63
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 9.0,
+    "tokens": 4138,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.63
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 8.99,
+    "tokens": 4138,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.53
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 11.33,
+    "tokens": 4177,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.53
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-0004",
+     "OPS-0005",
+     "OPS-0010",
+     "OPS-1007"
+    ],
+    "sec": 10.85,
+    "tokens": 4163,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.11
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 11.7,
+    "tokens": 4186,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.11
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 8.62,
+    "tokens": 4127,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 9.13,
+    "tokens": 4133,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 12.33,
+    "tokens": 4195,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 9.07,
+    "tokens": 4138,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "CSB-0004"
+    ],
+    "sec": 11.52,
+    "tokens": 4148,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.12
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 5,
+    "in_list": true,
+    "picked": [
+     "OPS-1003",
+     "OPS-0008",
+     "OPS-1006",
+     "OPS-1001",
+     "OPS-1007",
+     "CSB-0005"
+    ],
+    "sec": 13.45,
+    "tokens": 4182,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 9.0,
+    "tokens": 4135,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.22
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 21.41,
+    "tokens": 4321,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.22
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 8.94,
+    "tokens": 4134,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.46
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "CSB-0005",
+     "OPS-0008",
+     "OPS-1006"
+    ],
+    "sec": 15.66,
+    "tokens": 4235,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.83
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 19.23,
+    "tokens": 4330,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.78
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 10.74,
+    "tokens": 4165,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": [
+     0.83
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 11.06,
+    "tokens": 4131,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 10.63,
+    "tokens": 4125,
+    "calls": 1,
+    "shown": 100,
+    "how": "full",
+    "pos": []
+   }
+  ],
+  "chunked": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "OPS-1050"
+    ],
+    "sec": 12.02,
+    "tokens": 4146,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.12
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 10.34,
+    "tokens": 4157,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 12.42,
+    "tokens": 4164,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 8.9,
+    "tokens": 4135,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.46
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 12.28,
+    "tokens": 4168,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.78
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 10.87,
+    "tokens": 4134,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 13.27,
+    "tokens": 4173,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.63
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 10.68,
+    "tokens": 4138,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.63
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 11.0,
+    "tokens": 4138,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.53
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 13.1,
+    "tokens": 4177,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.53
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-0004",
+     "OPS-0005",
+     "OPS-0010",
+     "OPS-1007"
+    ],
+    "sec": 12.56,
+    "tokens": 4163,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.11
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 11.59,
+    "tokens": 4186,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.11
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 8.5,
+    "tokens": 4127,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 10.96,
+    "tokens": 4133,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 12.1,
+    "tokens": 4195,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 8.96,
+    "tokens": 4138,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "CSB-0004"
+    ],
+    "sec": 11.94,
+    "tokens": 4148,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.12
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 5,
+    "in_list": true,
+    "picked": [
+     "OPS-1003",
+     "OPS-0008",
+     "OPS-1006",
+     "OPS-1001",
+     "OPS-1007",
+     "CSB-0005"
+    ],
+    "sec": 13.98,
+    "tokens": 4182,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 8.87,
+    "tokens": 4135,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.22
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 21.29,
+    "tokens": 4321,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.22
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 11.1,
+    "tokens": 4134,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.46
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "CSB-0005",
+     "OPS-0008",
+     "OPS-1006"
+    ],
+    "sec": 16.11,
+    "tokens": 4235,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.83
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 20.92,
+    "tokens": 4330,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.78
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 12.52,
+    "tokens": 4165,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": [
+     0.83
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 8.54,
+    "tokens": 4131,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 10.72,
+    "tokens": 4125,
+    "calls": 1,
+    "shown": 100,
+    "how": "chunked",
+    "pos": []
+   }
+  ],
+  "narrowed": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 3.28,
+    "tokens": 274,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.12
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 1.03,
+    "tokens": 248,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 6.62,
+    "tokens": 3393,
+    "calls": 1,
+    "shown": 81,
+    "how": "전체",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 2.55,
+    "tokens": 202,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.46
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 0.94,
+    "tokens": 190,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.78
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 1.01,
+    "tokens": 271,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 0.92,
+    "tokens": 194,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.63
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 0.88,
+    "tokens": 194,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.63
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 0.89,
+    "tokens": 200,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.53
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 0.9,
+    "tokens": 198,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.53
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-1007",
+     "OPS-1012",
+     "OPS-0004"
+    ],
+    "sec": 2.08,
+    "tokens": 348,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.11
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 0.92,
+    "tokens": 207,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.11
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 0.91,
+    "tokens": 202,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 1.0,
+    "tokens": 270,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.43
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 0.9,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.55,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 1.03,
+    "tokens": 275,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.12
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 0.95,
+    "tokens": 247,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.84
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 1.05,
+    "tokens": 326,
+    "calls": 1,
+    "shown": 5,
+    "how": "색인",
+    "pos": [
+     0.22
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 1.05,
+    "tokens": 324,
+    "calls": 1,
+    "shown": 5,
+    "how": "색인",
+    "pos": [
+     0.22
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 0.91,
+    "tokens": 203,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.46
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.94,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.83
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": [
+     0.78
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.93,
+    "tokens": 187,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.83
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   }
+  ]
+ },
+ "200": {
+  "full": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 18.76,
+    "tokens": 8121,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.49
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 8,
+    "in_list": true,
+    "picked": [
+     "OPS-0005",
+     "OPS-0008",
+     "OPS-0009",
+     "OPS-0010",
+     "OPS-0004",
+     "OPS-0006",
+     "OPS-0007",
+     "OPS-0002",
+     "OPS-0001"
+    ],
+    "sec": 24.49,
+    "tokens": 8208,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.42
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 30.37,
+    "tokens": 8307,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 18.86,
+    "tokens": 8118,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.62
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 20.46,
+    "tokens": 8154,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.52
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 19.02,
+    "tokens": 8111,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 21.18,
+    "tokens": 8158,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.65
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 21.08,
+    "tokens": 8158,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.65
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 30.12,
+    "tokens": 8309,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.58
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 30.19,
+    "tokens": 8307,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.58
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0004",
+     "OPS-1026"
+    ],
+    "sec": 24.5,
+    "tokens": 8128,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.96
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 19.0,
+    "tokens": 8122,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.96
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 23.21,
+    "tokens": 8112,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 19.03,
+    "tokens": 8116,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 23.22,
+    "tokens": 8117,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.93
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 23.64,
+    "tokens": 8123,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.93
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 6,
+    "in_list": true,
+    "picked": [
+     "OPS-0002",
+     "OPS-0005",
+     "OPS-0007",
+     "OPS-0008",
+     "OPS-0009",
+     "OPS-0010",
+     "OPS-0001"
+    ],
+    "sec": 27.36,
+    "tokens": 8182,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.49
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 35.26,
+    "tokens": 8302,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.42
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 19.01,
+    "tokens": 8120,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.98
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 35.18,
+    "tokens": 8306,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.98
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 18.97,
+    "tokens": 8119,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.62
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-0005",
+     "OPS-0008"
+    ],
+    "sec": 23.67,
+    "tokens": 8135,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.34
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 34.1,
+    "tokens": 8315,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.52
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 20.73,
+    "tokens": 8151,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": [
+     0.34
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 22.87,
+    "tokens": 8116,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 22.39,
+    "tokens": 8109,
+    "calls": 1,
+    "shown": 200,
+    "how": "full",
+    "pos": []
+   }
+  ],
+  "chunked": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-0005",
+     "OPS-1002"
+    ],
+    "sec": 25.64,
+    "tokens": 8269,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.49
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0005",
+     "OPS-0008"
+    ],
+    "sec": 21.82,
+    "tokens": 8264,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.42
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 31.92,
+    "tokens": 8447,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 32.04,
+    "tokens": 8445,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.62
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 22.35,
+    "tokens": 8298,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.52
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-1002"
+    ],
+    "sec": 20.75,
+    "tokens": 8257,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0001",
+     "OPS-1020"
+    ],
+    "sec": 26.22,
+    "tokens": 8308,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.65
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0001",
+     "OPS-0009"
+    ],
+    "sec": 20.58,
+    "tokens": 8308,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.65
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-0002",
+     "OPS-0010",
+     "OPS-0004"
+    ],
+    "sec": 18.8,
+    "tokens": 8283,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.58
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 20.33,
+    "tokens": 8301,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.58
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 32.94,
+    "tokens": 8449,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.96
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0001",
+     "OPS-0004"
+    ],
+    "sec": 23.65,
+    "tokens": 8310,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.96
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 20.62,
+    "tokens": 8252,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 33.59,
+    "tokens": 8440,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-1017",
+     "OPS-0006"
+    ],
+    "sec": 22.18,
+    "tokens": 8328,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.93
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 18.14,
+    "tokens": 8269,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.93
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-0005",
+     "OPS-1002"
+    ],
+    "sec": 19.74,
+    "tokens": 8299,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.49
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 28.81,
+    "tokens": 8437,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.42
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 18.13,
+    "tokens": 8263,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.98
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-1000",
+     "OPS-1001",
+     "OPS-1010",
+     "OPS-0009"
+    ],
+    "sec": 24.21,
+    "tokens": 8368,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.98
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 20.71,
+    "tokens": 8259,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.62
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-0005",
+     "OPS-0008"
+    ],
+    "sec": 31.69,
+    "tokens": 8472,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.34
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-1041"
+    ],
+    "sec": 30.67,
+    "tokens": 8503,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.52
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": false,
+    "wrong": 5,
+    "in_list": true,
+    "picked": [
+     "CSB-0004",
+     "OPS-0007",
+     "OPS-0008",
+     "OPS-0010",
+     "OPS-0005"
+    ],
+    "sec": 20.03,
+    "tokens": 8303,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": [
+     0.34
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 17.67,
+    "tokens": 8259,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 17.25,
+    "tokens": 8246,
+    "calls": 2,
+    "shown": 200,
+    "how": "chunked",
+    "pos": []
+   }
+  ],
+  "narrowed": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 1.21,
+    "tokens": 311,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.49
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 1.1,
+    "tokens": 282,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.42
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-1015"
+    ],
+    "sec": 0.91,
+    "tokens": 188,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 1.11,
+    "tokens": 322,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.62
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 0.99,
+    "tokens": 190,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.52
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 1.16,
+    "tokens": 350,
+    "calls": 1,
+    "shown": 5,
+    "how": "색인",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-1020",
+     "OPS-1023",
+     "OPS-1027",
+     "OPS-0001"
+    ],
+    "sec": 2.62,
+    "tokens": 332,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.65
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 1.07,
+    "tokens": 302,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.65
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 0.93,
+    "tokens": 200,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.58
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 0.97,
+    "tokens": 198,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.58
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-1007",
+     "OPS-1012",
+     "OPS-1026",
+     "OPS-0004"
+    ],
+    "sec": 2.58,
+    "tokens": 397,
+    "calls": 1,
+    "shown": 5,
+    "how": "색인",
+    "pos": [
+     0.96
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 0.9,
+    "tokens": 207,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.96
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 0.96,
+    "tokens": 202,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 1.13,
+    "tokens": 349,
+    "calls": 1,
+    "shown": 5,
+    "how": "색인",
+    "pos": [
+     0.54
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-1017",
+     "OPS-0006"
+    ],
+    "sec": 1.41,
+    "tokens": 237,
+    "calls": 1,
+    "shown": 2,
+    "how": "색인",
+    "pos": [
+     0.93
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-1017",
+     "OPS-0006"
+    ],
+    "sec": 1.42,
+    "tokens": 244,
+    "calls": 1,
+    "shown": 2,
+    "how": "색인",
+    "pos": [
+     0.93
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 1.07,
+    "tokens": 312,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.49
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 1.1,
+    "tokens": 280,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.42
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 1.09,
+    "tokens": 326,
+    "calls": 1,
+    "shown": 5,
+    "how": "색인",
+    "pos": [
+     0.98
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 1.1,
+    "tokens": 324,
+    "calls": 1,
+    "shown": 5,
+    "how": "색인",
+    "pos": [
+     0.98
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 1.06,
+    "tokens": 323,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.62
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.97,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.34
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": [
+     0.52
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.94,
+    "tokens": 187,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.34
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   }
+  ]
+ },
+ "400": {
+  "full": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 46.3,
+    "tokens": 16124,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.04
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 44.8,
+    "tokens": 16091,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.66
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 44.59,
+    "tokens": 16087,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 47.72,
+    "tokens": 16181,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.08
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 43.22,
+    "tokens": 16128,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.06
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 41.32,
+    "tokens": 16085,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 61.22,
+    "tokens": 16284,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 41.81,
+    "tokens": 16104,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 49.17,
+    "tokens": 16096,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.44
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 7,
+    "in_list": true,
+    "picked": [
+     "OPS-0005",
+     "OPS-0002",
+     "OPS-0004",
+     "OPS-0008",
+     "OPS-0006",
+     "OPS-0010",
+     "OPS-0007",
+     "OPS-0009"
+    ],
+    "sec": 46.34,
+    "tokens": 16176,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.44
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 60.24,
+    "tokens": 16279,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.6
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 41.3,
+    "tokens": 16097,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.6
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 40.56,
+    "tokens": 16087,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 49.34,
+    "tokens": 16091,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 59.45,
+    "tokens": 16279,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 40.86,
+    "tokens": 16098,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 61.86,
+    "tokens": 16283,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.04
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 44.84,
+    "tokens": 16089,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.66
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 50.51,
+    "tokens": 16095,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.32
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 59.81,
+    "tokens": 16281,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.32
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 59.61,
+    "tokens": 16282,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.08
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 42.93,
+    "tokens": 16123,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.14
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 49.83,
+    "tokens": 16102,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.06
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 50.75,
+    "tokens": 16125,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": [
+     0.14
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 48.75,
+    "tokens": 16091,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 50.35,
+    "tokens": 16084,
+    "calls": 1,
+    "shown": 400,
+    "how": "full",
+    "pos": []
+   }
+  ],
+  "chunked": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "OPS-1002"
+    ],
+    "sec": 45.32,
+    "tokens": 16440,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.04
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 42.72,
+    "tokens": 16560,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.66
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 33.71,
+    "tokens": 16366,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": true,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "OPS-0010",
+     "OPS-1043"
+    ],
+    "sec": 53.02,
+    "tokens": 16697,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.08
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": false,
+    "wrong": 14,
+    "in_list": true,
+    "picked": [
+     "CSB-0005",
+     "CSB-1339",
+     "CSB-1084",
+     "CSB-1174",
+     "CSB-1254",
+     "CSB-1124",
+     "CSB-1304",
+     "CSB-1119",
+     "CSB-1324",
+     "CSB-1034",
+     "CSB-1109",
+     "CSB-1349",
+     "CSB-1309",
+     "CSB-1259"
+    ],
+    "sec": 46.04,
+    "tokens": 16537,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.06
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 35.71,
+    "tokens": 16378,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 42.24,
+    "tokens": 16423,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 41.31,
+    "tokens": 16416,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 48.25,
+    "tokens": 16573,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.44
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 41.37,
+    "tokens": 16415,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.44
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-1005",
+     "OPS-1053"
+    ],
+    "sec": 50.78,
+    "tokens": 16577,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.6
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": false,
+    "wrong": 2,
+    "in_list": true,
+    "picked": [
+     "OPS-0009",
+     "OPS-0010"
+    ],
+    "sec": 38.46,
+    "tokens": 16400,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.6
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 41.02,
+    "tokens": 16372,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 48.15,
+    "tokens": 16567,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 42.63,
+    "tokens": 16407,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 40.64,
+    "tokens": 16423,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "CSB-0004"
+    ],
+    "sec": 41.26,
+    "tokens": 16441,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.04
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": false,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-1046",
+     "CSB-0005",
+     "OPS-1003"
+    ],
+    "sec": 45.57,
+    "tokens": 16389,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.66
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 42.09,
+    "tokens": 16409,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.32
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-0009",
+     "OPS-1000",
+     "OPS-1010",
+     "OPS-1005"
+    ],
+    "sec": 42.17,
+    "tokens": 16459,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.32
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-0007",
+     "OPS-1043",
+     "OPS-0010",
+     "OPS-1040"
+    ],
+    "sec": 50.06,
+    "tokens": 16559,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.08
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 4,
+    "in_list": true,
+    "picked": [
+     "CSB-0005",
+     "OPS-1000",
+     "OPS-1031",
+     "OPS-1003",
+     "OPS-1060"
+    ],
+    "sec": 51.26,
+    "tokens": 16570,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.14
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "CSB-1354"
+    ],
+    "sec": 54.96,
+    "tokens": 16816,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.06
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 42.07,
+    "tokens": 16407,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": [
+     0.14
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 40.38,
+    "tokens": 16379,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 39.67,
+    "tokens": 16358,
+    "calls": 3,
+    "shown": 400,
+    "how": "chunked",
+    "pos": []
+   }
+  ],
+  "narrowed": [
+   {
+    "q": "실시간 전송을 SSE로 한 이유가 뭐였죠?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 3.71,
+    "tokens": 391,
+    "calls": 1,
+    "shown": 6,
+    "how": "색인",
+    "pos": [
+     0.04
+    ]
+   },
+   {
+    "q": "대화 저장소는 왜 PostgreSQL이에요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 1.27,
+    "tokens": 395,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.66
+    ]
+   },
+   {
+    "q": "Redis 캐시 쓰기로 했어요?",
+    "ok": false,
+    "wrong": 1,
+    "in_list": true,
+    "picked": [
+     "OPS-1015"
+    ],
+    "sec": 1.28,
+    "tokens": 188,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": []
+   },
+   {
+    "q": "모델 티어링은 정해졌나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 1.31,
+    "tokens": 442,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.08
+    ]
+   },
+   {
+    "q": "예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0004"
+    ],
+    "sec": 1.14,
+    "tokens": 266,
+    "calls": 1,
+    "shown": 3,
+    "how": "색인",
+    "pos": [
+     0.06
+    ]
+   },
+   {
+    "q": "응답 시간 기준이 지금 몇 초예요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 1.33,
+    "tokens": 428,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "백엔드 프레임워크는 뭘로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 1.31,
+    "tokens": 417,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "LangGraph로 Agent 흐름 짜기로 한 거 맞지?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0001"
+    ],
+    "sec": 1.35,
+    "tokens": 417,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.18
+    ]
+   },
+   {
+    "q": "MCP 서버는 어떻게 띄우기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 1.02,
+    "tokens": 314,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.44
+    ]
+   },
+   {
+    "q": "MCP를 stdio로 붙이기로 한 이유는?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0002"
+    ],
+    "sec": 1.02,
+    "tokens": 313,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.44
+    ]
+   },
+   {
+    "q": "외부 LLM API 써도 돼?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 1.17,
+    "tokens": 446,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.6
+    ]
+   },
+   {
+    "q": "기본 LLM은 뭘 쓰기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0004"
+    ],
+    "sec": 0.81,
+    "tokens": 207,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.6
+    ]
+   },
+   {
+    "q": "최종 답변은 몇 초 안에 나와야 해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 0.81,
+    "tokens": 202,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "응답 시간 기준 바꾼 결정 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0005"
+    ],
+    "sec": 1.14,
+    "tokens": 427,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.95
+    ]
+   },
+   {
+    "q": "Supervisor 구조로 하기로 한 결정은?",
+    "ok": true,
+    "wrong": 3,
+    "in_list": true,
+    "picked": [
+     "OPS-1017",
+     "OPS-1033",
+     "OPS-1050",
+     "OPS-0006"
+    ],
+    "sec": 2.29,
+    "tokens": 335,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "하위 에이전트에 위임하는 구조는 누가 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0006"
+    ],
+    "sec": 1.02,
+    "tokens": 312,
+    "calls": 1,
+    "shown": 4,
+    "how": "색인",
+    "pos": [
+     0.16
+    ]
+   },
+   {
+    "q": "웹소켓 말고 SSE 쓰는 이유가 뭐야?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0007"
+    ],
+    "sec": 1.15,
+    "tokens": 392,
+    "calls": 1,
+    "shown": 6,
+    "how": "색인",
+    "pos": [
+     0.04
+    ]
+   },
+   {
+    "q": "대화 이력은 어디에 저장해?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0008"
+    ],
+    "sec": 1.25,
+    "tokens": 393,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.66
+    ]
+   },
+   {
+    "q": "질문을 simple/complex로 나누기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 0.97,
+    "tokens": 360,
+    "calls": 1,
+    "shown": 6,
+    "how": "색인",
+    "pos": [
+     0.32
+    ]
+   },
+   {
+    "q": "라우팅은 어디서 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0009"
+    ],
+    "sec": 0.96,
+    "tokens": 358,
+    "calls": 1,
+    "shown": 6,
+    "how": "색인",
+    "pos": [
+     0.32
+    ]
+   },
+   {
+    "q": "분류는 작은 모델로 하기로 했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "OPS-0010"
+    ],
+    "sec": 1.16,
+    "tokens": 443,
+    "calls": 1,
+    "shown": 7,
+    "how": "색인",
+    "pos": [
+     0.08
+    ]
+   },
+   {
+    "q": "고객센터 챗봇은 대화 이력을 어디에 저장했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.85,
+    "tokens": 189,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.14
+    ]
+   },
+   {
+    "q": "고객센터 챗봇 상담원 알림은 결국 뭘로 했어?",
+    "ok": false,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": [
+     0.06
+    ]
+   },
+   {
+    "q": "고객센터 챗봇에서 MySQL로 옮긴 결정은?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [
+     "CSB-0005"
+    ],
+    "sec": 0.84,
+    "tokens": 187,
+    "calls": 1,
+    "shown": 1,
+    "how": "색인",
+    "pos": [
+     0.14
+    ]
+   },
+   {
+    "q": "메신저를 팀즈로 바꾸기로 했나요?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   },
+   {
+    "q": "회식 장소는 어디로 정했어?",
+    "ok": true,
+    "wrong": 0,
+    "in_list": true,
+    "picked": [],
+    "sec": 0.0,
+    "tokens": 0,
+    "calls": 0,
+    "shown": 0,
+    "how": "없음",
+    "pos": []
+   }
+  ]
+ }
+}

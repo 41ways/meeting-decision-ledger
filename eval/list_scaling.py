@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from agent import retrieve as R  # noqa: E402
-from ledger.llm import LocalLLM  # noqa: E402
+from ledger.llm import NUM_CTX, LocalLLM  # noqa: E402
 from ledger.records import MeetingRecords  # noqa: E402
 from ledger.store import LedgerStore  # noqa: E402
 from ledger.term_index import find_candidates, project_records  # noqa: E402
@@ -144,7 +144,7 @@ def fakes(n: int, seed: int = 7) -> list[dict]:
     return out
 
 
-class LocalMCP:
+class LocalMCP:  # pylint: disable=too-few-public-methods  # 도구 호출 흉내만
     """retrieve.pick이 부르는 MCP 도구 두 개를 같은 프로세스의 색인 함수로 대신한다"""
 
     def __init__(self, store: LedgerStore, records: MeetingRecords):
@@ -207,7 +207,9 @@ def score(picked: list[str], expected: list[str]) -> tuple[bool, int]:
     return ok, wrong
 
 
-async def one(llm, store, records, q, pid, exp, mode: str, everything: list[dict]) -> dict:  # pylint: disable=too-many-arguments,too-many-positional-arguments
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments,too-many-locals
+async def one(llm, store, records, q, pid, exp, mode: str,
+              everything: list[dict]) -> dict:
     """
     질문 하나를 한 방식으로
     Args:
@@ -237,7 +239,8 @@ async def one(llm, store, records, q, pid, exp, mode: str, everything: list[dict
     ok, wrong = score(picked, exp)
     keys = [c.get("decision_id") for c in everything]
     pos = [round(keys.index(e) / max(1, len(keys) - 1), 2) for e in exp if e in keys]
-    return {"q": q, "ok": ok, "wrong": wrong, "in_list": set(exp) <= listed, "picked": picked, "sec": round(time.perf_counter() - t0, 2),
+    return {"q": q, "ok": ok, "wrong": wrong, "in_list": set(exp) <= listed, "picked": picked,
+            "sec": round(time.perf_counter() - t0, 2),
             "tokens": sum(u.get("tokens", 0) for u in usages if u), "calls": len(usages), "shown": shown,
             "how": how, "pos": pos}
 
@@ -262,7 +265,7 @@ def others_running() -> list[str]:
     return out
 
 
-def to_md(res: dict, sizes: list[int]) -> str:
+def to_md(res: dict, sizes: list[int]) -> str:  # pylint: disable=too-many-locals
     """
     결과 표와 한 줄 결론
     Args:
@@ -285,10 +288,13 @@ def to_md(res: dict, sizes: list[int]) -> str:
     for s in sizes:
         f, c, n = (agg(res[str(s)][m]) for m in ("full", "chunked", "narrowed"))
         accs[s] = (f["acc"], n["acc"])
-        rows.append(f"| {s} | {f['acc']} | {f['wrong']} | {f['sec']} | {f['tok']} | {c['acc']} | {c['sec']} | {c['tok']} "
-                    f"| {n['acc']} | {n['hit']} | {n['wrong']} | {n['shown']} | {n['sec']} | {n['tok']} | {n['full']} |")
-    # 위치별 정답 (전체 읽기, 가장 큰 목록) — 목록 가운데에 있는 정답을 놓치는가
-    big = res[str(sizes[-1])]["full"]
+        rows.append(f"| {s} | {f['acc']} | {f['wrong']} | {f['sec']} | {f['tok']} "
+                    f"| {c['acc']} | {c['sec']} | {c['tok']} "
+                    f"| {n['acc']} | {n['hit']} | {n['wrong']} | {n['shown']} | {n['sec']} | {n['tok']} "
+                    f"| {n['full']} |")
+    # 위치별 정답 (전체 읽기) — 컨텍스트 한도 안에 드는 가장 큰 목록에서 본다 (넘으면 잘려서 위치 효과가 아니다)
+    fits = [x for x in sizes if agg(res[str(x)]["full"])["tok"] < NUM_CTX * 0.9] or sizes[:1]
+    big = res[str(fits[-1])]["full"]
     buckets = {"앞 1/3": [], "가운데 1/3": [], "뒤 1/3": []}
     for r in big:
         for p in r["pos"]:
@@ -306,10 +312,17 @@ def to_md(res: dict, sizes: list[int]) -> str:
             "(think off, temperature 0, num_ctx 16384). 진짜 결정 11건에 가짜 결정을 섞어 크기를 맞췄다 "
             "(가짜의 15%는 같은 주제의 다른 사안). 정답 = 기대 결정 ID를 고름(기대가 없으면 아무 결정도 안 고름).\n\n"
             + "\n".join(rows)
-            + f"\n\n전체 읽기 {sizes[-1]}건에서 정답 위치별 정답률: {pos}\n\n**결론** {concl}\n")
+            + f"\n\n전체 읽기 {fits[-1]}건(컨텍스트 안에 드는 가장 큰 목록)에서 정답 위치별 정답률: {pos}\n"
+            + "".join(f"\n- {x}건 전체 읽기는 평균 {agg(res[str(x)]['full'])['tok']}토큰으로 컨텍스트 한도"
+                      f"({NUM_CTX})에 걸린다 — 프롬프트가 잘려 대부분 빈 답을 냈다"
+                      for x in sizes if agg(res[str(x)]["full"])["tok"] >= NUM_CTX * 0.9)
+            + "\n- 좁힌 뒤 읽기 쪽 놓친 질문: '고객센터 챗봇 상담원 알림은 결국 뭘로 했어?'는 별칭이 하나도 안 걸려 0건"
+            + "('상담원 알림'은 별칭에 없음). 이 측정은 프로젝트 판단을 흉내 내지 않아 0건에서 멈췄고, 앱에서는 "
+            + "LLM이 고객센터 챗봇 프로젝트를 짚어 전체 읽기 대비책(알림 포함)으로 간다\n"
+            + f"\n**결론** {concl}\n")
 
 
-async def main(sizes: list[int], force: bool) -> None:
+async def main(sizes: list[int], force: bool) -> None:  # pylint: disable=too-many-locals
     """
     크기별로 세 방식을 돌리고 저장
     Args:
@@ -337,7 +350,8 @@ async def main(sizes: list[int], force: bool) -> None:
                 rows.append(await one(llm, store, records, q, pid, exp, mode, everything))
             res[str(size)][mode] = rows
             ok = sum(r["ok"] for r in rows)
-            print(f"{size}건 {mode}: 정답 {ok}/{len(rows)} · 평균 {sum(r['sec'] for r in rows) / len(rows):.1f}초", flush=True)
+            avg = sum(r["sec"] for r in rows) / len(rows)
+            print(f"{size}건 {mode}: 정답 {ok}/{len(rows)} · 평균 {avg:.1f}초", flush=True)
     (ROOT / "eval" / "list_scaling.json").write_text(json.dumps(res, ensure_ascii=False, indent=1))
     md = to_md(res, sizes)
     (ROOT / "eval" / "list_scaling.md").write_text(md)
@@ -348,5 +362,5 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--sizes", default="50,100,200,400")
     ap.add_argument("--force", action="store_true")
-    a = ap.parse_args()
-    asyncio.run(main([int(x) for x in a.sizes.split(",")], a.force))
+    args = ap.parse_args()
+    asyncio.run(main([int(x) for x in args.sizes.split(",")], args.force))

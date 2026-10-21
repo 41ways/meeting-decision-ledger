@@ -1,5 +1,5 @@
 """용어(별칭) 색인 · 낱말 색인 · 좁힌 뒤 읽기 · 전체 읽기 대비책 · 원문 단어 검색 테스트 — LLM은 가짜, 원장은 시드 사본."""
-# pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument,redefined-outer-name,too-few-public-methods  # 가짜 객체·fixture 관용
+# pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument,redefined-outer-name,too-few-public-methods,protected-access  # 가짜 객체·fixture 관용
 import asyncio
 from pathlib import Path
 
