@@ -1,0 +1,3386 @@
+{
+ "project": "SLS",
+ "meetings": {
+  "SLS-M01": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "말 끊김",
+    "STT 오인식",
+    "진행자 단정",
+    "돌려 말한 결정",
+    "번복",
+    "회상",
+    "회의 밖 결정",
+    "보류",
+    "기한 정정"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M01-D1",
+     "seq": 7,
+     "evidence_seq": [
+      6,
+      7
+     ],
+     "topic": "sls.metric",
+     "statement": "매출은 세금계산서 발행일 기준, 부가세 포함 합계금액으로 집계한다.",
+     "decided_by": "용채원",
+     "rationale": "회계팀 매출 보고와 같은 기준(SREQ-01)으로 숫자를 하나로 맞춤",
+     "alternatives_rejected": [
+      "수주일 기준"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M01-D2",
+     "seq": 13,
+     "evidence_seq": [
+      11,
+      12,
+      13
+     ],
+     "topic": "tech.backend",
+     "statement": "DW 확정 테이블에서 마트로 가는 ETL은 사내 Airflow에서 변경분 증분 적재로 하고, 전체 재적재는 월 1회 점검용으로만 돌린다.",
+     "decided_by": "탁현승",
+     "rationale": "3년 치 4천만 건을 매일 전체 적재하면 07시 전에 끝나지 않음",
+     "alternatives_rejected": [
+      "매일 전체 재적재"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M01-D3",
+     "seq": 20,
+     "evidence_seq": [
+      18,
+      19,
+      20
+     ],
+     "topic": "saas.new",
+     "statement": "Superset Cloud 체험판은 예외(W-004) 범위 안에서 마스킹 샘플로 화면 시안 비교에만 쓰고, 본 구축은 Tableau로 한다.",
+     "decided_by": "탁현승",
+     "rationale": "사내 BI와 화면 구성 비교. 보안 예외 W-004(마스킹 샘플, 11-27까지) 범위",
+     "alternatives_rejected": [
+      "실데이터로 비교"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ],
+     "note": "SEC-03 대상이지만 W-004 범위 안이라 막는 충돌 없음"
+    },
+    {
+     "id": "SLS-M01-D4",
+     "seq": 25,
+     "evidence_seq": [
+      23,
+      24,
+      25
+     ],
+     "topic": "perf.latency",
+     "statement": "대시보드 첫 화면은 3초 안에 뜨는 것을 성능 기준으로 한다.",
+     "decided_by": "용채원",
+     "rationale": "영업사원이 아침 회의 때 휴대폰으로 봄 — 느리면 안 씀",
+     "alternatives_rejected": [
+      "5초"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "번복"
+     ]
+    },
+    {
+     "id": "SLS-M01-D5",
+     "seq": 31,
+     "evidence_seq": [
+      29,
+      30,
+      31
+     ],
+     "topic": "data.source",
+     "statement": "실적 수치는 DW 확정 테이블만 원천으로 쓰고, 영업본부 엑셀 집계는 '참고' 탭에만 따로 보여 준다.",
+     "decided_by": "용채원",
+     "rationale": "DATA-01·SREQ-04 — 경영 보고 수치는 DW 확정 테이블만",
+     "alternatives_rejected": [
+      "엑셀 집계를 공식 수치로 함께 표시"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M01-A1",
+     "seq": 32,
+     "evidence_seq": [
+      32,
+      33
+     ],
+     "statement": "DW 확정 테이블 컬럼 목록과 마트 매핑 정리",
+     "owner": "설유진",
+     "due": "2026-11-04",
+     "requester": "탁현승",
+     "tags": []
+    },
+    {
+     "id": "SLS-M01-A2",
+     "seq": 34,
+     "evidence_seq": [
+      34,
+      35
+     ],
+     "statement": "마스킹 샘플로 Superset 화면 시안 2종 준비",
+     "owner": "독고준",
+     "due": "2026-11-12",
+     "requester": "탁현승",
+     "tags": []
+    },
+    {
+     "id": "SLS-M01-A3",
+     "seq": 36,
+     "evidence_seq": [
+      36,
+      37,
+      38
+     ],
+     "statement": "팀·개인 월 목표 엑셀 양식 공유",
+     "owner": "엄지수",
+     "due": "2026-11-05",
+     "requester": "용채원",
+     "tags": [
+      "기한 정정"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M01-U1",
+     "seq": 28,
+     "evidence_seq": [
+      26,
+      27,
+      28
+     ],
+     "subject": "영업사원 전원에게 본부 전체 실적 공개 (영업본부 요청)",
+     "topic": "sls.access",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 3,
+     "kind": "잡담",
+     "why": "연말 마감·할로윈 잡담"
+    },
+    {
+     "seq": 15,
+     "kind": "회상",
+     "why": "BI는 지난번에 Tableau Server로 정함(SLS-0001) — 새 결정 아님"
+    },
+    {
+     "seq": 17,
+     "kind": "회의 밖 결정",
+     "why": "육성재가 어제 낸 보안 예외 W-004 — 이 회의의 결정 아님"
+    },
+    {
+     "seq": 22,
+     "kind": "번복 전 결정",
+     "why": "5초 기준은 25번에서 3초로 뒤집힘"
+    }
+   ]
+  },
+  "SLS-M02": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "말 끊김",
+    "STT 오인식",
+    "진행자 단정",
+    "돌려 말한 결정",
+    "조건부 확정",
+    "권한 밖 결정",
+    "회의 밖 결정",
+    "보류",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M02-D1",
+     "seq": 8,
+     "evidence_seq": [
+      7,
+      8
+     ],
+     "topic": "error.retry",
+     "statement": "ETL이 실패하면 30분 간격으로 3회 재시도하고, 그래도 실패하면 전날 데이터를 유지한 채 화면에 기준일을 표시한다.",
+     "decided_by": "탁현승",
+     "rationale": "DW 확정 테이블이 늦게 닫히는 날이 있음",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M02-D2",
+     "seq": 12,
+     "evidence_seq": [
+      9,
+      11,
+      12
+     ],
+     "topic": "sls.refresh",
+     "statement": "실적 데이터를 1시간마다 갱신한다.",
+     "decided_by": "탁현승",
+     "rationale": "월말 영업 현업 요청",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "갱신 주기는 요구사항(SREQ-02) — PM 승인 필요, PM 불참"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-02"
+       ],
+       "detail": "정의서는 매일 07시 1회 갱신"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "SLS-0002"
+       ],
+       "detail": "매일 07시 1회 배치 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M02-D3",
+     "seq": 16,
+     "evidence_seq": [
+      14,
+      15,
+      16
+     ],
+     "topic": "cache",
+     "statement": "서버팀이 추출용 디스크 50GB를 내주면 Tableau를 라이브 연결 대신 추출(extract) 방식으로 바꾼다.",
+     "decided_by": "탁현승",
+     "rationale": "라이브 연결은 느리고 DB 부하가 큼",
+     "alternatives_rejected": [
+      "라이브 연결 유지"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ],
+     "note": "서버팀 디스크 할당이 조건 — SLS-M06에서 확정"
+    },
+    {
+     "id": "SLS-M02-D4",
+     "seq": 20,
+     "evidence_seq": [
+      17,
+      19,
+      20
+     ],
+     "topic": "sls.export",
+     "statement": "영업사원 전원에게 엑셀 내려받기를 허용한다.",
+     "decided_by": "탁현승",
+     "rationale": "영업사원이 자기 고객 리스트를 뽑아 써야 한다는 영업본부 요청",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "내려받기 범위는 요구사항 변경 — PM 승인 필요, PM 불참"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-05"
+       ],
+       "detail": "정의서는 팀장 이상만 내려받기"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M02-D5",
+     "seq": 29,
+     "evidence_seq": [
+      27,
+      28,
+      29
+     ],
+     "topic": "qa.test",
+     "statement": "데이터 검증은 영업기획 엑셀 마감 수치와 대조하고, 차이가 0.5%를 넘으면 원인을 확인한다.",
+     "decided_by": "탁현승",
+     "rationale": "현업이 매달 만드는 마감 수치가 가장 빠른 대조 기준",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M02-A1",
+     "seq": 30,
+     "evidence_seq": [
+      30,
+      31
+     ],
+     "statement": "ETL 재시도와 기준일 표시 구현",
+     "owner": "설유진",
+     "due": "2026-11-11",
+     "requester": "탁현승",
+     "tags": []
+    },
+    {
+     "id": "SLS-M02-A2",
+     "seq": 32,
+     "evidence_seq": [
+      22,
+      32,
+      33
+     ],
+     "statement": "영업기획이 그려 준 모양대로 KPI 카드 시안 제작",
+     "owner": "봉민석",
+     "due": "2026-11-11",
+     "requester": "엄지수",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "SLS-M02-A3",
+     "seq": 34,
+     "evidence_seq": [
+      34,
+      35
+     ],
+     "statement": "본부장 요청 사항을 메일로 정리해 PM에게 전달",
+     "owner": "반재경",
+     "due": "2026-11-06",
+     "requester": "탁현승",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M02-U1",
+     "seq": 24,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "subject": "영업사원 전원 전체 실적 열람 (본부장 요청이라는 영업본부 주장)",
+     "topic": "sls.access",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 3,
+     "kind": "잡담",
+     "why": "체육대회 잡담"
+    },
+    {
+     "seq": 23,
+     "kind": "회의 밖 결정",
+     "why": "본부장이 본부 회의에서 했다는 지시 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 25,
+     "kind": "수락",
+     "why": "메일 정리 수락 — 결정 아님"
+    }
+   ]
+  },
+  "SLS-M03": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "회상",
+    "진행자 단정",
+    "돌려 말한 결정",
+    "권한 밖 결정",
+    "조건부 확정",
+    "보류",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M03-D1",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      7,
+      8
+     ],
+     "topic": "sls.access",
+     "statement": "열람 권한은 정의서대로 영업사원은 본인, 팀장은 팀, 본부장 이상은 전체 실적을 보고, 조직 정보는 인사 시스템 조직도에서 매일 받아 맞춘다.",
+     "decided_by": "용채원",
+     "rationale": "개인별 실적 전원 공개는 인사 정보 성격 — 보안 권고(SREQ-03 유지)",
+     "alternatives_rejected": [
+      "영업사원 전원 전체 실적 공개"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M03-D2",
+     "seq": 12,
+     "evidence_seq": [
+      10,
+      11,
+      12
+     ],
+     "topic": "scope.core",
+     "statement": "1차 오픈은 본부·팀·개인 실적 화면 3종으로 하고, 제품군별 분석은 2단계로 미룬다.",
+     "decided_by": "용채원",
+     "rationale": "제품군별까지 넣으면 12-21 오픈이 어려움",
+     "alternatives_rejected": [
+      "제품군별 분석까지 1차 포함"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "SLS-M03-D3",
+     "seq": 15,
+     "evidence_seq": [
+      13,
+      14,
+      15
+     ],
+     "topic": "sls.export",
+     "statement": "영업기획팀 담당자도 팀장이 아니어도 엑셀을 내려받을 수 있게 하고, 고객 연락처 컬럼은 계속 뺀다. 정의서 SREQ-05를 개정한다.",
+     "decided_by": "용채원",
+     "rationale": "영업기획팀이 보고서 때문에 매일 내려받아야 함, 보안 담당 동의(연락처 제외 조건)",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "SREQ-05"
+       ],
+       "detail": "PM이 보안 담당 동의를 받아 내려받기 범위를 바꾸고 정의서 개정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M03-D4",
+     "seq": 22,
+     "evidence_seq": [
+      20,
+      21,
+      22
+     ],
+     "topic": "budget",
+     "statement": "Tableau Creator 라이선스 5개와 협력사 상주 컨설팅을 월 700만 원으로 진행한다.",
+     "decided_by": "용채원",
+     "rationale": "빨리 구축하려는 영업본부 요청",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-04"
+       ],
+       "detail": "월 500만 원 초과는 본부장 승인 — PM 권한 밖, 본부장 불참"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "SLS-0004"
+       ],
+       "detail": "라이선스 추가 비용 월 200만 원 이내 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정",
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "SLS-M03-D5",
+     "seq": 25,
+     "evidence_seq": [
+      23,
+      24,
+      25
+     ],
+     "topic": "release",
+     "statement": "CAB 심의가 12월 16일로 잡히면 오픈 리허설은 12월 14일(월)에 한다.",
+     "decided_by": "탁현승",
+     "rationale": "CAB 승인 이틀 전 리허설로 오픈(12-21) 준비",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ],
+     "note": "CAB 일정 확정이 조건 — SLS-M05에서 확정"
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M03-A1",
+     "seq": 29,
+     "evidence_seq": [
+      29,
+      30
+     ],
+     "statement": "영업기획팀 엑셀 내려받기 권한 그룹 생성",
+     "owner": "설유진",
+     "due": "2026-11-19",
+     "requester": "엄지수",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "SLS-M03-A2",
+     "seq": 31,
+     "evidence_seq": [
+      31,
+      32
+     ],
+     "statement": "CAB 사무국에 12월 16일 심의 가능 여부 문의",
+     "owner": "탁현승",
+     "due": "2026-11-16",
+     "requester": "용채원",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M03-U1",
+     "seq": 28,
+     "evidence_seq": [
+      26,
+      27,
+      28
+     ],
+     "subject": "목표 데이터 원천 (영업기획 엑셀 vs DW 목표 테이블)",
+     "topic": "data.source",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회상",
+     "why": "지난주 결정들을 PM이 반려했다는 회상 — 새 결정 아님"
+    },
+    {
+     "seq": 3,
+     "kind": "잡담",
+     "why": "김장 잡담"
+    },
+    {
+     "seq": 18,
+     "kind": "제안",
+     "why": "Superset Cloud 전환 제안 — 19번에서 미룸, 결정 아님"
+    }
+   ]
+  },
+  "SLS-M04": {
+   "split": "dev",
+   "phenomena": [
+    "STT 오인식",
+    "회의 밖 결정",
+    "돌려 말한 결정",
+    "진행자 단정",
+    "권한 밖 결정",
+    "말 끊김",
+    "회상",
+    "기한 정정",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M04-D1",
+     "seq": 4,
+     "evidence_seq": [
+      3,
+      4
+     ],
+     "topic": "data.source",
+     "statement": "실적은 DW 확정 테이블, 목표는 영업기획이 매월 1일 DW 목표 테이블에 올린 값을 원천으로 쓰고, 영업본부 엑셀 집계는 '참고' 탭에만 둔다.",
+     "decided_by": "용채원",
+     "rationale": "데이터 거버넌스 위원회가 목표 테이블 DW 적재를 승인(DATA-01 준수)",
+     "alternatives_rejected": [
+      "목표 엑셀을 직접 읽기"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "SLS-M04-D2",
+     "seq": 7,
+     "evidence_seq": [
+      5,
+      6,
+      7
+     ],
+     "topic": "sls.refresh",
+     "statement": "실적 갱신은 평소 매일 07시 1회, 월말 마지막 3영업일만 13시에 한 번 더 한다. 요구사항정의서 SREQ-02를 개정한다.",
+     "decided_by": "용채원",
+     "rationale": "월말 현업 요청, DW가 월말 사흘은 12시에 중간 확정을 한 번 더 함",
+     "alternatives_rejected": [
+      "1시간마다 갱신"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "SLS-0002",
+        "SREQ-02"
+       ],
+       "detail": "PM이 갱신 주기 요구사항을 바꾸고 정의서 개정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M04-D3",
+     "seq": 17,
+     "evidence_seq": [
+      15,
+      16,
+      17
+     ],
+     "topic": "perf.latency",
+     "statement": "대시보드 첫 화면 성능 기준을 8초로 완화한다.",
+     "decided_by": "탁현승",
+     "rationale": "라이브 연결로 6~7초가 나옴",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "성능 기준 변경은 PM 승인 — PM 퇴장 뒤 PL이 결정"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M01-D4}"
+       ],
+       "detail": "첫 화면 3초 기준과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M04-D4",
+     "seq": 22,
+     "evidence_seq": [
+      20,
+      21,
+      22
+     ],
+     "topic": "saas.new",
+     "statement": "Superset Cloud 체험판에 실제 실적 한 달 치를 마스킹 없이 넣어 비교한다.",
+     "decided_by": "탁현승",
+     "rationale": "마스킹 샘플로는 본부장 보고 설득이 어려움",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-03"
+       ],
+       "detail": "W-004는 마스킹 샘플만 — 실데이터는 예외 범위 밖"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M01-D3}"
+       ],
+       "detail": "체험판은 마스킹 샘플 시안 비교에만 쓴다는 결정과 모순"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-05"
+       ],
+       "detail": "보안 영향 결정 — 보안 담당 불참"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M04-D5",
+     "seq": 27,
+     "evidence_seq": [
+      25,
+      26,
+      27
+     ],
+     "topic": "llm.external",
+     "statement": "CRM 고객 메모(담당자 이름·연락처·미팅 내용)를 외부 GPT API로 요약해 고객사 카드에 띄운다.",
+     "decided_by": "반재경",
+     "rationale": "영업사원 편의",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-01"
+       ],
+       "detail": "고객 개인정보를 외부 LLM API로 전송"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02",
+        "AUTH-05"
+       ],
+       "detail": "범위 추가는 PM, 보안 영향은 보안 담당 — 둘 다 없고 영업본부 과장이 결정"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M04-A1",
+     "seq": 9,
+     "evidence_seq": [
+      9,
+      10
+     ],
+     "statement": "월말 마지막 3영업일 13시 추가 배치 구성",
+     "owner": "설유진",
+     "due": "2026-11-26",
+     "requester": "반재경",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "SLS-M04-A2",
+     "seq": 11,
+     "evidence_seq": [
+      11,
+      12,
+      13
+     ],
+     "statement": "목표 DW 업로드 양식 확정",
+     "owner": "엄지수",
+     "due": "2026-11-26",
+     "requester": "용채원",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "SLS-M04-A3",
+     "seq": 31,
+     "evidence_seq": [
+      31,
+      32
+     ],
+     "statement": "첫 화면 쿼리 튜닝 결과 공유",
+     "owner": "봉민석",
+     "due": "2026-11-25",
+     "requester": "탁현승",
+     "tags": []
+    }
+   ],
+   "undecided": [],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "회의 밖 결정",
+     "why": "데이터 거버넌스 위원회의 목표 테이블 승인 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 29,
+     "kind": "회상",
+     "why": "지난번에 정한 엑셀 대조 검증(SLS-M02)을 다시 말함"
+    },
+    {
+     "seq": 30,
+     "kind": "수락",
+     "why": "기존 결정대로 진행하라는 말 — 새 결정 아님"
+    }
+   ]
+  },
+  "SLS-M05": {
+   "split": "dev",
+   "phenomena": [
+    "회상",
+    "회의 밖 결정",
+    "STT 오인식",
+    "진행자 단정",
+    "돌려 말한 결정",
+    "권한 밖 결정",
+    "말 끊김",
+    "주제 이탈",
+    "잡담",
+    "보류",
+    "기한 정정"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M05-D1",
+     "seq": 4,
+     "evidence_seq": [
+      3,
+      4
+     ],
+     "topic": "release",
+     "statement": "CAB 심의가 12월 16일로 확정되어 오픈 리허설은 12월 14일(월)에 한다.",
+     "decided_by": "탁현승",
+     "rationale": "CAB 사무국이 12월 심의를 16일로 확정 공지",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{SLS-M03-D5}"
+       ],
+       "detail": "조건(CAB 16일 심의)이 충족되어 승인 대기 결정을 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{SLS-M03-D5}"
+    },
+    {
+     "id": "SLS-M05-D2",
+     "seq": 8,
+     "evidence_seq": [
+      7,
+      8
+     ],
+     "topic": "saas.new",
+     "statement": "Superset Cloud 체험판은 11월 27일 만료로 종료하고 연장하지 않으며, 비교 결과는 Tableau 화면 구성에 반영한다.",
+     "decided_by": "탁현승",
+     "rationale": "W-004 만료, 비교 목적 달성",
+     "alternatives_rejected": [
+      "체험판 연장"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M05-D3",
+     "seq": 13,
+     "evidence_seq": [
+      10,
+      12,
+      13
+     ],
+     "topic": "sls.access",
+     "statement": "영업사원 전원이 본부 전체 실적을 볼 수 있게 연다.",
+     "decided_by": "탁현승",
+     "rationale": "본부 회의에서 다 같이 본다는 영업본부 요청",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02",
+        "AUTH-05"
+       ],
+       "detail": "열람 범위는 PM, 개인 실적 노출은 보안 담당 승인 — 둘 다 불참"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-03"
+       ],
+       "detail": "정의서는 영업사원 본인 실적만"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M03-D1}"
+       ],
+       "detail": "정의서대로 열람 권한을 둔다는 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M05-D4",
+     "seq": 19,
+     "evidence_seq": [
+      17,
+      18,
+      19
+     ],
+     "topic": "data.source",
+     "statement": "11월 실적은 DW 확정 전까지 영업본부 엑셀 집계 수치로 먼저 띄운다.",
+     "decided_by": "반재경",
+     "rationale": "본부장 보고(12-01)가 DW 확정(12-03)보다 빠름",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "DATA-01"
+       ],
+       "detail": "경영 보고 수치는 DW 확정 테이블만 — 엑셀 수기 집계는 보조 자료로만"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-04"
+       ],
+       "detail": "모든 실적 수치는 DW 확정 테이블에서"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M04-D1}"
+       ],
+       "detail": "실적은 DW 확정 테이블, 엑셀은 참고 탭 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "SLS-M05-D5",
+     "seq": 26,
+     "evidence_seq": [
+      24,
+      25,
+      26
+     ],
+     "topic": "ops.alert",
+     "statement": "ETL 배치가 실패하면 사내 메신저 데이터팀 채널로 바로 알림을 보낸다.",
+     "decided_by": "탁현승",
+     "rationale": "지금은 담당자가 아침에 직접 들어가 봐야 실패를 앎",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M05-A1",
+     "seq": 29,
+     "evidence_seq": [
+      29,
+      30
+     ],
+     "statement": "배치 실패 메신저 알림 연동",
+     "owner": "설유진",
+     "due": "2026-12-02",
+     "requester": "탁현승",
+     "tags": []
+    },
+    {
+     "id": "SLS-M05-A2",
+     "seq": 31,
+     "evidence_seq": [
+      31,
+      32,
+      33
+     ],
+     "statement": "Superset 시안 구성을 Tableau 화면으로 이관",
+     "owner": "봉민석",
+     "due": "2026-12-04",
+     "requester": "탁현승",
+     "tags": [
+      "기한 정정"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M05-U1",
+     "seq": 23,
+     "evidence_seq": [
+      21,
+      22,
+      23
+     ],
+     "subject": "모바일 전용 화면을 1차 오픈에 넣을지",
+     "topic": "scope.core",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회상",
+     "why": "지난주 결정들이 반려됐다는 회상"
+    },
+    {
+     "seq": 3,
+     "kind": "회의 밖 결정",
+     "why": "CAB 사무국의 심의 일정 공지 — 이 회의 결정 아님 (4번 확정의 근거)"
+    },
+    {
+     "seq": 27,
+     "kind": "잡담",
+     "why": "송년회 잡담"
+    }
+   ]
+  },
+  "SLS-M06": {
+   "split": "test",
+   "phenomena": [
+    "회상",
+    "잡담",
+    "말 끊김",
+    "STT 오인식",
+    "진행자 단정",
+    "돌려 말한 결정",
+    "조건부 확정",
+    "보류",
+    "기한 정정"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M06-D1",
+     "seq": 5,
+     "evidence_seq": [
+      4,
+      5
+     ],
+     "topic": "cache",
+     "statement": "서버팀이 추출용 디스크 50GB를 내주어 Tableau를 추출(extract) 방식으로 바꾼다.",
+     "decided_by": "탁현승",
+     "rationale": "조건(서버팀 디스크 50GB 할당) 충족",
+     "alternatives_rejected": [
+      "라이브 연결 유지"
+     ],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{SLS-M02-D3}"
+       ],
+       "detail": "조건부로 승인 대기였던 추출 방식 전환을 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{SLS-M02-D3}"
+    },
+    {
+     "id": "SLS-M06-D2",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      7,
+      8
+     ],
+     "topic": "sls.metric",
+     "statement": "매출은 세금계산서 발행일 기준을 유지하되 금액은 공급가액(부가세 제외)으로 집계한다.",
+     "decided_by": "용채원",
+     "rationale": "목표가 공급가액 기준이라 부가세 포함 매출로는 달성률이 약 10% 부풀려짐",
+     "alternatives_rejected": [
+      "부가세 포함 합계금액 유지"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "{SLS-M01-D1}"
+       ],
+       "detail": "PM이 매출 금액 기준을 부가세 포함에서 공급가액으로 변경 (발행일 기준·SREQ-01은 그대로)"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M06-D3",
+     "seq": 13,
+     "evidence_seq": [
+      10,
+      12,
+      13
+     ],
+     "topic": "budget",
+     "statement": "영업본부 비용 분담이 확정되면 라이선스 비용 한도를 월 350만 원으로 올린다 (Tableau 뷰어 120명분).",
+     "decided_by": "용채원",
+     "rationale": "영업사원 120명 열람에 뷰어 라이선스 필요",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "SLS-0004"
+       ],
+       "detail": "월 500만 원 이하라 PM 권한 안의 한도 변경 — 분담 확정이 조건"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ],
+     "note": "SLS-M08에서 확정"
+    },
+    {
+     "id": "SLS-M06-D4",
+     "seq": 18,
+     "evidence_seq": [
+      16,
+      17,
+      18
+     ],
+     "topic": "qa.test",
+     "statement": "UAT는 12월 7~11일 영업기획 3명이 11월 마감 실적과 대조하고, 차이 0.5% 초과 건은 오픈 전에 해결한다.",
+     "decided_by": "용채원",
+     "rationale": "오픈 전 수치 신뢰 확보",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "SLS-M06-D5",
+     "seq": 22,
+     "evidence_seq": [
+      19,
+      20,
+      22
+     ],
+     "topic": "sls.bi_tool",
+     "statement": "대시보드는 사내 Tableau Server에 영업 전용 '영업' 사이트를 따로 만들어 게시한다.",
+     "decided_by": "탁현승",
+     "rationale": "기본 사이트에 다른 부서 대시보드가 섞여 권한 관리가 복잡함",
+     "alternatives_rejected": [
+      "기본 사이트에 게시"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M06-A1",
+     "seq": 25,
+     "evidence_seq": [
+      25,
+      26
+     ],
+     "statement": "UAT 참여자 3명 선정해 공유",
+     "owner": "엄지수",
+     "due": "2026-12-04",
+     "requester": "용채원",
+     "tags": []
+    },
+    {
+     "id": "SLS-M06-A2",
+     "seq": 27,
+     "evidence_seq": [
+      27,
+      28,
+      29,
+      30
+     ],
+     "statement": "CAB 신청서 제출",
+     "owner": "탁현승",
+     "due": "2026-12-08",
+     "requester": "용채원",
+     "tags": [
+      "기한 정정"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M06-U1",
+     "seq": 15,
+     "evidence_seq": [
+      14,
+      15
+     ],
+     "subject": "팀장이 본부 안 다른 팀 실적(팀 합계)을 보게 할지",
+     "topic": "sls.access",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회상",
+     "why": "지난주 결정 반려와 기존 오픈일(12-21) 재확인 — 새 결정 아님"
+    },
+    {
+     "seq": 3,
+     "kind": "잡담",
+     "why": "날씨 잡담"
+    },
+    {
+     "seq": 23,
+     "kind": "회상",
+     "why": "체험판 종료(SLS-M05)를 다시 말함"
+    }
+   ]
+  },
+  "SLS-M07": {
+   "split": "test",
+   "phenomena": [
+    "회의 밖 결정",
+    "보류",
+    "STT 오인식",
+    "권한 밖 결정",
+    "말 끊김",
+    "돌려 말한 결정",
+    "진행자 단정",
+    "잡담",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M07-D1",
+     "seq": 7,
+     "evidence_seq": [
+      5,
+      6,
+      7
+     ],
+     "topic": "sls.metric",
+     "statement": "영업사원 화면의 매출은 수주일 기준으로 보여 준다.",
+     "decided_by": "반재경",
+     "rationale": "세금계산서가 늦게 나와 이번 달 실적이 비어 보인다는 영업사원 의견",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "매출 인식 기준 변경은 PM 승인 — PM 휴가, 영업본부 과장이 결정"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-01"
+       ],
+       "detail": "매출은 세금계산서 발행일 기준"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M06-D2}"
+       ],
+       "detail": "발행일 기준·공급가액 집계 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M07-D2",
+     "seq": 10,
+     "evidence_seq": [
+      9,
+      10
+     ],
+     "topic": "saas.new",
+     "statement": "Superset Cloud 체험판을 한 달 다시 열어 실데이터로 모바일 화면을 비교한다.",
+     "decided_by": "반재경",
+     "rationale": "Tableau 모바일 화면이 기대보다 못함",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-03"
+       ],
+       "detail": "W-004는 11-27 만료, 범위도 마스킹 샘플만 — 실데이터 SaaS 사용은 보안성 검토 필요"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M05-D2}"
+       ],
+       "detail": "체험판 종료·연장 없음 결정과 모순"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-05"
+       ],
+       "detail": "보안 영향 결정 — 보안 담당 불참"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M07-D3",
+     "seq": 13,
+     "evidence_seq": [
+      11,
+      12,
+      13
+     ],
+     "topic": "schedule",
+     "statement": "Tableau Server 업그레이드 때문에 오픈을 2027년 1월 11일로 3주 미룬다.",
+     "decided_by": "탁현승",
+     "rationale": "서버 업그레이드와 재검증에 3주 소요",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-03"
+       ],
+       "detail": "2주 이상 지연은 본부장 승인 — PL이 결정"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-06"
+       ],
+       "detail": "오픈은 2026-12-21"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M07-D4",
+     "seq": 17,
+     "evidence_seq": [
+      15,
+      16,
+      17
+     ],
+     "topic": "db.rdbms",
+     "statement": "월말 실적 스냅샷은 PostgreSQL 집계 마트 안에 별도 스키마를 만들어 보관한다.",
+     "decided_by": "탁현승",
+     "rationale": "월말 실적이 소급 변경되어 마감 시점 기록이 필요, 마트와 같은 표준 DB",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "SLS-M07-D5",
+     "seq": 19,
+     "evidence_seq": [
+      18,
+      19
+     ],
+     "topic": "ops.alert",
+     "statement": "배치 실패 알림은 사내 메신저 데이터팀 채널과 영업기획 담당자에게 함께 보낸다.",
+     "decided_by": "탁현승",
+     "rationale": "숫자 이상 문의가 영업기획으로 먼저 옴",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M07-A1",
+     "seq": 22,
+     "evidence_seq": [
+      22,
+      23
+     ],
+     "statement": "월말 스냅샷 스키마 생성",
+     "owner": "설유진",
+     "due": "2026-12-15",
+     "requester": "탁현승",
+     "tags": []
+    },
+    {
+     "id": "SLS-M07-A2",
+     "seq": 25,
+     "evidence_seq": [
+      24,
+      25,
+      26
+     ],
+     "statement": "Tableau Server 업그레이드 영향 범위 정리",
+     "owner": "봉민석",
+     "due": "2026-12-14",
+     "requester": "독고준",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "SLS-M07-A3",
+     "seq": 28,
+     "evidence_seq": [
+      27,
+      28
+     ],
+     "statement": "배치 실패 알림 받을 영업기획 담당자 목록 전달",
+     "owner": "엄지수",
+     "due": "2026-12-11",
+     "requester": "설유진",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [],
+   "traps": [
+    {
+     "seq": 3,
+     "kind": "회의 밖 결정",
+     "why": "본부장이 메일로 승인한 비용 분담 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 4,
+     "kind": "보류",
+     "why": "라이선스 한도 확정은 PM 몫으로 넘김"
+    },
+    {
+     "seq": 20,
+     "kind": "잡담",
+     "why": "송년회 잡담"
+    }
+   ]
+  },
+  "SLS-M08": {
+   "split": "test",
+   "phenomena": [
+    "회상",
+    "회의 밖 결정",
+    "STT 오인식",
+    "진행자 단정",
+    "권한 밖 결정",
+    "말 끊김",
+    "번복",
+    "보류",
+    "기한 정정",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M08-D1",
+     "seq": 5,
+     "evidence_seq": [
+      4,
+      5
+     ],
+     "topic": "budget",
+     "statement": "영업본부 분담이 확정되어 라이선스 비용 한도를 월 350만 원으로 올린다.",
+     "decided_by": "용채원",
+     "rationale": "본부장 결재로 영업본부 절반 분담 확정",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{SLS-M06-D3}"
+       ],
+       "detail": "조건(영업본부 분담 확정) 충족으로 승인 대기 결정을 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{SLS-M06-D3}"
+    },
+    {
+     "id": "SLS-M08-D2",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      8
+     ],
+     "topic": "llm.external",
+     "statement": "AI 요약 기능은 넣지 않고, 고객 데이터를 외부 LLM으로 보내지 않는다.",
+     "decided_by": "용채원",
+     "rationale": "SEC-01 — 고객 개인정보 외부 LLM 전송 금지",
+     "alternatives_rejected": [
+      "CRM 메모 외부 LLM 요약"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M08-D3",
+     "seq": 11,
+     "evidence_seq": [
+      9,
+      10,
+      11
+     ],
+     "topic": "db.rdbms",
+     "statement": "월말 스냅샷은 운영팀의 남는 MySQL 인스턴스에 둔다.",
+     "decided_by": "탁현승",
+     "rationale": "마트 용량 부담, 사내 위키(구 정책)의 MySQL 표준",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "ARC-01"
+       ],
+       "detail": "현행 표준은 PostgreSQL, 다른 RDBMS는 아키텍처 위원회 승인 필요 (위키는 구 정책 v2)"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M07-D4}"
+       ],
+       "detail": "스냅샷은 PostgreSQL 마트 별도 스키마 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "SLS-M08-D4",
+     "seq": 14,
+     "evidence_seq": [
+      12,
+      13,
+      14
+     ],
+     "topic": "scope.core",
+     "statement": "1차는 본부·팀·개인 3화면으로 12월 21일에 열고, 2단계는 제품군별 분석과 모바일 화면으로 2027년 1월 29일에 연다.",
+     "decided_by": "용채원",
+     "rationale": "1차 범위 유지, 모바일 요구는 2단계에서 수용",
+     "alternatives_rejected": [
+      "모바일 화면 1차 포함"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M08-D5",
+     "seq": 19,
+     "evidence_seq": [
+      17,
+      18,
+      19
+     ],
+     "topic": "release",
+     "statement": "운영 게시는 CAB 승인 버전 그대로 12월 21일 08시(07시 배치 완료 후)에 한다.",
+     "decided_by": "용채원",
+     "rationale": "06시에 올리면 07시 배치 전이라 전 영업일 숫자가 뜸",
+     "alternatives_rejected": [
+      "21일 06시 게시"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "번복"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M08-A1",
+     "seq": 23,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "statement": "오픈 당일 07시 배치·08시 게시 모니터링",
+     "owner": "설유진",
+     "due": "2026-12-21",
+     "requester": "용채원",
+     "tags": []
+    },
+    {
+     "id": "SLS-M08-A2",
+     "seq": 25,
+     "evidence_seq": [
+      25,
+      26,
+      27
+     ],
+     "statement": "사용자 가이드 작성",
+     "owner": "봉민석",
+     "due": "2026-12-19",
+     "requester": "용채원",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "SLS-M08-A3",
+     "seq": 29,
+     "evidence_seq": [
+      28,
+      29,
+      30
+     ],
+     "statement": "영업사원 대상 오픈 공지 메일 발송",
+     "owner": "엄지수",
+     "due": "2026-12-18",
+     "requester": "반재경",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M08-U1",
+     "seq": 22,
+     "evidence_seq": [
+      20,
+      21,
+      22
+     ],
+     "subject": "영업사원 엑셀 내려받기에 고객 연락처 포함",
+     "topic": "sls.export",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회상",
+     "why": "지난주 연기 결정 반려와 기존 오픈일 재확인"
+    },
+    {
+     "seq": 2,
+     "kind": "회의 밖 결정",
+     "why": "CAB 심의 통과 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 16,
+     "kind": "번복 전 결정",
+     "why": "06시 게시는 19번에서 08시로 뒤집힘"
+    },
+    {
+     "seq": 31,
+     "kind": "회상",
+     "why": "14일 리허설 얘기"
+    }
+   ]
+  },
+  "SLS-M09": {
+   "split": "test",
+   "phenomena": [
+    "잡담",
+    "회상",
+    "회의 밖 결정",
+    "STT 오인식",
+    "권한 밖 결정",
+    "진행자 단정",
+    "조건부 확정",
+    "돌려 말한 결정",
+    "보류",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M09-D1",
+     "seq": 6,
+     "evidence_seq": [
+      4,
+      5,
+      6
+     ],
+     "topic": "sls.access",
+     "statement": "팀장은 본부 안 다른 팀의 실적 합계(개인별 제외)까지 볼 수 있게 연다.",
+     "decided_by": "용채원",
+     "rationale": "본부 안 팀 순위를 알고 싶다는 팀장·본부장 요청",
+     "alternatives_rejected": [
+      "정의서대로 팀장은 자기 팀만"
+     ],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-05"
+       ],
+       "detail": "범위 변경은 PM 권한이지만 열람 확대는 보안 영향 — 보안 담당 불참 (M06에서 보안 검토 받기로 했던 사안)"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "권한 밖 결정"
+     ],
+     "note": "PM이 범위 권한은 있으나 보안 승인이 빠짐 — 승인 대기로 두고 SLS-M10에서 보안 담당이 확정. 판단이 갈릴 수 있음"
+    },
+    {
+     "id": "SLS-M09-D2",
+     "seq": 9,
+     "evidence_seq": [
+      8,
+      9
+     ],
+     "topic": "sls.export",
+     "statement": "내려받는 엑셀 파일에 기준일과 '대외비' 표시를 넣고, 내려받기 대상은 팀장 이상과 영업기획팀 담당자로 유지한다(연락처 컬럼 제외).",
+     "decided_by": "용채원",
+     "rationale": "내려받은 파일이 기준일 없이 메일로 돌아다님",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "SLS-M09-D3",
+     "seq": 12,
+     "evidence_seq": [
+      10,
+      11,
+      12
+     ],
+     "topic": "scope.core",
+     "statement": "데이터 거버넌스 위원회가 잠정치 표시 기준을 승인하면 2단계에 마감 전 잠정 실적 탭을 넣는다.",
+     "decided_by": "용채원",
+     "rationale": "월말 마감 전 숫자 요구, DATA-01상 잠정치 표시는 위원회 승인 필요",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    },
+    {
+     "id": "SLS-M09-D4",
+     "seq": 18,
+     "evidence_seq": [
+      16,
+      17,
+      18
+     ],
+     "topic": "cache",
+     "statement": "Tableau 추출 방식은 유지하고, 추출 새로고침 직후 주요 화면을 미리 열어 캐시를 채운다.",
+     "decided_by": "탁현승",
+     "rationale": "새로고침 직후 첫 접속이 5초 넘게 걸림",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "SLS-M09-D5",
+     "seq": 22,
+     "evidence_seq": [
+      19,
+      21,
+      22
+     ],
+     "topic": "data.source",
+     "statement": "12월 실적은 DW 확정(1월 5일) 전까지 영업본부 엑셀 집계 수치로 덮어 보여 준다.",
+     "decided_by": "탁현승",
+     "rationale": "본부장 신년 보고(1월 4일)가 DW 확정보다 빠름",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "DATA-01"
+       ],
+       "detail": "경영 보고 수치는 DW 확정 테이블만 — 엑셀 수기 집계는 보조 자료로만"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-04"
+       ],
+       "detail": "모든 실적 수치는 DW 확정 테이블에서"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M04-D1}"
+       ],
+       "detail": "실적은 DW 확정 테이블, 엑셀은 참고 탭 결정과 모순"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "원천 변경은 요구사항 변경 — PM 퇴장 뒤 PL이 결정"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M09-A1",
+     "seq": 24,
+     "evidence_seq": [
+      24,
+      25
+     ],
+     "statement": "추출 새로고침 직후 캐시 미리 띄우는 스크립트 적용",
+     "owner": "봉민석",
+     "due": "2026-12-29",
+     "requester": "탁현승",
+     "tags": []
+    },
+    {
+     "id": "SLS-M09-A2",
+     "seq": 26,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "statement": "오픈 첫 주 접속 통계 정리",
+     "owner": "설유진",
+     "due": null,
+     "requester": "용채원",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M09-U1",
+     "seq": 14,
+     "evidence_seq": [
+      13,
+      14
+     ],
+     "subject": "목표 변경 이력 표시",
+     "topic": "scope.core",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "잡담",
+     "why": "케이크 잡담"
+    },
+    {
+     "seq": 3,
+     "kind": "회상",
+     "why": "오픈 날 08시 게시·07시 배치 결과 — 기존 결정 회상"
+    },
+    {
+     "seq": 4,
+     "kind": "회의 밖 결정",
+     "why": "본부장이 오픈 날 했다는 지시 — 이 회의 결정 아님"
+    }
+   ]
+  },
+  "SLS-M10": {
+   "split": "test",
+   "phenomena": [
+    "회상",
+    "잡담",
+    "회의 밖 결정",
+    "STT 오인식",
+    "권한 밖 결정",
+    "말 끊김",
+    "돌려 말한 결정",
+    "진행자 단정",
+    "보류",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "SLS-M10-D1",
+     "seq": 5,
+     "evidence_seq": [
+      4,
+      5
+     ],
+     "topic": "sls.access",
+     "statement": "보안 담당 검토 결과 팀 합계만 보이는 조건으로 팀장의 본부 내 다른 팀 실적 열람을 확정한다.",
+     "decided_by": "육성재",
+     "rationale": "개인별 숫자 없이 팀 합계만이면 보안상 문제없음",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{SLS-M09-D1}"
+       ],
+       "detail": "빠져 있던 보안 담당 승인으로 승인 대기 결정을 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{SLS-M09-D1}",
+     "note": "PM 부재 중 보안 담당이 확정 — 판단이 갈릴 수 있음"
+    },
+    {
+     "id": "SLS-M10-D2",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      7,
+      8
+     ],
+     "topic": "budget",
+     "statement": "2단계 협력사 상주 컨설팅을 월 600만 원으로 진행한다.",
+     "decided_by": "탁현승",
+     "rationale": "2단계 범위(제품군별 분석·모바일)에 컨설턴트 2명 필요",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-04"
+       ],
+       "detail": "월 500만 원 초과는 본부장 승인 — 구두로 괜찮다고 했다는 전언뿐, PL이 결정"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M10-D3",
+     "seq": 12,
+     "evidence_seq": [
+      10,
+      11,
+      12
+     ],
+     "topic": "sls.refresh",
+     "statement": "2027년 1월부터 실적 데이터를 30분마다 갱신한다.",
+     "decided_by": "반재경",
+     "rationale": "오픈 뒤 영업사원들이 수시로 새로고침",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "갱신 주기는 요구사항 — PM 승인 필요, PM 연차"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "SREQ-02"
+       ],
+       "detail": "정의서는 매일 07시 1회 (월말 13시 추가로 개정)"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{SLS-M04-D2}"
+       ],
+       "detail": "평소 07시 1회·월말 3영업일 13시 추가 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "SLS-M10-D4",
+     "seq": 15,
+     "evidence_seq": [
+      14,
+      15
+     ],
+     "topic": "tech.backend",
+     "statement": "ETL(Airflow) 워커를 2대로 늘려 월말 적재를 07시 전에 끝낸다. 증분 적재 방식은 유지한다.",
+     "decided_by": "탁현승",
+     "rationale": "워커 1대로는 월말 적재가 밀림",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "SLS-M10-D5",
+     "seq": 17,
+     "evidence_seq": [
+      16,
+      17
+     ],
+     "topic": "qa.test",
+     "statement": "오픈 뒤에도 매월 초 3영업일 동안 영업기획 엑셀 마감 수치와 대조 검증을 계속한다.",
+     "decided_by": "탁현승",
+     "rationale": "소급 변경·마감 차이를 매달 확인",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "SLS-M10-A1",
+     "seq": 21,
+     "evidence_seq": [
+      21,
+      22
+     ],
+     "statement": "ETL 워커 2대로 증설",
+     "owner": "설유진",
+     "due": "2027-01-08",
+     "requester": "탁현승",
+     "tags": []
+    },
+    {
+     "id": "SLS-M10-A2",
+     "seq": 24,
+     "evidence_seq": [
+      23,
+      24,
+      25
+     ],
+     "statement": "1월 대조 검증 결과를 영업본부에도 공유",
+     "owner": "엄지수",
+     "due": "2027-01-06",
+     "requester": "반재경",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "SLS-M10-U1",
+     "seq": 20,
+     "evidence_seq": [
+      18,
+      19,
+      20
+     ],
+     "subject": "영업사원 엑셀 내려받기에 고객 연락처 포함",
+     "topic": "sls.export",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회상",
+     "why": "지난주 엑셀 덮어쓰기 반려 회상"
+    },
+    {
+     "seq": 2,
+     "kind": "잡담",
+     "why": "해돋이 잡담"
+    },
+    {
+     "seq": 7,
+     "kind": "회의 밖 결정",
+     "why": "본부장이 구두로 했다는 승인 전언 — 이 회의 결정·정당한 승인 아님"
+    }
+   ]
+  }
+ },
+ "opinions": [
+  {
+   "id": "SLS-O01",
+   "split": "dev",
+   "at": "SLS-M01",
+   "scope_project": "SLS",
+   "text": "Superset Cloud 체험판에 마스킹한 샘플 실적만 넣어서 화면 시안을 비교해 봐도 될까요?",
+   "expected": "allowed_with_waiver",
+   "against": [
+    "SEC-03"
+   ],
+   "waiver": "W-004",
+   "ambiguous": false,
+   "note": "W-004 범위(마스킹 샘플·시안 비교) 안, 기간(~11-27) 안"
+  },
+  {
+   "id": "SLS-O02",
+   "split": "dev",
+   "at": "SLS-M02",
+   "scope_project": "SLS",
+   "text": "영업본부에서 매주 엑셀로 집계하는 수치를 대시보드 공식 실적으로 쓰면 어때요?",
+   "expected": "conflict",
+   "against": [
+    "DATA-01",
+    "SREQ-04",
+    "{SLS-M01-D5}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "엑셀 수기 집계는 보조 자료로만"
+  },
+  {
+   "id": "SLS-O03",
+   "split": "dev",
+   "at": "SLS-M02",
+   "scope_project": "SLS",
+   "text": "Tableau 뷰어 라이선스를 월 150만 원어치 추가로 사도 될까요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "SLS-0004 월 200만 원 한도 안, AUTH-04상 PM 권한 안"
+  },
+  {
+   "id": "SLS-O04",
+   "split": "dev",
+   "at": "SLS-M03",
+   "scope_project": "SLS",
+   "text": "실적 데이터를 1시간마다 갱신하면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "SLS-0002",
+    "SREQ-02"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "M02의 1시간 갱신은 반려됨 — 유효 결정은 매일 07시 1회"
+  },
+  {
+   "id": "SLS-O05",
+   "split": "dev",
+   "at": "SLS-M04",
+   "scope_project": "SLS",
+   "text": "CRM 고객 메모를 외부 LLM API로 요약해서 고객사 카드에 띄우면 좋겠어요.",
+   "expected": "conflict",
+   "against": [
+    "SEC-01"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "고객 담당자 이름·연락처 포함 — 외부 LLM 전송 금지"
+  },
+  {
+   "id": "SLS-O06",
+   "split": "dev",
+   "at": "SLS-M04",
+   "scope_project": null,
+   "text": "Superset Cloud 체험판으로 하는 화면 비교를 마스킹 샘플로 11월 25일까지 마무리해도 되죠?",
+   "expected": "allowed_with_waiver",
+   "against": [
+    "SEC-03"
+   ],
+   "waiver": "W-004",
+   "ambiguous": false,
+   "note": "프로젝트 미선택. W-004 기간·범위 안"
+  },
+  {
+   "id": "SLS-O07",
+   "split": "dev",
+   "at": "SLS-M05",
+   "scope_project": "SLS",
+   "text": "월별 실적 스냅샷을 PostgreSQL 마트에 테이블 하나 더 만들어 쌓으면 어때요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "ARC-01 표준 DB, SLS-0003과 일치"
+  },
+  {
+   "id": "SLS-O08",
+   "split": "dev",
+   "at": "SLS-M05",
+   "scope_project": "SLS",
+   "text": "오픈을 1주일만 미뤄서 12월 28일에 하면 어떨까요?",
+   "expected": "needs_approval",
+   "against": [
+    "AUTH-03",
+    "SREQ-06"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "1주 지연은 PM 승인 사항이고 정의서 오픈일 변경 — 사람이 판단"
+  },
+  {
+   "id": "SLS-O09",
+   "split": "test",
+   "at": "SLS-M06",
+   "scope_project": "SLS",
+   "text": "Superset Cloud 체험판을 한 달 더 연장해서 마스킹 샘플로 계속 비교하면 안 될까요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-03",
+    "{SLS-M05-D2}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "W-004는 11-27 만료 — 마스킹 샘플이어도 예외 없음, 체험판 종료 결정"
+  },
+  {
+   "id": "SLS-O10",
+   "split": "test",
+   "at": "SLS-M07",
+   "scope_project": null,
+   "text": "경비 정산 OCR 인식 결과를 OCR 솔루션에 딸린 MySQL에 7일만 임시로 저장해도 되나요?",
+   "expected": "allowed_with_waiver",
+   "against": [
+    "ARC-01"
+   ],
+   "waiver": "W-005",
+   "ambiguous": false,
+   "note": "프로젝트 미선택, 다른 프로젝트(EXP) 예외 W-005 범위(인식 결과 7일 임시 저장) 안"
+  },
+  {
+   "id": "SLS-O11",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "오픈 날부터 영업사원도 고객 연락처까지 넣어서 엑셀을 받게 해 주면 어때요?",
+   "expected": "conflict",
+   "against": [
+    "SREQ-05",
+    "{SLS-M03-D3}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "내려받기는 팀장 이상·영업기획팀, 연락처 컬럼 제외"
+  },
+  {
+   "id": "SLS-O12",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "Tableau 라이선스 비용을 월 300만 원으로 잡아도 되나요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "M08에서 확정된 한도 월 350만 원({SLS-M06-D3}) 안"
+  },
+  {
+   "id": "SLS-O13",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": "SLS",
+   "text": "12월 실적은 DW 확정 전까지 영업본부 엑셀 수치로 보여 주면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "DATA-01",
+    "SREQ-04",
+    "{SLS-M04-D1}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "엑셀 수기 집계는 보조 자료로만"
+  },
+  {
+   "id": "SLS-O14",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": "SLS",
+   "text": "2단계 오픈을 1월 29일에서 2월 5일로 1주 미뤄도 될까요?",
+   "expected": "needs_approval",
+   "against": [
+    "AUTH-03",
+    "{SLS-M08-D4}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "1주 지연은 PM 승인 사항 — 사람이 판단"
+  },
+  {
+   "id": "SLS-O15",
+   "split": "test",
+   "at": "SLS-M10",
+   "scope_project": "SLS",
+   "text": "월말 스냅샷은 PostgreSQL 마트 안 별도 스키마에 두면 되죠?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "{SLS-M07-D4}와 같음"
+  }
+ ],
+ "questions": [
+  {
+   "id": "SLS-Q01",
+   "split": "dev",
+   "at": "SLS-M01",
+   "scope_project": "SLS",
+   "text": "BI 도구는 왜 Tableau로 정했어요?",
+   "kind": "why",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "SLS-0001"
+   ],
+   "expected_keywords": [
+    "Tableau"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q02",
+   "split": "dev",
+   "at": "SLS-M01",
+   "scope_project": "SLS",
+   "text": "매출은 무슨 날짜 기준으로 잡기로 했죠?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M01-D1}"
+   ],
+   "expected_keywords": [
+    "발행일"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q03",
+   "split": "dev",
+   "at": "SLS-M01",
+   "scope_project": "SLS",
+   "text": "영업사원 전원에게 본부 전체 실적을 공개하는 건 정해졌어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M01-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q04",
+   "split": "dev",
+   "at": "SLS-M01",
+   "scope_project": null,
+   "text": "영업 대시보드 푸시 알림은 어떤 걸 쓰기로 했죠?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "푸시 결정은 FLD-0004(현장 앱)에만 있음"
+  },
+  {
+   "id": "SLS-Q05",
+   "split": "dev",
+   "at": "SLS-M02",
+   "scope_project": "SLS",
+   "text": "실적 갱신 1시간마다로 바뀐 거 맞죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "SLS-0002"
+   ],
+   "expected_keywords": [
+    "7시"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M02-D2(1시간 갱신)는 PM 부재 중 결정 — 반려, 유효 결정은 SLS-0002"
+  },
+  {
+   "id": "SLS-Q06",
+   "split": "dev",
+   "at": "SLS-M02",
+   "scope_project": "SLS",
+   "text": "Tableau 추출 방식으로 바꾸는 건 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M02-D3}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q07",
+   "split": "dev",
+   "at": "SLS-M02",
+   "scope_project": "SLS",
+   "text": "그건 무슨 조건이 붙어 있었죠?",
+   "kind": "follow_up",
+   "follow_up_of": "SLS-Q06",
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M02-D3}"
+   ],
+   "expected_keywords": [
+    "50"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q08",
+   "split": "dev",
+   "at": "SLS-M02",
+   "scope_project": null,
+   "text": "본부장님이 영업사원 전원 공개하라고 하셨다던데 대시보드에 반영됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M02-U1}",
+    "{SLS-M01-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "회의 밖 지시 전언 — 결정 아님"
+  },
+  {
+   "id": "SLS-Q09",
+   "split": "dev",
+   "at": "SLS-M02",
+   "scope_project": "SLS",
+   "text": "대시보드 다크 모드는 지원하기로 했어요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q10",
+   "split": "dev",
+   "at": "SLS-M03",
+   "scope_project": "SLS",
+   "text": "Tableau 라이선스랑 컨설팅 월 700만 원으로 진행하는 거죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "SLS-0004"
+   ],
+   "expected_keywords": [
+    "200만"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M03-D4는 AUTH-04 초과로 반려 — 유효 결정은 월 200만 원 한도"
+  },
+  {
+   "id": "SLS-Q11",
+   "split": "dev",
+   "at": "SLS-M03",
+   "scope_project": "SLS",
+   "text": "그 한도는 누가 정했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "SLS-Q10",
+   "expected_state": "확정",
+   "expected_ids": [
+    "SLS-0004"
+   ],
+   "expected_keywords": [
+    "용채원"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q12",
+   "split": "dev",
+   "at": "SLS-M03",
+   "scope_project": "SLS",
+   "text": "오픈 리허설 날짜는 정해졌어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M03-D5}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q13",
+   "split": "dev",
+   "at": "SLS-M03",
+   "scope_project": "SLS",
+   "text": "목표 데이터는 어디서 받기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M03-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q14",
+   "split": "dev",
+   "at": "SLS-M03",
+   "scope_project": null,
+   "text": "경비 정산 시스템 백엔드는 뭘로 개발해요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "EXP-0001"
+   ],
+   "expected_keywords": [
+    "Spring Boot"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q15",
+   "split": "dev",
+   "at": "SLS-M03",
+   "scope_project": "SLS",
+   "text": "영업기획팀 담당자도 엑셀 내려받을 수 있어요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M03-D3}"
+   ],
+   "expected_keywords": [
+    "영업기획"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q16",
+   "split": "dev",
+   "at": "SLS-M04",
+   "scope_project": "SLS",
+   "text": "지금 기준으로 실적 갱신은 언제언제 해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M04-D2}"
+   ],
+   "expected_keywords": [
+    "월말"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "SLS-0002(매일 07시 1회)가 대체됨"
+  },
+  {
+   "id": "SLS-Q17",
+   "split": "dev",
+   "at": "SLS-M04",
+   "scope_project": "SLS",
+   "text": "목표 데이터까지 포함하면 지금 원천 데이터 기준이 어떻게 돼요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M04-D1}"
+   ],
+   "expected_keywords": [
+    "목표 테이블"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M01-D5가 대체됨"
+  },
+  {
+   "id": "SLS-Q18",
+   "split": "dev",
+   "at": "SLS-M04",
+   "scope_project": "SLS",
+   "text": "첫 화면 로딩 기준 8초로 늘렸죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M01-D4}"
+   ],
+   "expected_keywords": [
+    "3초"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M04-D3(8초)은 PM 퇴장 뒤 PL이 결정 — 반려"
+  },
+  {
+   "id": "SLS-Q19",
+   "split": "dev",
+   "at": "SLS-M04",
+   "scope_project": "SLS",
+   "text": "영업 대시보드 실시간 전송은 WebSocket으로 하나요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "realtime.transport 결정은 OPS·CSB에만 있음"
+  },
+  {
+   "id": "SLS-Q20",
+   "split": "dev",
+   "at": "SLS-M04",
+   "scope_project": null,
+   "text": "대시보드 오픈 리허설 날짜는 CAB 일정 따라 정한다던데 아직 확정 전이에요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M03-D5}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q21",
+   "split": "dev",
+   "at": "SLS-M05",
+   "scope_project": "SLS",
+   "text": "Superset 체험판은 지금 어떻게 하기로 했어요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M05-D2}"
+   ],
+   "expected_keywords": [
+    "종료"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M01-D3(시안 비교에만 사용)이 대체됨"
+  },
+  {
+   "id": "SLS-Q22",
+   "split": "dev",
+   "at": "SLS-M05",
+   "scope_project": "SLS",
+   "text": "모바일 전용 화면은 1차 오픈에 넣나요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M05-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q23",
+   "split": "dev",
+   "at": "SLS-M05",
+   "scope_project": null,
+   "text": "운영 장애 대응 AI 백엔드는 뭘로 만들어요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "OPS-0001"
+   ],
+   "expected_keywords": [
+    "FastAPI"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q24",
+   "split": "dev",
+   "at": "SLS-M05",
+   "scope_project": "SLS",
+   "text": "대시보드 접속 로그는 며칠 보관하기로 했죠?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "보관 기간 결정은 OPS 회의 원문 90일(OPS-0020)뿐 — 비슷한 말 함정"
+  },
+  {
+   "id": "SLS-Q25",
+   "split": "dev",
+   "at": "SLS-M05",
+   "scope_project": "SLS",
+   "text": "영업사원 대상 사용법 교육은 언제 하기로 했어요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q26",
+   "split": "test",
+   "at": "SLS-M06",
+   "scope_project": "SLS",
+   "text": "매출 금액은 지금 부가세 포함이에요, 빼고예요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M06-D2}"
+   ],
+   "expected_keywords": [
+    "공급가액"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M01-D1(부가세 포함 합계금액)이 대체됨"
+  },
+  {
+   "id": "SLS-Q27",
+   "split": "test",
+   "at": "SLS-M06",
+   "scope_project": "SLS",
+   "text": "Tableau 추출 방식으로 바꾸는 건 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M02-D3}"
+   ],
+   "expected_keywords": [
+    "추출"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q28",
+   "split": "test",
+   "at": "SLS-M06",
+   "scope_project": "SLS",
+   "text": "라이선스 한도 월 350만 원으로 올리는 거 확정이에요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M06-D3}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q29",
+   "split": "test",
+   "at": "SLS-M06",
+   "scope_project": "SLS",
+   "text": "그건 무슨 조건이 붙어 있었죠?",
+   "kind": "follow_up",
+   "follow_up_of": "SLS-Q28",
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M06-D3}"
+   ],
+   "expected_keywords": [
+    "분담"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q30",
+   "split": "test",
+   "at": "SLS-M06",
+   "scope_project": null,
+   "text": "팀장이 다른 팀 실적도 볼 수 있게 하는 건 어떻게 됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M06-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q31",
+   "split": "test",
+   "at": "SLS-M06",
+   "scope_project": "SLS",
+   "text": "대시보드 영어 화면도 만들기로 했나요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q32",
+   "split": "test",
+   "at": "SLS-M07",
+   "scope_project": "SLS",
+   "text": "영업사원 화면은 이제 수주일 기준으로 보여 주는 거죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M06-D2}"
+   ],
+   "expected_keywords": [
+    "발행일"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M07-D1은 PM 부재 중 영업본부 과장이 결정 — 반려"
+  },
+  {
+   "id": "SLS-Q33",
+   "split": "test",
+   "at": "SLS-M07",
+   "scope_project": "SLS",
+   "text": "Superset 체험판 다시 열어서 실데이터로 모바일 화면 비교하는 거 진행되나요?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M05-D2}"
+   ],
+   "expected_keywords": [
+    "종료"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M07-D2는 SEC-03 위반·W-004 만료 — 반려"
+  },
+  {
+   "id": "SLS-Q34",
+   "split": "test",
+   "at": "SLS-M07",
+   "scope_project": null,
+   "text": "고객센터 챗봇은 대화 이력을 어디에 저장해요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "CSB-0005"
+   ],
+   "expected_keywords": [
+    "MySQL"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q35",
+   "split": "test",
+   "at": "SLS-M07",
+   "scope_project": null,
+   "text": "영업 대시보드에서 영업사원 위치정보 수집은 어떻게 하기로 했죠?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "위치정보 결정은 FLD-0005(현장 앱)에만 있음"
+  },
+  {
+   "id": "SLS-Q36",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "라이선스 비용 한도는 지금 얼마예요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M06-D3}"
+   ],
+   "expected_keywords": [
+    "350만"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M08-D1로 확정, SLS-0004(200만)가 대체됨"
+  },
+  {
+   "id": "SLS-Q37",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "그건 누가 승인했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "SLS-Q36",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M06-D3}"
+   ],
+   "expected_keywords": [
+    "용채원"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q38",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "월말 스냅샷은 MySQL에 두기로 한 거죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M07-D4}"
+   ],
+   "expected_keywords": [
+    "PostgreSQL"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M08-D3은 ARC-01 위반 — 반려"
+  },
+  {
+   "id": "SLS-Q39",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "영업사원 엑셀에 고객 연락처 넣는 건 정해졌어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M08-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q40",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "오픈 날 운영 게시는 몇 시에 해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M08-D5}"
+   ],
+   "expected_keywords": [
+    "8시"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "회의 안에서 06시 → 08시로 번복"
+  },
+  {
+   "id": "SLS-Q41",
+   "split": "test",
+   "at": "SLS-M08",
+   "scope_project": "SLS",
+   "text": "오픈 기념 사용자 교육은 언제 하기로 했어요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q42",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": "SLS",
+   "text": "팀장이 다른 팀 실적 보는 거 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M09-D1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q43",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": "SLS",
+   "text": "마감 전 잠정 실적 탭은 2단계에 들어가요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{SLS-M09-D3}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q44",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": "SLS",
+   "text": "12월 실적은 본부 엑셀 집계로 덮어서 보여 주기로 했죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M04-D1}"
+   ],
+   "expected_keywords": [
+    "DW"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M09-D5는 DATA-01 위반 — 반려"
+  },
+  {
+   "id": "SLS-Q45",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": "SLS",
+   "text": "목표 바뀐 이력 보여 주는 건 어떻게 됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M09-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q46",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": null,
+   "text": "고객센터 챗봇 상담원 화면 실시간 알림은 지금 뭘로 해요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "CSB-0004"
+   ],
+   "expected_keywords": [
+    "Long Polling"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "CSB-0001(WebSocket)이 대체됨"
+  },
+  {
+   "id": "SLS-Q47",
+   "split": "test",
+   "at": "SLS-M09",
+   "scope_project": "SLS",
+   "text": "영업 대시보드에서 내려받은 엑셀 파일은 몇 년 보관해야 해요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "보관 기간 규정은 경비 증빙(FIN-01)뿐 — 비슷한 말 함정"
+  },
+  {
+   "id": "SLS-Q48",
+   "split": "test",
+   "at": "SLS-M10",
+   "scope_project": null,
+   "text": "실적 갱신이 1월부터 30분마다로 바뀌는 거 맞죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{SLS-M04-D2}"
+   ],
+   "expected_keywords": [
+    "7시"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M10-D3은 PM 부재 중 영업본부 과장이 결정 — 반려"
+  },
+  {
+   "id": "SLS-Q49",
+   "split": "test",
+   "at": "SLS-M10",
+   "scope_project": "SLS",
+   "text": "엑셀에 고객 연락처 넣는 건 결론 났어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{SLS-M10-U1}",
+    "{SLS-M08-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "SLS-Q50",
+   "split": "test",
+   "at": "SLS-M10",
+   "scope_project": "SLS",
+   "text": "대시보드 접근 권한 신청 결재선은 어떻게 하기로 했죠?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "결재선은 경비 정산(EXP) 용어 — 비슷한 말 함정"
+  }
+ ]
+}

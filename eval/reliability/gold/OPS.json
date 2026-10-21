@@ -1,0 +1,3296 @@
+{
+ "project": "OPS",
+ "meetings": {
+  "OPS-M11": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "회의 밖 결정",
+    "STT 오인식",
+    "진행자 단정",
+    "회상",
+    "돌려 말한 결정",
+    "말 끊김",
+    "보류",
+    "권한 밖 결정",
+    "기한 정정",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M11-D1",
+     "seq": 7,
+     "evidence_seq": [
+      7
+     ],
+     "topic": "release",
+     "statement": "운영 반영은 스테이징 2주 검증 → CAB 승인 → 2026-12-15 반영 순서로 진행한다",
+     "decided_by": "정한결",
+     "rationale": "운영 반영은 CAB 승인 후에만 가능(OPS-01)하고, 스테이징 2주로 안정성을 먼저 확인",
+     "alternatives_rejected": [
+      "스테이징 검증 없이 CAB 상정"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정",
+      "STT 오인식"
+     ]
+    },
+    {
+     "id": "OPS-M11-D2",
+     "seq": 13,
+     "evidence_seq": [
+      11,
+      13
+     ],
+     "topic": "ops.alert",
+     "statement": "장애 알림은 사내 메신저 운영 채널에 웹훅으로 보낸다",
+     "decided_by": "서지후",
+     "rationale": "메일 알림은 운영팀이 야간에 보지 않음, 메신저는 휴대폰으로 바로 확인",
+     "alternatives_rejected": [
+      "메일 알림"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "OPS-M11-D3",
+     "seq": 20,
+     "evidence_seq": [
+      17,
+      20
+     ],
+     "topic": "qa.test",
+     "statement": "반영 전 회귀 테스트는 평가 데이터셋 30문항과 운영 시나리오 20개를 자동으로 돌린다",
+     "decided_by": "서지후",
+     "rationale": "답변 품질을 반영 전마다 같은 기준으로 확인",
+     "alternatives_rejected": [
+      "화면 시나리오까지 자동화"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "OPS-M11-D4",
+     "seq": 22,
+     "evidence_seq": [
+      21,
+      22
+     ],
+     "topic": "ops.feedback",
+     "statement": "운영자 답변 평가는 답변마다 도움됨·안 됨 버튼과 한 줄 의견으로 받는다",
+     "decided_by": "정한결",
+     "rationale": "운영자가 바빠 설문은 응답하지 않음, 버튼 하나가 부담이 적음",
+     "alternatives_rejected": [
+      "5점 척도 설문"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "OPS-M11-D5",
+     "seq": 32,
+     "evidence_seq": [
+      30,
+      32
+     ],
+     "topic": "schedule",
+     "statement": "알림 연동 개발 완료일을 11-13에서 11-20으로 1주 미룬다",
+     "decided_by": "마태수",
+     "rationale": "협력사 인력이 11월 초 다른 현장으로 빠짐",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-03"
+       ],
+       "detail": "마일스톤 지연은 PM 승인 사항. 협력사 PM이 PM 퇴장 뒤 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M11-A1",
+     "seq": 24,
+     "evidence_seq": [
+      24,
+      25
+     ],
+     "statement": "런북 기준 운영 시나리오 20개 작성",
+     "owner": "노영오",
+     "due": "2026-11-02",
+     "requester": "권유나",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "OPS-M11-A2",
+     "seq": 27,
+     "evidence_seq": [
+      27,
+      28,
+      29
+     ],
+     "statement": "메신저 웹훅 알림 연동 설계",
+     "owner": "장상민",
+     "due": "2026-10-30",
+     "requester": "서지후",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "OPS-M11-A3",
+     "seq": 34,
+     "evidence_seq": [
+      34,
+      35
+     ],
+     "statement": "회귀 테스트 자동화 스크립트 작성",
+     "owner": "권유나",
+     "due": "2026-11-06",
+     "requester": "서지후",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M11-U1",
+     "seq": 16,
+     "evidence_seq": [
+      14,
+      15,
+      16
+     ],
+     "subject": "P1 장애 온콜 전화 호출 연동 여부",
+     "topic": "ops.alert",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "잡담",
+     "why": "주말 등산 얘기"
+    },
+    {
+     "seq": 5,
+     "kind": "회의 밖 결정",
+     "why": "본부장이 메일로 반영일 유지를 알린 것 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 9,
+     "kind": "회상",
+     "why": "OPS-0018(최종 답변 60초)을 다시 말함"
+    },
+    {
+     "seq": 33,
+     "kind": "보류",
+     "why": "PL이 PM 승인 사안이라며 올리겠다고 함 — 결정 아님"
+    }
+   ]
+  },
+  "OPS-M12": {
+   "split": "dev",
+   "phenomena": [
+    "회의 밖 결정",
+    "진행자 단정",
+    "잡담",
+    "주제 이탈",
+    "말 끊김",
+    "돌려 말한 결정",
+    "회상",
+    "STT 오인식",
+    "보류",
+    "요청자≠담당자"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M12-D1",
+     "seq": 4,
+     "evidence_seq": [
+      3,
+      4
+     ],
+     "topic": "ops.alert",
+     "statement": "장애 알림은 메신저 웹훅으로 보내고, P1 장애는 온콜 호출 시스템으로 담당자 전화 호출까지 한다",
+     "decided_by": "정한결",
+     "rationale": "호출 API는 건당 과금이라 P1만 걸면 비용이 적고, 큰 장애는 메신저만으로 놓칠 수 있음",
+     "alternatives_rejected": [
+      "모든 등급 전화 호출"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "OPS-M12-D2",
+     "seq": 10,
+     "evidence_seq": [
+      9,
+      10
+     ],
+     "topic": "error.retry",
+     "statement": "with_retry는 타임아웃 재시도를 유지하고, 알림 웹훅 전송에 한해 5xx 응답도 최대 3회 재시도한다. 그 밖의 오류는 즉시 실패시킨다",
+     "decided_by": "서지후",
+     "rationale": "메신저 서버가 503을 자주 반환",
+     "alternatives_rejected": [
+      "모든 오류 3회 재시도"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "OPS-0013"
+       ],
+       "detail": "PL이 재시도 정책에 웹훅 5xx 예외를 더함 (AUTH-01 기술 선택)"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "OPS-M12-D3",
+     "seq": 14,
+     "evidence_seq": [
+      13,
+      14
+     ],
+     "topic": "answer.grounding",
+     "statement": "알림에 담는 원인 후보는 '추정'으로 표시하고 근거 수치와 런북 문장을 함께 붙인다",
+     "decided_by": "정한결",
+     "rationale": "운영자가 AI 원인 추정을 그대로 믿는 위험",
+     "alternatives_rejected": [
+      "원인 단정 문장"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "OPS-M12-D4",
+     "seq": 16,
+     "evidence_seq": [
+      15,
+      16
+     ],
+     "topic": "llm.external",
+     "statement": "운영자 피드백과 장애 로그 원문을 외부 LLM에 넣어 분석한다",
+     "decided_by": "도재윤",
+     "rationale": "개선 데이터 확보",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-01"
+       ],
+       "detail": "운영 로그 원문 외부 LLM 전송 금지. W-001은 마스킹 샘플 200건 PoC만"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "OPS-0004"
+       ],
+       "detail": "외부 API는 보안 승인 전 제외"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M12-D5",
+     "seq": 24,
+     "evidence_seq": [
+      22,
+      24
+     ],
+     "topic": "realtime.transport",
+     "statement": "알림 팝업 화면은 WebSocket으로 구현한다",
+     "decided_by": "도재윤",
+     "rationale": "팝업 확인 신호를 돌려받기 위해",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "ARC-02"
+       ],
+       "detail": "WebSocket은 아키텍처 위원회 예외 승인 필요"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "OPS-0007"
+       ],
+       "detail": "실시간 전송은 SSE"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "STT 오인식"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M12-A1",
+     "seq": 27,
+     "evidence_seq": [
+      27,
+      28
+     ],
+     "statement": "온콜 호출 시스템 API 연동",
+     "owner": "장상민",
+     "due": "2026-11-13",
+     "requester": "정한결",
+     "tags": []
+    },
+    {
+     "id": "OPS-M12-A2",
+     "seq": 29,
+     "evidence_seq": [
+      29,
+      30
+     ],
+     "statement": "웹훅 토큰 보관 방안 검토",
+     "owner": "김태림",
+     "due": "2026-11-06",
+     "requester": "장상민",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M12-U1",
+     "seq": 21,
+     "evidence_seq": [
+      19,
+      20,
+      21
+     ],
+     "subject": "운영자 피드백을 모델 재학습에 쓸지",
+     "topic": "ops.feedback",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "회의 밖 결정",
+     "why": "운영팀장이 메일로 P1 기준을 정리 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 11,
+     "kind": "회상",
+     "why": "예전 3회 재시도 경험을 말함"
+    },
+    {
+     "seq": 18,
+     "kind": "회상",
+     "why": "SEC-01·OPS-0004를 다시 확인 — 새 결정 아님"
+    },
+    {
+     "seq": 25,
+     "kind": "회상",
+     "why": "OPS-0007(SSE)을 다시 말함 — 새 결정 아님"
+    },
+    {
+     "seq": 31,
+     "kind": "잡담",
+     "why": "점심 메뉴"
+    }
+   ]
+  },
+  "OPS-M13": {
+   "split": "dev",
+   "phenomena": [
+    "권한 밖 결정",
+    "회상",
+    "조건부 확정",
+    "STT 오인식",
+    "보류",
+    "진행자 단정",
+    "기한 정정",
+    "잡담"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M13-D1",
+     "seq": 5,
+     "evidence_seq": [
+      4,
+      5
+     ],
+     "topic": "perf.latency",
+     "statement": "최종 답변 기준을 90초로 늘리고 QA 기준표에 반영한다",
+     "decided_by": "마태수",
+     "rationale": "복합 질문 다섯 건이 60초를 넘음",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "성능 기준 변경은 PM 승인 사항. PM 도착 전 협력사 PM이 정함"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "OPS-0018"
+       ],
+       "detail": "최종 답변 60초"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "REQ-03"
+       ],
+       "detail": "REQ v1.2 최종 답변 60초 이내"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "OPS-M13-D2",
+     "seq": 10,
+     "evidence_seq": [
+      8,
+      10
+     ],
+     "topic": "answer.validation",
+     "statement": "작성 뒤 검증 노드와 불합격 시 재작성 최대 1회는 유지하고, 검증이 20초를 넘기면 '검증 미완료' 표시를 달아 답을 내보낸다 (QA에서 미완료 비율 5% 이내일 때)",
+     "decided_by": "서지후",
+     "rationale": "느린 답의 대부분이 검증 노드에서 걸림",
+     "alternatives_rejected": [
+      "검증 생략"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    },
+    {
+     "id": "OPS-M13-D3",
+     "seq": 23,
+     "evidence_seq": [
+      22,
+      23
+     ],
+     "topic": "qa.test",
+     "statement": "반영 전 회귀는 평가 30문항·운영 시나리오 20개를 자동으로 돌리고, 30문항 정답률 85% 이상·시나리오 20개 전부 통과를 반영 기준으로 한다",
+     "decided_by": "정한결",
+     "rationale": "회귀 1차 결과(30문항 24개, 시나리오 17개 통과)로 기준 필요",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "OPS-M13-D4",
+     "seq": 25,
+     "evidence_seq": [
+      24,
+      25
+     ],
+     "topic": "schedule",
+     "statement": "CAB 상정 자료는 12-03까지 내고 12-10 CAB에 올려 12-15에 반영한다",
+     "decided_by": "정한결",
+     "rationale": "12-10 CAB가 반영 전 마지막 회의",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정",
+      "STT 오인식"
+     ]
+    },
+    {
+     "id": "OPS-M13-D5",
+     "seq": 27,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "topic": "budget",
+     "statement": "부하 테스트용 GPU 서버를 12월까지 월 200만 원 이내로 임차한다 (견적이 200 안쪽일 때)",
+     "decided_by": "정한결",
+     "rationale": "스테이징 부하 테스트에 GPU 필요",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M13-A1",
+     "seq": 28,
+     "evidence_seq": [
+      28,
+      29,
+      30,
+      31
+     ],
+     "statement": "CAB 상정 자료 초안 작성",
+     "owner": "황민채",
+     "due": "2026-11-23",
+     "requester": "정한결",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "OPS-M13-A2",
+     "seq": 32,
+     "evidence_seq": [
+      32,
+      33
+     ],
+     "statement": "검증 미완료 비율을 넣은 회귀 결과 리포트",
+     "owner": "권유나",
+     "due": "2026-11-13",
+     "requester": "정한결",
+     "tags": []
+    },
+    {
+     "id": "OPS-M13-A3",
+     "seq": 34,
+     "evidence_seq": [
+      34,
+      35
+     ],
+     "statement": "GPU 서버 임차 정식 견적 받기",
+     "owner": "마태수",
+     "due": "2026-11-13",
+     "requester": "정한결",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M13-U1",
+     "seq": 17,
+     "evidence_seq": [
+      15,
+      16,
+      17
+     ],
+     "subject": "부하 테스트 동시 사용자 기준",
+     "topic": "qa.test",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 6,
+     "kind": "회상",
+     "why": "OPS-0018(60초) 개정 이력을 말함"
+    },
+    {
+     "seq": 7,
+     "kind": "보류",
+     "why": "PL이 PM 승인 사안이라며 미룸"
+    },
+    {
+     "seq": 20,
+     "kind": "회상",
+     "why": "현행 OPS-0018 유지 확인 — 새 결정 아님"
+    },
+    {
+     "seq": 36,
+     "kind": "잡담",
+     "why": "휴가 얘기"
+    }
+   ]
+  },
+  "OPS-M14": {
+   "split": "dev",
+   "phenomena": [
+    "조건부 확정",
+    "회의 밖 결정",
+    "번복",
+    "말 끊김",
+    "STT 오인식",
+    "돌려 말한 결정",
+    "보류",
+    "잡담"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M14-D1",
+     "seq": 3,
+     "evidence_seq": [
+      2,
+      3
+     ],
+     "topic": "budget",
+     "statement": "부하 테스트용 GPU 서버를 12월까지 월 200만 원 이내로 임차한다 (견적이 200 안쪽일 때)",
+     "decided_by": "정한결",
+     "rationale": "견적이 월 180만 원으로 조건 충족",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{OPS-M13-D5}"
+       ],
+       "detail": "견적 조건 충족으로 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [
+      "조건부 확정"
+     ],
+     "confirms": "{OPS-M13-D5}"
+    },
+    {
+     "id": "OPS-M14-D2",
+     "seq": 10,
+     "evidence_seq": [
+      8,
+      10
+     ],
+     "topic": "ops.alert",
+     "statement": "장애 알림은 메신저 웹훅으로 보내고 P1은 온콜 전화 호출까지 하며, 같은 장애는 15분 안에 한 번만 보낸다",
+     "decided_by": "서지후",
+     "rationale": "디스크 경보처럼 오르내리는 장애는 10분 넘게 반복해 울림",
+     "alternatives_rejected": [
+      "5분 묶음"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "번복"
+     ]
+    },
+    {
+     "id": "OPS-M14-D3",
+     "seq": 12,
+     "evidence_seq": [
+      11,
+      12
+     ],
+     "topic": "routing",
+     "statement": "맨 앞 simple/complex 라우팅은 유지하고, 알림 링크로 들어온 질문은 바로 complex로 보낸다",
+     "decided_by": "서지후",
+     "rationale": "알림에서 온 질문은 항상 장애 진단이라 분류 시간을 아낌",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "OPS-0009"
+       ],
+       "detail": "PL이 라우팅에 알림 진입 예외를 더함"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "OPS-M14-D4",
+     "seq": 16,
+     "evidence_seq": [
+      15,
+      16
+     ],
+     "topic": "ops.feedback",
+     "statement": "답변마다 도움됨·안 됨 버튼과 한 줄 의견을 받고, '안 됨'이 3건 넘게 모인 런북은 주간 회의 안건으로 올린다",
+     "decided_by": "정한결",
+     "rationale": "'안 됨'이 특정 런북에 몰림",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "OPS-M14-D5",
+     "seq": 18,
+     "evidence_seq": [
+      17,
+      18
+     ],
+     "topic": "release",
+     "statement": "알림 연동을 CAB 전에 운영 메신저 채널에 먼저 반영한다",
+     "decided_by": "마태수",
+     "rationale": "실제 장애로 받아 보기 위해",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "OPS-01"
+       ],
+       "detail": "운영 반영은 CAB 승인 후에만"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{OPS-M11-D1}"
+       ],
+       "detail": "스테이징 → CAB → 12-15 반영 순서"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M14-A1",
+     "seq": 25,
+     "evidence_seq": [
+      25,
+      26
+     ],
+     "statement": "같은 장애 15분 묶음 적용",
+     "owner": "장상민",
+     "due": "2026-11-20",
+     "requester": "정한결",
+     "tags": []
+    },
+    {
+     "id": "OPS-M14-A2",
+     "seq": 27,
+     "evidence_seq": [
+      27,
+      28
+     ],
+     "statement": "시범 운영자 10명 피드백 정리",
+     "owner": "한소율",
+     "due": "2026-11-27",
+     "requester": "정한결",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M14-U1",
+     "seq": 22,
+     "evidence_seq": [
+      21,
+      22
+     ],
+     "subject": "야간 P2 장애 알림 처리 방식",
+     "topic": "ops.alert",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 4,
+     "kind": "회의 밖 결정",
+     "why": "보안팀이 메일로 토큰 보관을 정함 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 7,
+     "kind": "번복 전 결정",
+     "why": "5분 묶음 — 바로 15분으로 바뀜"
+    },
+    {
+     "seq": 19,
+     "kind": "회상",
+     "why": "OPS-01·M11 반영 절차 재확인 — 새 결정 아님"
+    },
+    {
+     "seq": 29,
+     "kind": "잡담",
+     "why": "협력사 담당 교체 소식"
+    }
+   ]
+  },
+  "OPS-M15": {
+   "split": "dev",
+   "phenomena": [
+    "보류",
+    "회의 밖 결정",
+    "돌려 말한 결정",
+    "권한 밖 결정",
+    "STT 오인식",
+    "회상",
+    "요청자≠담당자",
+    "잡담"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M15-D1",
+     "seq": 7,
+     "evidence_seq": [
+      6,
+      7
+     ],
+     "topic": "qa.test",
+     "statement": "반영 전 회귀(30문항 85% 이상·운영 시나리오 20개 전부 통과)에 더해 스테이징 부하 테스트를 동시 사용자 30명 기준으로 1회 한다",
+     "decided_by": "서지후",
+     "rationale": "운영팀 피크 동시 사용자 약 25명에 여유를 둠",
+     "alternatives_rejected": [
+      "동시 25명"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "OPS-M15-D2",
+     "seq": 10,
+     "evidence_seq": [
+      8,
+      10
+     ],
+     "topic": "scope.core",
+     "statement": "진단이 끝나면 장애 티켓을 자동으로 만드는 기능을 이번 반영 범위에 넣는다",
+     "decided_by": "마태수",
+     "rationale": "운영자가 티켓을 손으로 만드는 불만",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "범위 변경은 PM 승인 사항. PM 불참"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "OPS-M15-D3",
+     "seq": 14,
+     "evidence_seq": [
+      12,
+      14
+     ],
+     "topic": "schedule",
+     "statement": "운영 반영을 2027-01-05로 3주 미룬다",
+     "decided_by": "마태수",
+     "rationale": "티켓 기능 추가로 QA 시간 부족",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-03"
+       ],
+       "detail": "2주 이상 지연은 본부장 승인"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "REQ-06"
+       ],
+       "detail": "운영 반영 목표일 2026-12-15"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{OPS-M13-D4}"
+       ],
+       "detail": "12-10 CAB, 12-15 반영"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "OPS-M15-D4",
+     "seq": 18,
+     "evidence_seq": [
+      17,
+      18
+     ],
+     "topic": "db.rdbms",
+     "statement": "알림 이력은 운영팀이 쓰는 MySQL에 쌓는다",
+     "decided_by": "마태수",
+     "rationale": "운영팀 조회 편의",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "ARC-01"
+       ],
+       "detail": "PostgreSQL 외 RDBMS는 아키텍처 위원회 승인 필요"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M15-D5",
+     "seq": 23,
+     "evidence_seq": [
+      21,
+      23
+     ],
+     "topic": "agent.reliability",
+     "statement": "동시 진단은 5건까지만 받고 넘치는 요청은 대기열로 보낸다",
+     "decided_by": "서지후",
+     "rationale": "P1 장애 때 운영자 여럿이 동시에 같은 질문을 함",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M15-A1",
+     "seq": 26,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "statement": "부하 테스트 시나리오 작성",
+     "owner": "권유나",
+     "due": "2026-11-27",
+     "requester": "서지후",
+     "tags": []
+    },
+    {
+     "id": "OPS-M15-A2",
+     "seq": 28,
+     "evidence_seq": [
+      28,
+      29
+     ],
+     "statement": "동시 진단 5건 제한 구현",
+     "owner": "장상민",
+     "due": "2026-11-27",
+     "requester": "노영오",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M15-U1",
+     "seq": 3,
+     "evidence_seq": [
+      2,
+      3
+     ],
+     "subject": "반영 당일 롤백 기준(오류율 몇 %에서 되돌릴지)",
+     "topic": "release",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 4,
+     "kind": "회의 밖 결정",
+     "why": "보안 담당이 메일로 토큰 보관을 승인 — 이 회의 결정 아님"
+    },
+    {
+     "seq": 15,
+     "kind": "보류",
+     "why": "PL이 PM께 올리겠다고 함"
+    },
+    {
+     "seq": 20,
+     "kind": "회상",
+     "why": "ARC-01 재확인"
+    },
+    {
+     "seq": 24,
+     "kind": "회상",
+     "why": "{OPS-M12-D1}(P1 전화 호출)을 다시 말함"
+    },
+    {
+     "seq": 30,
+     "kind": "잡담",
+     "why": "회의실 온도"
+    }
+   ]
+  },
+  "OPS-M16": {
+   "split": "test",
+   "phenomena": [
+    "회상",
+    "조건부 확정",
+    "진행자 단정",
+    "STT 오인식",
+    "돌려 말한 결정",
+    "보류",
+    "주제 이탈",
+    "기한 정정",
+    "요청자≠담당자",
+    "회의 밖 결정"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M16-D1",
+     "seq": 3,
+     "evidence_seq": [
+      2,
+      3
+     ],
+     "topic": "answer.validation",
+     "statement": "작성 뒤 검증 노드와 불합격 시 재작성 최대 1회는 유지하고, 검증이 20초를 넘기면 '검증 미완료' 표시를 달아 답을 내보낸다 (QA에서 미완료 비율 5% 이내일 때)",
+     "decided_by": "서지후",
+     "rationale": "부하 테스트 미완료 비율 3.8%로 조건 충족",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{OPS-M13-D2}"
+       ],
+       "detail": "미완료 비율 5% 이내 조건 충족"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{OPS-M13-D2}"
+    },
+    {
+     "id": "OPS-M16-D2",
+     "seq": 5,
+     "evidence_seq": [
+      4,
+      5
+     ],
+     "topic": "llm.tiering",
+     "statement": "동시 30명 부하에서 60초 초과 답이 10%를 넘으면 작성 단계까지 작은 모델로 내린다",
+     "decided_by": "정한결",
+     "rationale": "60초 초과가 6%로 아직 기준 아래",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    },
+    {
+     "id": "OPS-M16-D3",
+     "seq": 7,
+     "evidence_seq": [
+      6,
+      7
+     ],
+     "topic": "llm.external",
+     "statement": "W-001 만료 전에 운영 로그 원문을 외부 LLM으로 돌려 비교한다",
+     "decided_by": "권유나",
+     "rationale": "비교 자료 확보",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-01"
+       ],
+       "detail": "원문 외부 전송 금지. W-001은 마스킹 샘플 200건 PoC만"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "OPS-0004"
+       ],
+       "detail": "외부 API는 보안 승인 전 제외"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M16-D4",
+     "seq": 12,
+     "evidence_seq": [
+      11,
+      12
+     ],
+     "topic": "release",
+     "statement": "스테이징 검증 → CAB 승인 → 12-15 반영 절차를 유지하고, 반영 후 1시간 안에 진단 오류율이 5%를 넘으면 즉시 롤백한다",
+     "decided_by": "정한결",
+     "rationale": "CAB 자료 롤백 계획 칸, 1시간 관찰이 현실적",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "OPS-M16-D5",
+     "seq": 17,
+     "evidence_seq": [
+      16,
+      17
+     ],
+     "topic": "ops.feedback",
+     "statement": "운영자 피드백(도움됨·안 됨 버튼, 한 줄 의견)은 모델 재학습에 쓰지 않고 프롬프트·런북 개선에만 쓴다. '안 됨' 3건 넘은 런북은 주간 안건으로 올린다",
+     "decided_by": "정한결",
+     "rationale": "재학습은 정제 비용이 크고 운영팀이 데이터 반출을 부담스러워함",
+     "alternatives_rejected": [
+      "모델 재학습"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M16-A1",
+     "seq": 22,
+     "evidence_seq": [
+      22,
+      23
+     ],
+     "statement": "부하 테스트 결과 보고서",
+     "owner": "권유나",
+     "due": "2026-12-03",
+     "requester": "정한결",
+     "tags": []
+    },
+    {
+     "id": "OPS-M16-A2",
+     "seq": 24,
+     "evidence_seq": [
+      24,
+      25,
+      26
+     ],
+     "statement": "롤백 스크립트 준비",
+     "owner": "장상민",
+     "due": "2026-12-07",
+     "requester": "정한결",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "OPS-M16-A3",
+     "seq": 27,
+     "evidence_seq": [
+      27,
+      28
+     ],
+     "statement": "운영자 FAQ 정리",
+     "owner": "한소율",
+     "due": "2026-12-09",
+     "requester": "노영오",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M16-U1",
+     "seq": 19,
+     "evidence_seq": [
+      18,
+      19
+     ],
+     "subject": "반영 뒤 회귀 테스트 주기(매일·주 1회)",
+     "topic": "qa.test",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회상",
+     "why": "반영 15일 유지(M13 결정) 재확인"
+    },
+    {
+     "seq": 9,
+     "kind": "회상",
+     "why": "SEC-01 재확인"
+    },
+    {
+     "seq": 14,
+     "kind": "회상",
+     "why": "OPS-0007(SSE) 재확인"
+    },
+    {
+     "seq": 20,
+     "kind": "잡담",
+     "why": "당직표 얘기"
+    },
+    {
+     "seq": 29,
+     "kind": "회의 밖 결정",
+     "why": "CAB 사무국 메일 — 이 회의 결정 아님"
+    }
+   ]
+  },
+  "OPS-M17": {
+   "split": "test",
+   "phenomena": [
+    "권한 밖 결정",
+    "진행자 단정",
+    "회상",
+    "STT 오인식",
+    "돌려 말한 결정",
+    "보류",
+    "요청자≠담당자",
+    "기한 정정",
+    "잡담"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M17-D1",
+     "seq": 4,
+     "evidence_seq": [
+      3,
+      4
+     ],
+     "topic": "schedule",
+     "statement": "운영 반영을 12-22로 1주 미룬다",
+     "decided_by": "마태수",
+     "rationale": "부하 테스트 재실행에서 느린 답이 나와 QA 연장",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-03"
+       ],
+       "detail": "1주 이상 지연은 PM 승인. PM 불참"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "REQ-06"
+       ],
+       "detail": "운영 반영 목표일 2026-12-15"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{OPS-M13-D4}"
+       ],
+       "detail": "12-10 CAB, 12-15 반영"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "OPS-M17-D2",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      8
+     ],
+     "topic": "ops.alert",
+     "statement": "장애 알림은 메신저 웹훅으로 보내고 P1은 온콜 전화 호출, 같은 장애는 15분 안에 한 번만 보낸다. P2는 업무 시간엔 바로 보내고 야간 P2는 다음 날 09시에 모아 보낸다",
+     "decided_by": "서지후",
+     "rationale": "야간 P2로 운영자가 잠을 못 잠, 끄면 놓친 걸 모름",
+     "alternatives_rejected": [
+      "야간 P2 알림 끄기"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "OPS-M17-D3",
+     "seq": 12,
+     "evidence_seq": [
+      11,
+      12
+     ],
+     "topic": "scope.core",
+     "statement": "화면에서 진행 표시를 빼고 최종 답만 보여 준다",
+     "decided_by": "마태수",
+     "rationale": "단계 표시가 깜빡여 운영자가 헷갈림",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "요구사항 변경은 PM 승인. PM 불참"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "REQ-08"
+       ],
+       "detail": "진단 진행 상황 실시간 표시"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "OPS-M17-D4",
+     "seq": 16,
+     "evidence_seq": [
+      15,
+      16
+     ],
+     "topic": "cache",
+     "statement": "모니터링 조회 결과를 1분간 캐시한다",
+     "decided_by": "도재윤",
+     "rationale": "부하 감소",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "past_decision",
+       "against": [
+        "OPS-0014"
+       ],
+       "detail": "캐시는 런북만, 모니터링은 매번 새로"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M17-D5",
+     "seq": 20,
+     "evidence_seq": [
+      19,
+      20
+     ],
+     "topic": "qa.test",
+     "statement": "반영 전 회귀 기준(30문항 85%·시나리오 20개 전부)과 30명 부하 테스트를 유지하고, 반영 뒤 2주는 회귀를 매일, 그 뒤엔 주 1회 돌린다",
+     "decided_by": "서지후",
+     "rationale": "반영 직후 회귀를 촘촘히 보고 안정되면 줄임",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M17-A1",
+     "seq": 24,
+     "evidence_seq": [
+      23,
+      24,
+      25
+     ],
+     "statement": "운영팀을 불러 CAB 발표 리허설",
+     "owner": "황민채",
+     "due": "2026-12-09",
+     "requester": "피승우",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "OPS-M17-A2",
+     "seq": 26,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "statement": "야간 P2 묶음 발송 적용",
+     "owner": "장상민",
+     "due": "2026-12-11",
+     "requester": "서지후",
+     "tags": []
+    },
+    {
+     "id": "OPS-M17-A3",
+     "seq": 28,
+     "evidence_seq": [
+      28,
+      29,
+      30
+     ],
+     "statement": "매일 회귀 스케줄러 등록",
+     "owner": "권유나",
+     "due": "2026-12-11",
+     "requester": "서지후",
+     "tags": [
+      "기한 정정"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M17-U1",
+     "seq": 22,
+     "evidence_seq": [
+      21,
+      22
+     ],
+     "subject": "GPU 서버 임차 1월 연장 여부",
+     "topic": "budget",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 5,
+     "kind": "보류",
+     "why": "PL이 PM 승인 사안이라며 막음"
+    },
+    {
+     "seq": 10,
+     "kind": "회상",
+     "why": "P1 전화 호출·15분 묶음 유지 확인"
+    },
+    {
+     "seq": 17,
+     "kind": "회상",
+     "why": "OPS-0014 이유를 다시 말함"
+    },
+    {
+     "seq": 31,
+     "kind": "잡담",
+     "why": "회식 장소"
+    }
+   ]
+  },
+  "OPS-M18": {
+   "split": "test",
+   "phenomena": [
+    "회의 밖 결정",
+    "진행자 단정",
+    "회상",
+    "STT 오인식",
+    "돌려 말한 결정",
+    "잡담"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M18-D1",
+     "seq": 3,
+     "evidence_seq": [
+      3
+     ],
+     "topic": "release",
+     "statement": "CAB 승인에 따라 12-15 오전 7시에 반영하고 당일엔 기존 수동 대응을 병행한다. 반영 후 1시간 안에 오류율 5%를 넘으면 즉시 롤백한다",
+     "decided_by": "정한결",
+     "rationale": "12-10 CAB 승인, 첫날 위험을 수동 대응으로 보완",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "OPS-M18-D2",
+     "seq": 5,
+     "evidence_seq": [
+      4,
+      5
+     ],
+     "topic": "ops.alert",
+     "statement": "반영 첫 주는 P1 전화 호출을 끄고 메신저로만 받는다",
+     "decided_by": "마태수",
+     "rationale": "첫 주 오탐으로 새벽 호출 우려",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "past_decision",
+       "against": [
+        "{OPS-M17-D2}"
+       ],
+       "detail": "P1은 온콜 전화 호출"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M18-D3",
+     "seq": 10,
+     "evidence_seq": [
+      8,
+      10
+     ],
+     "topic": "saas.new",
+     "statement": "반영 첫 주 로그를 협력사 클라우드 모니터링 서비스로도 보낸다",
+     "decided_by": "마태수",
+     "rationale": "협력사 원격 모니터링 지원",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-03"
+       ],
+       "detail": "외부 SaaS 신규 도입은 보안성 검토 필요"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M18-D4",
+     "seq": 15,
+     "evidence_seq": [
+      14,
+      15
+     ],
+     "topic": "budget",
+     "statement": "부하 테스트용 GPU 서버 임차를 월 180만 원 그대로 2027-01 말까지 연장한다",
+     "decided_by": "정한결",
+     "rationale": "반영 뒤에도 부하 확인이 남음, PM 승인 한도(월 500만 원) 이내",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "{OPS-M13-D5}"
+       ],
+       "detail": "PM이 임차 기간을 12월에서 1월 말로 연장"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "OPS-M18-D5",
+     "seq": 17,
+     "evidence_seq": [
+      16,
+      17
+     ],
+     "topic": "agent.reliability",
+     "statement": "반영 첫 주는 동시 진단 상한을 5건에서 3건으로 낮추고 넘치는 요청은 대기열로 보낸다",
+     "decided_by": "서지후",
+     "rationale": "동시 5건이면 GPU가 꽉 차는 순간이 있음",
+     "alternatives_rejected": [
+      "5건 유지"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "{OPS-M15-D5}"
+       ],
+       "detail": "PL이 동시 진단 상한을 낮춤"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M18-A1",
+     "seq": 21,
+     "evidence_seq": [
+      21,
+      22
+     ],
+     "statement": "운영자 대상 반영 공지 발송",
+     "owner": "한소율",
+     "due": "2026-12-14",
+     "requester": "정한결",
+     "tags": []
+    },
+    {
+     "id": "OPS-M18-A2",
+     "seq": 23,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "statement": "운영 반영 작업 및 결과 공유",
+     "owner": "장상민",
+     "due": "2026-12-15",
+     "requester": "정한결",
+     "tags": []
+    }
+   ],
+   "undecided": [],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회의 밖 결정",
+     "why": "CAB 승인은 회의 밖 결정"
+    },
+    {
+     "seq": 6,
+     "kind": "회상",
+     "why": "{OPS-M17-D2}(P1 전화 호출) 유지 확인"
+    },
+    {
+     "seq": 12,
+     "kind": "회상",
+     "why": "외부 전송 금지 재확인"
+    },
+    {
+     "seq": 25,
+     "kind": "잡담",
+     "why": "김밥 주문"
+    }
+   ]
+  },
+  "OPS-M19": {
+   "split": "test",
+   "phenomena": [
+    "번복",
+    "진행자 단정",
+    "STT 오인식",
+    "조건부 확정",
+    "보류",
+    "요청자≠담당자",
+    "기한 정정",
+    "잡담"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M19-D1",
+     "seq": 7,
+     "evidence_seq": [
+      5,
+      6,
+      7
+     ],
+     "topic": "ops.alert",
+     "statement": "장애 알림은 메신저 웹훅으로 보내고, P1은 오류율 임계가 2분 넘게 이어질 때만 온콜 전화 호출을 한다. 같은 장애는 15분 안에 한 번만, 야간 P2는 다음 날 09시에 모아 보낸다",
+     "decided_by": "정한결",
+     "rationale": "새벽 P1 오탐 2건, 3분이면 실제 장애 호출이 늦음",
+     "alternatives_rejected": [
+      "3분 연속 조건"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "번복"
+     ]
+    },
+    {
+     "id": "OPS-M19-D2",
+     "seq": 9,
+     "evidence_seq": [
+      8,
+      9
+     ],
+     "topic": "release",
+     "statement": "P1 판정 로직 수정을 CAB 없이 오늘 바로 운영에 반영한다",
+     "decided_by": "권유나",
+     "rationale": "오탐으로 운영팀 부담",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "OPS-01"
+       ],
+       "detail": "운영 반영은 CAB 승인 후에만"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{OPS-M18-D1}"
+       ],
+       "detail": "CAB 승인 반영·롤백 절차"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M19-D3",
+     "seq": 11,
+     "evidence_seq": [
+      10,
+      11
+     ],
+     "topic": "release",
+     "statement": "운영 변경은 CAB 승인 후에만 반영한다. P1 판정 수정은 CAB 긴급 변경 승인 후 12-23에 반영하고, 반영 후 1시간 안에 오류율 5%를 넘으면 즉시 롤백한다",
+     "decided_by": "정한결",
+     "rationale": "코드 변경은 운영 반영이라 CAB 필요(OPS-01)",
+     "alternatives_rejected": [
+      "CAB 없이 즉시 반영"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "OPS-M19-D4",
+     "seq": 13,
+     "evidence_seq": [
+      12,
+      13
+     ],
+     "topic": "perf.latency",
+     "statement": "답변이 30초를 넘으면 끊고 '시간 초과'를 띄운다",
+     "decided_by": "도재윤",
+     "rationale": "운영자가 답이 늦다고 함",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "past_decision",
+       "against": [
+        "OPS-0018"
+       ],
+       "detail": "최종 답변 60초"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "REQ-03"
+       ],
+       "detail": "최종 답변 60초 이내"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "OPS-M19-D5",
+     "seq": 17,
+     "evidence_seq": [
+      16,
+      17
+     ],
+     "topic": "answer.grounding",
+     "statement": "알림 원인 후보의 추정 표시·근거 첨부를 유지하고, 근거 인용이 없는 답변은 화면에 '근거 부족'으로 표시한다 (이번 주 검증 노드 결과가 안정적일 때)",
+     "decided_by": "정한결",
+     "rationale": "근거 인용 없는 답이 약 1% 나감",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M19-A1",
+     "seq": 23,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "statement": "P1 판정 2분 연속 조건 구현",
+     "owner": "노영오",
+     "due": "2026-12-22",
+     "requester": "정한결",
+     "tags": []
+    },
+    {
+     "id": "OPS-M19-A2",
+     "seq": 25,
+     "evidence_seq": [
+      25,
+      26
+     ],
+     "statement": "CAB 긴급 변경 신청서 작성",
+     "owner": "장상민",
+     "due": "2026-12-22",
+     "requester": "한소율",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "OPS-M19-A3",
+     "seq": 27,
+     "evidence_seq": [
+      27,
+      28,
+      29
+     ],
+     "statement": "운영자 피드백 1주치 집계",
+     "owner": "윤하린",
+     "due": "2026-12-23",
+     "requester": "정한결",
+     "tags": [
+      "기한 정정"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M19-U1",
+     "seq": 20,
+     "evidence_seq": [
+      19,
+      20
+     ],
+     "subject": "장애 티켓 자동 생성 기능을 1월 범위에 넣을지",
+     "topic": "scope.core",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 4,
+     "kind": "번복 전 결정",
+     "why": "3분 연속 — 바로 2분으로 바뀜"
+    },
+    {
+     "seq": 14,
+     "kind": "회상",
+     "why": "OPS-0018(60초) 재확인"
+    },
+    {
+     "seq": 30,
+     "kind": "잡담",
+     "why": "연말 휴가"
+    }
+   ]
+  },
+  "OPS-M20": {
+   "split": "test",
+   "phenomena": [
+    "회의 밖 결정",
+    "조건부 확정",
+    "권한 밖 결정",
+    "회상",
+    "돌려 말한 결정",
+    "진행자 단정",
+    "보류",
+    "요청자≠담당자",
+    "잡담"
+   ],
+   "decisions": [
+    {
+     "id": "OPS-M20-D1",
+     "seq": 4,
+     "evidence_seq": [
+      3,
+      4
+     ],
+     "topic": "answer.grounding",
+     "statement": "알림 원인 후보의 추정 표시·근거 첨부를 유지하고, 근거 인용이 없는 답변은 화면에 '근거 부족'으로 표시한다 (이번 주 검증 노드 결과가 안정적일 때)",
+     "decided_by": "정한결",
+     "rationale": "검증 노드 결과 안정, 근거 없는 답 0.8%",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{OPS-M19-D5}"
+       ],
+       "detail": "조건 충족으로 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{OPS-M19-D5}"
+    },
+    {
+     "id": "OPS-M20-D2",
+     "seq": 7,
+     "evidence_seq": [
+      5,
+      7
+     ],
+     "topic": "budget",
+     "statement": "2027-01부터 협력사 유지보수 계약을 월 650만 원으로 연장한다",
+     "decided_by": "마태수",
+     "rationale": "안정화 인력 추가",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-04"
+       ],
+       "detail": "월 500만 원 초과는 본부장 승인. 협력사 PM이 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "OPS-M20-D3",
+     "seq": 12,
+     "evidence_seq": [
+      11,
+      12
+     ],
+     "topic": "qa.test",
+     "statement": "반영 전 회귀 기준(30문항 85%·시나리오 20개 전부)은 유지하고, 2027-01부터 회귀는 주 1회 돌리며 운영자 '안 됨' 사례를 매주 회귀셋에 추가한다",
+     "decided_by": "정한결",
+     "rationale": "같은 실수 반복 방지",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "OPS-M20-D4",
+     "seq": 14,
+     "evidence_seq": [
+      13,
+      14
+     ],
+     "topic": "scope.core",
+     "statement": "장애 티켓 자동 생성 기능을 2차 범위로 넣고 2027-01-11에 착수하며 요구사항정의서를 개정한다",
+     "decided_by": "정한결",
+     "rationale": "운영팀 요청이 가장 많음",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "OPS-M20-D5",
+     "seq": 16,
+     "evidence_seq": [
+      15,
+      16
+     ],
+     "topic": "meeting.retention",
+     "statement": "회의 녹음을 1년간 보관한다",
+     "decided_by": "피승우",
+     "rationale": "QA 근거로 다시 듣기 위해",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-02"
+       ],
+       "detail": "회의 녹음·전사문 90일 보관 후 파기"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "OPS-0020"
+       ],
+       "detail": "회의 원문 90일 파기, 인용만 원장"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    }
+   ],
+   "action_items": [
+    {
+     "id": "OPS-M20-A1",
+     "seq": 23,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "statement": "2차 범위 요구사항정의서 개정안",
+     "owner": "황민채",
+     "due": "2027-01-08",
+     "requester": "정한결",
+     "tags": []
+    },
+    {
+     "id": "OPS-M20-A2",
+     "seq": 25,
+     "evidence_seq": [
+      25,
+      26
+     ],
+     "statement": "'안 됨' 사례 회귀셋 추가 절차 정리",
+     "owner": "권유나",
+     "due": "2027-01-04",
+     "requester": "한소율",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "OPS-M20-U1",
+     "seq": 21,
+     "evidence_seq": [
+      19,
+      21
+     ],
+     "subject": "피드백 버튼을 답변 단계별로 나눌지",
+     "topic": "ops.feedback",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "회의 밖 결정",
+     "why": "23일 CAB 긴급 변경 승인 — 회의 밖 결정"
+    },
+    {
+     "seq": 10,
+     "kind": "회상",
+     "why": "{OPS-M17-D5}(2주 뒤 주 1회)를 다시 말함"
+    },
+    {
+     "seq": 18,
+     "kind": "회상",
+     "why": "SEC-02·OPS-0020 재확인"
+    },
+    {
+     "seq": 27,
+     "kind": "잡담",
+     "why": "신년회"
+    }
+   ]
+  }
+ },
+ "opinions": [
+  {
+   "id": "OPS-O01",
+   "split": "dev",
+   "at": "OPS-M11",
+   "scope_project": "OPS",
+   "text": "마스킹한 운영 로그 샘플 150건을 PoC 환경에서 외부 LLM에 넣어 사내 모델과 답변 품질을 비교해 봐도 될까요?",
+   "expected": "allowed_with_waiver",
+   "against": [
+    "SEC-01"
+   ],
+   "waiver": "W-001",
+   "ambiguous": false,
+   "note": "W-001(마스킹 샘플 200건 PoC, ~11-30) 범위·기간 안"
+  },
+  {
+   "id": "OPS-O02",
+   "split": "dev",
+   "at": "OPS-M12",
+   "scope_project": "OPS",
+   "text": "알림 팝업 화면은 WebSocket으로 실시간 갱신하면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "ARC-02",
+    "OPS-0007"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "WebSocket은 위원회 예외 필요, 실시간 전송은 SSE"
+  },
+  {
+   "id": "OPS-O03",
+   "split": "dev",
+   "at": "OPS-M13",
+   "scope_project": "OPS",
+   "text": "부하 테스트를 동시 사용자 20명 기준으로 하면 어떨까요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "부하 기준은 미결({OPS-M13-U1}) — 막는 규정·결정 없음"
+  },
+  {
+   "id": "OPS-O04",
+   "split": "dev",
+   "at": "OPS-M14",
+   "scope_project": "OPS",
+   "text": "알림 연동은 CAB 전에 운영 메신저 채널에 먼저 붙여 보면 어때요?",
+   "expected": "conflict",
+   "against": [
+    "OPS-01",
+    "{OPS-M11-D1}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "운영 반영은 CAB 승인 후"
+  },
+  {
+   "id": "OPS-O05",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": "OPS",
+   "text": "알림 이력은 운영팀이 쓰는 MySQL에 같이 쌓으면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "ARC-01"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "PostgreSQL 외 RDBMS는 아키텍처 위원회 승인"
+  },
+  {
+   "id": "OPS-O06",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": null,
+   "text": "알림 메시지에 해당 런북 링크도 같이 넣으면 어떨까요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "{OPS-M12-D3}(근거 수치·런북 문장 첨부)과 같은 방향"
+  },
+  {
+   "id": "OPS-O07",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": "OPS",
+   "text": "반영을 1주 미뤄서 12월 22일에 하면 어떨까요?",
+   "expected": "needs_approval",
+   "against": [
+    "AUTH-03",
+    "REQ-06"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "1주 지연은 PM 승인으로 가능하나 REQ-06·{OPS-M13-D4} 변경이 따름"
+  },
+  {
+   "id": "OPS-O08",
+   "split": "test",
+   "at": "OPS-M16",
+   "scope_project": "OPS",
+   "text": "반영 직후 1시간 동안 오류율을 보고 롤백 여부를 판단하면 어떨까요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "{OPS-M16-D4}와 일치"
+  },
+  {
+   "id": "OPS-O09",
+   "split": "test",
+   "at": "OPS-M17",
+   "scope_project": "OPS",
+   "text": "마스킹한 로그 샘플 100건으로 외부 LLM 품질 비교를 한 번 더 돌려도 될까요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-01"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "W-001은 2026-11-30 만료 — 시점(12-07)에 유효한 예외 없음"
+  },
+  {
+   "id": "OPS-O10",
+   "split": "test",
+   "at": "OPS-M18",
+   "scope_project": "OPS",
+   "text": "반영 첫 주에는 P1 전화 호출을 꺼 두면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "{OPS-M17-D2}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "P1은 온콜 전화 호출이 유효 결정"
+  },
+  {
+   "id": "OPS-O11",
+   "split": "test",
+   "at": "OPS-M18",
+   "scope_project": null,
+   "text": "반영 당일에는 기존 수동 대응을 같이 돌리면 어떨까요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "{OPS-M18-D1}과 일치"
+  },
+  {
+   "id": "OPS-O12",
+   "split": "test",
+   "at": "OPS-M19",
+   "scope_project": "OPS",
+   "text": "운영자 피드백을 모델 재학습 데이터로 쓰면 어때요?",
+   "expected": "conflict",
+   "against": [
+    "{OPS-M16-D5}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "피드백은 재학습에 쓰지 않기로 함"
+  },
+  {
+   "id": "OPS-O13",
+   "split": "test",
+   "at": "OPS-M19",
+   "scope_project": "OPS",
+   "text": "협력사 유지보수 비용을 월 400만 원으로 잡으면 어떨까요?",
+   "expected": "needs_approval",
+   "against": [
+    "AUTH-04"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "월 500만 원 이하라 PM 승인으로 가능 — 승인 필요"
+  },
+  {
+   "id": "OPS-O14",
+   "split": "test",
+   "at": "OPS-M20",
+   "scope_project": "OPS",
+   "text": "운영 지표 대시보드를 Superset Cloud로 만들어 보면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-03"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "W-004는 SLS 프로젝트 예외 — OPS에는 적용 안 됨, 기간도 만료"
+  },
+  {
+   "id": "OPS-O15",
+   "split": "test",
+   "at": "OPS-M20",
+   "scope_project": "OPS",
+   "text": "회귀 테스트에 운영자 '안 됨' 사례를 매주 추가하면 어떨까요?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "{OPS-M20-D3}과 일치"
+  }
+ ],
+ "questions": [
+  {
+   "id": "OPS-Q01",
+   "split": "dev",
+   "at": "OPS-M11",
+   "scope_project": "OPS",
+   "text": "운영 반영은 어떤 순서로 하기로 했어요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M11-D1}"
+   ],
+   "expected_keywords": [
+    "CAB"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q02",
+   "split": "dev",
+   "at": "OPS-M11",
+   "scope_project": "OPS",
+   "text": "그건 왜 그렇게 정했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "OPS-Q01",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M11-D1}"
+   ],
+   "expected_keywords": [
+    "스테이징"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q03",
+   "split": "dev",
+   "at": "OPS-M11",
+   "scope_project": "OPS",
+   "text": "P1 장애 때 전화 호출까지 하기로 했나요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M11-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q04",
+   "split": "dev",
+   "at": "OPS-M11",
+   "scope_project": null,
+   "text": "운영자 피드백은 어떤 방식으로 받기로 했어요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M11-D4}"
+   ],
+   "expected_keywords": [
+    "버튼"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q05",
+   "split": "dev",
+   "at": "OPS-M11",
+   "scope_project": "OPS",
+   "text": "장애 알림을 카카오톡으로도 보내기로 했나요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "알림 채널은 사내 메신저 웹훅만 정함 — 카카오톡 결정 없음"
+  },
+  {
+   "id": "OPS-Q06",
+   "split": "dev",
+   "at": "OPS-M12",
+   "scope_project": "OPS",
+   "text": "장애 알림은 지금 어떻게 보내요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M12-D1}"
+   ],
+   "expected_keywords": [
+    "전화"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M11-D2}(메신저만)를 대체한 지금 기준"
+  },
+  {
+   "id": "OPS-Q07",
+   "split": "dev",
+   "at": "OPS-M12",
+   "scope_project": "OPS",
+   "text": "알림 메시지에 고객사 이름도 넣기로 했어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "알림 내용은 추정 표시·근거만 정함"
+  },
+  {
+   "id": "OPS-Q08",
+   "split": "dev",
+   "at": "OPS-M12",
+   "scope_project": "OPS",
+   "text": "웹훅 전송이 실패하면 재시도해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M12-D2}"
+   ],
+   "expected_keywords": [
+    "3회"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q09",
+   "split": "dev",
+   "at": "OPS-M12",
+   "scope_project": null,
+   "text": "운영자 피드백을 모델 재학습에 쓰기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M12-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q10",
+   "split": "dev",
+   "at": "OPS-M12",
+   "scope_project": "OPS",
+   "text": "장애 알림을 모바일 푸시로도 보내기로 했죠?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "푸시 게이트웨이는 FLD-0004(현장 점검 앱)에만 있음"
+  },
+  {
+   "id": "OPS-Q11",
+   "split": "dev",
+   "at": "OPS-M13",
+   "scope_project": "OPS",
+   "text": "QA에서 최종 답변 기준을 90초로 바꿨다면서요?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "OPS-0018"
+   ],
+   "expected_keywords": [
+    "60초"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M13-D1}은 권한 밖(협력사 PM)이라 반려 — 유효 기준은 60초"
+  },
+  {
+   "id": "OPS-Q12",
+   "split": "dev",
+   "at": "OPS-M13",
+   "scope_project": "OPS",
+   "text": "그럼 지금 기준은 누가 정한 거예요?",
+   "kind": "follow_up",
+   "follow_up_of": "OPS-Q11",
+   "expected_state": "확정",
+   "expected_ids": [
+    "OPS-0018"
+   ],
+   "expected_keywords": [
+    "정한결"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q13",
+   "split": "dev",
+   "at": "OPS-M13",
+   "scope_project": "OPS",
+   "text": "부하 테스트용 GPU 서버 임차는 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{OPS-M13-D5}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "견적 조건부"
+  },
+  {
+   "id": "OPS-Q14",
+   "split": "dev",
+   "at": "OPS-M13",
+   "scope_project": "OPS",
+   "text": "검증이 오래 걸리면 미완료로 내보내는 거 정해졌어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{OPS-M13-D2}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "미완료 비율 5% 조건부"
+  },
+  {
+   "id": "OPS-Q15",
+   "split": "dev",
+   "at": "OPS-M13",
+   "scope_project": null,
+   "text": "부하 테스트는 동시 사용자 몇 명 기준으로 해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M13-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q16",
+   "split": "dev",
+   "at": "OPS-M14",
+   "scope_project": null,
+   "text": "같은 장애 알림이 계속 울리면 어떻게 하기로 했어요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M14-D2}"
+   ],
+   "expected_keywords": [
+    "15분"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "5분은 번복 전 값"
+  },
+  {
+   "id": "OPS-Q17",
+   "split": "dev",
+   "at": "OPS-M14",
+   "scope_project": "OPS",
+   "text": "알림 링크로 들어온 질문은 라우팅이 어떻게 돼요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M14-D3}"
+   ],
+   "expected_keywords": [
+    "complex"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "OPS-0009를 대체한 지금 기준"
+  },
+  {
+   "id": "OPS-Q18",
+   "split": "dev",
+   "at": "OPS-M14",
+   "scope_project": "OPS",
+   "text": "GPU 서버 임차는 결론 났어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M13-D5}"
+   ],
+   "expected_keywords": [
+    "180"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M14-D1}로 확정"
+  },
+  {
+   "id": "OPS-Q19",
+   "split": "dev",
+   "at": "OPS-M14",
+   "scope_project": "OPS",
+   "text": "야간 P2 장애 알림은 어떻게 하기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M14-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q20",
+   "split": "dev",
+   "at": "OPS-M14",
+   "scope_project": "OPS",
+   "text": "대화 이력은 며칠 보관하기로 했어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "회의 원문 90일(OPS-0020)과 헷갈리기 쉬움 — 대화 이력 보관 기간은 정한 적 없음"
+  },
+  {
+   "id": "OPS-Q21",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": "OPS",
+   "text": "반영이 1월 5일로 미뤄진 거죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M13-D4}"
+   ],
+   "expected_keywords": [
+    "15일"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M15-D3}은 권한 밖이라 반려 — 12-15 반영 유효"
+  },
+  {
+   "id": "OPS-Q22",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": "OPS",
+   "text": "부하 테스트는 몇 명 기준으로 해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M15-D1}"
+   ],
+   "expected_keywords": [
+    "30명"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "미결이던 {OPS-M13-U1}이 정해짐"
+  },
+  {
+   "id": "OPS-Q23",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": "OPS",
+   "text": "검증 미완료 표시는 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{OPS-M13-D2}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q24",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": null,
+   "text": "경비 정산 프로젝트는 백엔드 뭘로 해요? 우리처럼 FastAPI예요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "EXP-0001"
+   ],
+   "expected_keywords": [
+    "Spring Boot"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q25",
+   "split": "dev",
+   "at": "OPS-M15",
+   "scope_project": "OPS",
+   "text": "운영자 교육은 몇 시간 하기로 했어요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q26",
+   "split": "test",
+   "at": "OPS-M16",
+   "scope_project": "OPS",
+   "text": "검증이 20초를 넘기면 지금은 어떻게 돼요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M13-D2}"
+   ],
+   "expected_keywords": [
+    "미완료"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M16-D1}로 확정, OPS-0011을 대체"
+  },
+  {
+   "id": "OPS-Q27",
+   "split": "test",
+   "at": "OPS-M16",
+   "scope_project": "OPS",
+   "text": "그거 누가 확정했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "OPS-Q26",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M13-D2}"
+   ],
+   "expected_keywords": [
+    "서지후"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q28",
+   "split": "test",
+   "at": "OPS-M16",
+   "scope_project": "OPS",
+   "text": "반영하고 롤백은 어떤 기준으로 해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M16-D4}"
+   ],
+   "expected_keywords": [
+    "5%"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q29",
+   "split": "test",
+   "at": "OPS-M16",
+   "scope_project": "OPS",
+   "text": "작성 단계도 작은 모델로 내리기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{OPS-M16-D2}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q30",
+   "split": "test",
+   "at": "OPS-M16",
+   "scope_project": null,
+   "text": "반영 뒤 회귀 테스트는 얼마나 자주 돌려요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M16-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q31",
+   "split": "test",
+   "at": "OPS-M17",
+   "scope_project": "OPS",
+   "text": "반영이 22일로 미뤄졌다면서요?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M13-D4}"
+   ],
+   "expected_keywords": [
+    "15일"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M17-D1}은 PM 불참 중 협력사 PM이 정해 반려"
+  },
+  {
+   "id": "OPS-Q32",
+   "split": "test",
+   "at": "OPS-M17",
+   "scope_project": "OPS",
+   "text": "야간 P2 알림은 어떻게 보내기로 했어요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M17-D2}"
+   ],
+   "expected_keywords": [
+    "9시"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q33",
+   "split": "test",
+   "at": "OPS-M17",
+   "scope_project": null,
+   "text": "GPU 서버 임차는 1월에도 연장해요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M17-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q34",
+   "split": "test",
+   "at": "OPS-M17",
+   "scope_project": "OPS",
+   "text": "반영 후 야간 당직 순번은 정했어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "야간 P2 알림 결정과 헷갈리기 쉬움 — 당직은 운영팀 내부로 넘김"
+  },
+  {
+   "id": "OPS-Q35",
+   "split": "test",
+   "at": "OPS-M17",
+   "scope_project": null,
+   "text": "고객센터 챗봇은 실시간 알림을 지금 뭘로 해요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "CSB-0004"
+   ],
+   "expected_keywords": [
+    "Long Polling"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "CSB-0001(WebSocket)을 대체한 지금 기준"
+  },
+  {
+   "id": "OPS-Q36",
+   "split": "test",
+   "at": "OPS-M18",
+   "scope_project": "OPS",
+   "text": "내일 반영은 몇 시에 해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M18-D1}"
+   ],
+   "expected_keywords": [
+    "7시"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q37",
+   "split": "test",
+   "at": "OPS-M18",
+   "scope_project": "OPS",
+   "text": "알림 메시지에 영어도 같이 쓰기로 했나요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q38",
+   "split": "test",
+   "at": "OPS-M18",
+   "scope_project": "OPS",
+   "text": "동시 진단은 지금 몇 건까지 받아요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M18-D5}"
+   ],
+   "expected_keywords": [
+    "3건"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M15-D5}(5건)를 대체"
+  },
+  {
+   "id": "OPS-Q39",
+   "split": "test",
+   "at": "OPS-M18",
+   "scope_project": null,
+   "text": "GPU 서버 임차는 언제까지 해요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M18-D4}"
+   ],
+   "expected_keywords": [
+    "1월"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M13-D5}(12월까지)를 대체"
+  },
+  {
+   "id": "OPS-Q40",
+   "split": "test",
+   "at": "OPS-M18",
+   "scope_project": "OPS",
+   "text": "반영 후 장애 보고서 양식은 정했어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q41",
+   "split": "test",
+   "at": "OPS-M19",
+   "scope_project": "OPS",
+   "text": "근거 없는 답에 '근거 부족' 표시하기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{OPS-M19-D5}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q42",
+   "split": "test",
+   "at": "OPS-M19",
+   "scope_project": "OPS",
+   "text": "답이 30초 넘으면 끊기로 했죠?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "OPS-0018"
+   ],
+   "expected_keywords": [
+    "60초"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M19-D4}는 기준 문서·기존 결정 위반으로 반려"
+  },
+  {
+   "id": "OPS-Q43",
+   "split": "test",
+   "at": "OPS-M19",
+   "scope_project": "OPS",
+   "text": "P1 전화 호출은 이제 어떤 조건에서 가요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M19-D1}"
+   ],
+   "expected_keywords": [
+    "2분"
+   ],
+   "forbidden_keywords": [
+    "3분"
+   ],
+   "ambiguous": false,
+   "note": "3분은 번복 전 값"
+  },
+  {
+   "id": "OPS-Q44",
+   "split": "test",
+   "at": "OPS-M19",
+   "scope_project": "OPS",
+   "text": "장애 티켓 자동 생성은 1월에 하기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M19-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q45",
+   "split": "test",
+   "at": "OPS-M19",
+   "scope_project": "OPS",
+   "text": "작성 단계를 작은 모델로 내리는 건 결론 났어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{OPS-M16-D2}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q46",
+   "split": "test",
+   "at": "OPS-M20",
+   "scope_project": "OPS",
+   "text": "'근거 부족' 표시는 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M19-D5}"
+   ],
+   "expected_keywords": [
+    "근거 부족"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "{OPS-M20-D1}로 확정"
+  },
+  {
+   "id": "OPS-Q47",
+   "split": "test",
+   "at": "OPS-M20",
+   "scope_project": "OPS",
+   "text": "그건 왜 하기로 한 거예요?",
+   "kind": "follow_up",
+   "follow_up_of": "OPS-Q46",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{OPS-M19-D5}"
+   ],
+   "expected_keywords": [
+    "인용"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q48",
+   "split": "test",
+   "at": "OPS-M20",
+   "scope_project": "OPS",
+   "text": "피드백 버튼을 단계별로 나누기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{OPS-M20-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q49",
+   "split": "test",
+   "at": "OPS-M20",
+   "scope_project": null,
+   "text": "운영자 피드백 많이 준 사람한테 포상하기로 했나요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "OPS-Q50",
+   "split": "test",
+   "at": "OPS-M20",
+   "scope_project": "OPS",
+   "text": "운영 지표 대시보드는 Tableau로 만들기로 했죠?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "Tableau는 SLS-0001(영업 대시보드)에만 있음"
+  }
+ ]
+}

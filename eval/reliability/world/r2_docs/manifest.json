@@ -1,0 +1,19 @@
+{
+ "_note": "기존 manifest.json에 합친다. (doc_id, doc_version)이 같은 항목은 이 파일 값으로 바꾼다 (REQ v1.1 현행 해제, GLOSSARY 공통판).",
+ "documents": [
+  {"doc_id": "REQ", "title": "요구사항정의서", "doc_version": "v1.1", "file": "요구사항정의서_v1.1.md", "is_current": false,
+   "updated_at": "2026-10-02", "change_note": "OPS-0005 반영: 응답 시간 기준 변경"},
+  {"doc_id": "REQ", "title": "요구사항정의서", "doc_version": "v1.2", "file": "요구사항정의서_v1.2.md", "is_current": true,
+   "updated_at": "2026-10-21", "change_note": "OPS-0018 반영: 최종 답변 60초"},
+  {"doc_id": "GLOSSARY", "title": "사내 프로젝트 공통 용어집", "doc_version": "v1.0", "file": "용어집.md", "is_current": true,
+   "updated_at": "2026-10-21", "change_note": "경비 정산·현장 점검 앱·영업 대시보드 용어 추가"},
+  {"doc_id": "EREQ", "title": "경비 정산 자동화 요구사항정의서", "doc_version": "v1.0", "file": "경비정산_요구사항정의서_v1.0.md",
+   "is_current": false, "updated_at": "2026-10-08", "change_note": "최초 작성", "project_id": "PRJ-EXPAUTO"},
+  {"doc_id": "EREQ", "title": "경비 정산 자동화 요구사항정의서", "doc_version": "v1.1", "file": "경비정산_요구사항정의서_v1.1.md",
+   "is_current": true, "updated_at": "2026-10-20", "change_note": "EXP-0007 반영: 결재선 금액별 2단계", "project_id": "PRJ-EXPAUTO"},
+  {"doc_id": "FREQ", "title": "현장 설비 점검 앱 요구사항정의서", "doc_version": "v1.0", "file": "현장점검앱_요구사항정의서_v1.0.md",
+   "is_current": true, "updated_at": "2026-10-07", "change_note": "최초 작성", "project_id": "PRJ-FIELDAPP"},
+  {"doc_id": "SREQ", "title": "영업 실적 대시보드 요구사항정의서", "doc_version": "v1.0", "file": "영업대시보드_요구사항정의서_v1.0.md",
+   "is_current": true, "updated_at": "2026-10-09", "change_note": "최초 작성", "project_id": "PRJ-SALESDASH"}
+ ]
+}

@@ -1,0 +1,49 @@
+{
+ "_note": "기존 data/project/r4_governance/policies.json에 조항을 더한다. add의 키는 정책 버전. 기존 조항은 바꾸지 않는다.",
+ "add": {
+  "v2": [
+   {
+    "rule_id": "FIN-01",
+    "domain": "finance",
+    "topic": "receipt.retention",
+    "text": "법인카드·경비 증빙은 3년간 보관한다.",
+    "approver_role": "재무팀",
+    "threshold": "3년"
+   }
+  ],
+  "v3": [
+   {
+    "rule_id": "SEC-04",
+    "domain": "security",
+    "topic": "privacy.location",
+    "text": "작업자 위치정보는 업무 시간 중에만 수집할 수 있으며, 수집 전 본인 동의와 보안 담당 승인이 필요하다. 위치 이력은 30일 후 파기한다.",
+    "approver_role": "보안 담당",
+    "threshold": "30일"
+   },
+   {
+    "rule_id": "SEC-05",
+    "domain": "security",
+    "topic": "mobile.storage",
+    "text": "모바일 단말에 업무 데이터를 저장할 때는 암호화 저장소를 써야 하며, 사진·문서 원본은 서버 업로드가 끝나면 단말에서 지운다.",
+    "approver_role": "보안 담당",
+    "threshold": null
+   },
+   {
+    "rule_id": "FIN-01",
+    "domain": "finance",
+    "topic": "receipt.retention",
+    "text": "법인카드·경비 증빙(영수증 원본·전자 전표)은 5년간 보관해야 하며, 보관 기간 중에는 삭제할 수 없다.",
+    "approver_role": "재무팀",
+    "threshold": "5년"
+   },
+   {
+    "rule_id": "DATA-01",
+    "domain": "data",
+    "topic": "data.source",
+    "text": "경영 보고용 실적 수치는 전사 데이터 웨어하우스(DW)의 확정 테이블만 원천으로 쓴다. 현업 엑셀 수기 집계는 보조 자료로만 쓸 수 있다.",
+    "approver_role": "데이터 거버넌스 위원회",
+    "threshold": null
+   }
+  ]
+ }
+}

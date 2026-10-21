@@ -1,0 +1,3269 @@
+{
+ "project": "FLD",
+ "meetings": {
+  "FLD-M01": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "말 끊김",
+    "돌려 말한 결정",
+    "진행자 단정",
+    "회상",
+    "회의 밖 결정 언급",
+    "권한 밖 결정",
+    "기한 정정",
+    "요청자≠담당자",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M01-D1",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      8
+     ],
+     "topic": "fld.checklist",
+     "statement": "점검표 화면은 표준 점검표 32종을 설비 유형별 탭으로 묶어 보여 주고, 이상으로 체크된 항목을 맨 위로 올린다 (항목은 그대로).",
+     "decided_by": "표지환",
+     "rationale": "현장에서 스크롤하다 이상 항목을 놓치는 일이 많음, 항목을 바꾸지 않아 FREQ-01과 부딪히지 않음",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M01-D2",
+     "seq": 12,
+     "evidence_seq": [
+      9,
+      12
+     ],
+     "topic": "fld.photo",
+     "statement": "점검 사진은 업로드 전에 긴 변 1600픽셀로 줄여서 올린다.",
+     "decided_by": "은서율",
+     "rationale": "원본이 한 장 6MB 이상이라 지하에서 동기화가 오래 걸리고 중간에 끊김, 1600픽셀이면 1MB 안쪽",
+     "alternatives_rejected": [
+      "원본 그대로 업로드"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "FLD-M01-D3",
+     "seq": 16,
+     "evidence_seq": [
+      15,
+      16
+     ],
+     "topic": "privacy.location",
+     "statement": "시범 사용자 20명은 본인 동의를 받아 업무 시간 중 10분 간격으로 GPS 위치를 수집하고(W-003, 12월 31일까지), 나머지 인원은 설비 QR 스캔 위치만 남긴다. 위치 이력은 30일 뒤 지운다.",
+     "decided_by": "육성재",
+     "rationale": "지하 현장 동선 파악 요구, 보안 담당이 승인한 예외 W-003 범위 안",
+     "alternatives_rejected": [
+      "현장 인원 전원 GPS 수집"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "FLD-0005"
+       ],
+       "detail": "보안 담당(육성재)이 W-003 범위 안에서 GPS 미수집 결정을 시범 사용자에 한해 바꿈"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "FLD-M01-D4",
+     "seq": 23,
+     "evidence_seq": [
+      23
+     ],
+     "topic": "tech.backend",
+     "statement": "점검 앱 서버는 Spring Boot로 개발한다.",
+     "decided_by": "은서율",
+     "rationale": "설비관리 시스템 연동 모듈이 Java라 재사용이 가장 빠름",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M01-D5",
+     "seq": 27,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "topic": "fld.photo",
+     "statement": "점검 항목당 사진을 10장까지 첨부할 수 있게 한다.",
+     "decided_by": "진태오",
+     "rationale": "누유 등은 여러 각도 촬영이 필요하다는 현장 요청",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "baseline",
+       "against": [
+        "FREQ-03"
+       ],
+       "detail": "기준 문서는 항목당 최대 3장"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "요구사항 범위 변경은 PM 승인 사항인데 협력사 개발자가 PM 퇴장 뒤 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M01-A1",
+     "seq": 19,
+     "evidence_seq": [
+      19,
+      20,
+      21
+     ],
+     "statement": "시범 사용자 20명에게 위치정보 수집 동의서 받기 (양식은 육성재 제공)",
+     "owner": "길봉수",
+     "due": "2026-11-13",
+     "requester": "표지환",
+     "tags": [
+      "요청자≠담당자",
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "FLD-M01-A2",
+     "seq": 34,
+     "evidence_seq": [
+      34,
+      35
+     ],
+     "statement": "점검표 화면 시안 수정본 공유",
+     "owner": "국하윤",
+     "due": "2026-11-03",
+     "requester": "은서율",
+     "tags": []
+    },
+    {
+     "id": "FLD-M01-A3",
+     "seq": 34,
+     "evidence_seq": [
+      34,
+      36
+     ],
+     "statement": "1600픽셀로 줄인 현장 사진 판독 테스트 결과 공유",
+     "owner": "맹주원",
+     "due": "2026-11-04",
+     "requester": "은서율",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M01-U1",
+     "seq": 33,
+     "evidence_seq": [
+      31,
+      33
+     ],
+     "subject": "이상 알림을 파트장에게도 보낼지",
+     "topic": "fld.push",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 5,
+     "kind": "회상",
+     "why": "킥오프에서 정한 Flutter·SSO(FLD-0001·0002)를 다시 말함 — 새 결정 아님"
+    },
+    {
+     "seq": 14,
+     "kind": "회의 밖 결정",
+     "why": "W-003 예외는 10월 21일 회의 밖에서 승인된 것"
+    },
+    {
+     "seq": 17,
+     "kind": "제안",
+     "why": "전원 GPS 수집 제안 — 보안 담당이 바로 거절, 결정 아님"
+    },
+    {
+     "seq": 29,
+     "kind": "잡담",
+     "why": "점심 메뉴 잡담"
+    }
+   ]
+  },
+  "FLD-M02": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "말 끊김",
+    "주제 이탈",
+    "돌려 말한 결정",
+    "조건부 확정",
+    "회상",
+    "회의 밖 결정 언급",
+    "요청자≠담당자",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M02-D1",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      8
+     ],
+     "topic": "fld.push",
+     "statement": "푸시 알림을 사내 게이트웨이 대신 FCM에 직접 연동한다.",
+     "decided_by": "진태오",
+     "rationale": "사내 게이트웨이 알림이 30초씩 지연됨",
+     "alternatives_rejected": [
+      "사내 푸시 게이트웨이 유지"
+     ],
+     "conflicts": [
+      {
+       "type": "past_decision",
+       "against": [
+        "FLD-0004"
+       ],
+       "detail": "유효 결정 FLD-0004(사내 푸시 게이트웨이)와 모순, PL·보안 담당 없이 협력사가 정함"
+      },
+      {
+       "type": "policy",
+       "against": [
+        "SEC-03"
+       ],
+       "detail": "FCM은 외부 SaaS — 보안성 검토 없이 도입 불가"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "FLD-M02-D2",
+     "seq": 13,
+     "evidence_seq": [
+      12,
+      13
+     ],
+     "topic": "fld.push",
+     "statement": "이상 알림은 사내 푸시 게이트웨이로 설비 담당자에게 즉시 보내고, 담당 파트장에게도 같이 보낸다. 요구사항정의서 이상 알림 항목을 고친다.",
+     "decided_by": "표지환",
+     "rationale": "이상 발생을 파트장도 알아야 한다는 현장 요청",
+     "alternatives_rejected": [
+      "설비 담당자에게만 발송"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "FREQ-08"
+       ],
+       "detail": "PM이 이상 알림 수신자를 늘리는 요구사항 변경을 승인, 정의서 개정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "FLD-M02-D3",
+     "seq": 17,
+     "evidence_seq": [
+      15,
+      17
+     ],
+     "topic": "fld.offline",
+     "statement": "오프라인 기록은 암호화 SQLite에 두고 연결되면 자동 동기화하되, 같은 점검 건이 겹치면 먼저 서버에 올라간 값을 기준으로 하고 나중 값은 '충돌'로 표시해 관리자가 고른다.",
+     "decided_by": "은서율",
+     "rationale": "나중에 올린 기록이 앞 기록을 덮어쓰는 문제",
+     "alternatives_rejected": [
+      "나중에 저장한 값으로 덮어쓰기"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M02-D4",
+     "seq": 21,
+     "evidence_seq": [
+      18,
+      19,
+      21
+     ],
+     "topic": "mobile.storage",
+     "statement": "오프라인 점검 사진을 단말 갤러리에 저장하고 업로드 뒤에도 갤러리에 남겨 둔다.",
+     "decided_by": "진태오",
+     "rationale": "현장에서 다른 앱(메신저)으로 사진을 공유하기 편함",
+     "alternatives_rejected": [
+      "앱 전용 폴더 저장"
+     ],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-05"
+       ],
+       "detail": "사진 원본은 암호화 저장소에 두고 업로드 뒤 단말에서 지워야 함"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "FREQ-03"
+       ],
+       "detail": "기준 문서는 업로드가 끝나면 단말에서 삭제"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "FLD-M02-D5",
+     "seq": 24,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "topic": "budget",
+     "statement": "시범 단말 20대에 보조배터리 달린 러기드 케이스를 렌탈해 붙인다 (월 약 120만 원, 설비운영팀 예산 승인 조건).",
+     "decided_by": "표지환",
+     "rationale": "지하 현장에서 단말 배터리가 빨리 닳음",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M02-A1",
+     "seq": 31,
+     "evidence_seq": [
+      31,
+      32
+     ],
+     "statement": "동기화 충돌 표시 API 설계 정리",
+     "owner": "소하늘",
+     "due": "2026-11-11",
+     "requester": "은서율",
+     "tags": []
+    },
+    {
+     "id": "FLD-M02-A2",
+     "seq": 34,
+     "evidence_seq": [
+      33,
+      34,
+      35
+     ],
+     "statement": "현장 테스트 점검자 5명 명단을 소하늘에게 전달 (테스트 계정 생성용)",
+     "owner": "길봉수",
+     "due": "2026-11-06",
+     "requester": "소하늘",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M02-U1",
+     "seq": 30,
+     "evidence_seq": [
+      29,
+      30
+     ],
+     "subject": "점검 결과 PDF 보고서 내보내기",
+     "topic": "scope.core",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "회상",
+     "why": "지난 회의의 1600픽셀 결정을 다시 말함"
+    },
+    {
+     "seq": 25,
+     "kind": "잡담",
+     "why": "케이스 색깔 얘기"
+    },
+    {
+     "seq": 27,
+     "kind": "회의 밖 결정",
+     "why": "본부장 메일 지시 — 이 회의의 결정 아님"
+    }
+   ]
+  },
+  "FLD-M03": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "돌려 말한 결정",
+    "진행자 단정",
+    "조건부 확정",
+    "번복",
+    "권한 밖 결정",
+    "회상",
+    "기한 정정",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M03-D1",
+     "seq": 7,
+     "evidence_seq": [
+      6,
+      7
+     ],
+     "topic": "privacy.location",
+     "statement": "현장 인원 전원의 GPS 위치를 24시간 수집한다.",
+     "decided_by": "길봉수",
+     "rationale": "야간 출동 인원까지 위치를 보고 싶다는 현장 반장 요청",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-04"
+       ],
+       "detail": "위치정보는 업무 시간·본인 동의·보안 승인 필요, W-003은 시범 20명·업무 시간만"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{FLD-M01-D3}"
+       ],
+       "detail": "시범 20명만 업무 시간 10분 간격으로 한 유효 결정과 모순"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-05"
+       ],
+       "detail": "보안 영향 결정인데 보안 담당 불참, 현장팀 대표가 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "FLD-M03-D2",
+     "seq": 14,
+     "evidence_seq": [
+      13,
+      14
+     ],
+     "topic": "realtime.transport",
+     "statement": "관제 상황판의 실시간 점검 현황은 SSE로 내려 준다 (WebSocket 쓰지 않음).",
+     "decided_by": "은서율",
+     "rationale": "사내 프록시가 WebSocket을 막아 ARC-02 예외가 필요, 상황판은 서버→화면 한 방향이면 충분",
+     "alternatives_rejected": [
+      "WebSocket"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "번복"
+     ]
+    },
+    {
+     "id": "FLD-M03-D3",
+     "seq": 18,
+     "evidence_seq": [
+      17,
+      18
+     ],
+     "topic": "db.rdbms",
+     "statement": "서버 DB는 PostgreSQL을 쓰고 설비별로 다른 점검 항목은 JSONB 컬럼에 저장한다.",
+     "decided_by": "은서율",
+     "rationale": "사내 표준 RDBMS(ARC-01)로 추가 승인 없이 가변 항목 저장 가능",
+     "alternatives_rejected": [
+      "MongoDB 같은 문서형 DB"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M03-D4",
+     "seq": 19,
+     "evidence_seq": [
+      19
+     ],
+     "topic": "qa.test",
+     "statement": "현장 테스트는 11월 20일(금) 남부사업소 지하 변전실에서 점검자 5명과 한다.",
+     "decided_by": "은서율",
+     "rationale": "시범 오픈 전 실제 지하 현장에서 오프라인 점검 검증",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M03-D5",
+     "seq": 22,
+     "evidence_seq": [
+      21,
+      22
+     ],
+     "topic": "mobile.storage",
+     "statement": "로컬 DB 암호화 키는 안드로이드 키스토어에 둔다 (보안 담당 확인 조건).",
+     "decided_by": "은서율",
+     "rationale": "키가 앱 밖으로 나가지 않음",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    },
+    {
+     "id": "FLD-M03-D6",
+     "seq": 27,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "topic": "fld.push",
+     "statement": "시범 기간에는 이상 알림을 즉시 보내지 않고 한 시간 단위로 묶어서 보낸다.",
+     "decided_by": "은서율",
+     "rationale": "알림이 몰리면 파트장 단말이 계속 울림",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "past_decision",
+       "against": [
+        "{FLD-M02-D2}"
+       ],
+       "detail": "이상 알림을 즉시 보내기로 한 유효 결정과 모순"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "FREQ-08"
+       ],
+       "detail": "기준 문서는 이상이면 즉시 푸시"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "요구사항 변경은 PM 승인 사항인데 PM 불참 중 PL이 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "pending",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M03-A1",
+     "seq": 31,
+     "evidence_seq": [
+      31,
+      32
+     ],
+     "statement": "SSE 상황판 엔드포인트 시제품",
+     "owner": "소하늘",
+     "due": "2026-11-17",
+     "requester": "은서율",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "FLD-M03-A2",
+     "seq": 23,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "statement": "키스토어 적용 방법 정리해 육성재에게 메일 송부",
+     "owner": "맹주원",
+     "due": "2026-11-16",
+     "requester": "은서율",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M03-U1",
+     "seq": 30,
+     "evidence_seq": [
+      28,
+      30
+     ],
+     "subject": "점검 사진 워터마크에 넣을 내용",
+     "topic": "fld.photo",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 3,
+     "kind": "잡담",
+     "why": "휴가 얘기"
+    },
+    {
+     "seq": 4,
+     "kind": "회상",
+     "why": "지난주 동기화 충돌 결정을 다시 말함"
+    },
+    {
+     "seq": 8,
+     "kind": "수락",
+     "why": "반려될 GPS 결정을 받아들이는 말 — 별도 결정 아님"
+    },
+    {
+     "seq": 12,
+     "kind": "번복 전 결정",
+     "why": "WebSocket으로 하자고 했다가 바로 SSE로 뒤집음"
+    },
+    {
+     "seq": 16,
+     "kind": "제안",
+     "why": "MongoDB 제안 — PostgreSQL JSONB로 정리됨"
+    }
+   ]
+  },
+  "FLD-M04": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "주제 이탈",
+    "진행자 단정",
+    "돌려 말한 결정",
+    "권한 밖 결정",
+    "회상",
+    "회의 밖 결정 언급",
+    "기한 정정",
+    "요청자≠담당자",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M04-D1",
+     "seq": 4,
+     "evidence_seq": [
+      4
+     ],
+     "topic": "mobile.storage",
+     "statement": "로컬 DB 암호화 키는 안드로이드 키스토어에 둔다 (보안 담당 확인 조건).",
+     "decided_by": "육성재",
+     "rationale": "키가 단말 밖으로 나가지 않고 앱 삭제 시 함께 지워짐 — 보안 담당 검토 통과",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{FLD-M03-D5}"
+       ],
+       "detail": "승인 대기였던 키스토어 결정을 보안 담당이 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{FLD-M03-D5}"
+    },
+    {
+     "id": "FLD-M04-D2",
+     "seq": 11,
+     "evidence_seq": [
+      9,
+      11
+     ],
+     "topic": "fld.photo",
+     "statement": "점검 사진은 긴 변 1600픽셀로 줄여 올리고, 촬영 시각과 설비 번호를 워터마크로 넣는다 (위치 좌표는 넣지 않음).",
+     "decided_by": "표지환",
+     "rationale": "어느 설비 사진인지 헷갈린다는 현장 요청, 좌표는 위치정보 유출 우려",
+     "alternatives_rejected": [
+      "위치 좌표까지 워터마크"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M04-D3",
+     "seq": 18,
+     "evidence_seq": [
+      15,
+      18
+     ],
+     "topic": "fld.checklist",
+     "statement": "표준 점검표 32종은 유지하고, 설비운영팀이 승인한 '배수펌프 소음' 항목을 펌프류 점검표에 추가한다.",
+     "decided_by": "표지환",
+     "rationale": "현장에서 메모로 따로 적던 항목, 설비운영팀장 승인(FREQ-01 절차)",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M04-D4",
+     "seq": 22,
+     "evidence_seq": [
+      21,
+      22
+     ],
+     "topic": "budget",
+     "statement": "단말 원격 잠금·삭제용 MDM 솔루션을 월 700만 원에 계약한다.",
+     "decided_by": "표지환",
+     "rationale": "단말 분실 대비 원격 잠금·삭제",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-04"
+       ],
+       "detail": "월 500만 원 초과 지출은 본부장 승인 사항인데 PM이 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M04-A1",
+     "seq": 12,
+     "evidence_seq": [
+      12,
+      14
+     ],
+     "statement": "워터마크 시안(촬영 시각·설비 번호) 다듬어 공유",
+     "owner": "국하윤",
+     "due": "2026-11-24",
+     "requester": "표지환",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "FLD-M04-A2",
+     "seq": 29,
+     "evidence_seq": [
+      28,
+      29,
+      30
+     ],
+     "statement": "위치 이력 30일 자동 삭제 배치를 만들어 육성재에게 시연",
+     "owner": "소하늘",
+     "due": "2026-11-25",
+     "requester": "육성재",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "FLD-M04-A3",
+     "seq": 31,
+     "evidence_seq": [
+      31,
+      32
+     ],
+     "statement": "설비운영팀장 항목 추가 승인 메일을 표지환에게 전달",
+     "owner": "길봉수",
+     "due": "2026-11-18",
+     "requester": "표지환",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M04-U1",
+     "seq": 27,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "subject": "SSO 테스트 서버 지연에 따른 시범 오픈 1주 연기",
+     "topic": "schedule",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "잡담",
+     "why": "휴가 얘기"
+    },
+    {
+     "seq": 6,
+     "kind": "회상",
+     "why": "M01에서 정한 시범 20명 GPS 범위를 다시 말함 (반려된 전원 GPS 정정)"
+    },
+    {
+     "seq": 17,
+     "kind": "회의 밖 결정",
+     "why": "설비운영팀장이 메일로 승인 — 이 회의의 결정 아님"
+    },
+    {
+     "seq": 33,
+     "kind": "잡담",
+     "why": "프로젝터 고장"
+    }
+   ]
+  },
+  "FLD-M05": {
+   "split": "dev",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "말 끊김",
+    "돌려 말한 결정",
+    "조건부 확정",
+    "회상",
+    "회의 밖 결정 언급",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M05-D1",
+     "seq": 5,
+     "evidence_seq": [
+      5
+     ],
+     "topic": "budget",
+     "statement": "시범 단말 20대에 보조배터리 달린 러기드 케이스를 렌탈해 붙인다 (월 약 120만 원, 설비운영팀 예산 승인 조건).",
+     "decided_by": "표지환",
+     "rationale": "설비운영팀 예산 승인이 나 조건 충족",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{FLD-M02-D5}"
+       ],
+       "detail": "조건부로 승인 대기였던 러기드 케이스 렌탈을 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{FLD-M02-D5}"
+    },
+    {
+     "id": "FLD-M05-D2",
+     "seq": 9,
+     "evidence_seq": [
+      8,
+      9
+     ],
+     "topic": "error.retry",
+     "statement": "동기화가 실패하면 30초 간격으로 3번까지 다시 보내고, 그래도 안 되면 '미전송'으로 표시해 사용자가 직접 다시 보내게 한다.",
+     "decided_by": "은서율",
+     "rationale": "현장 테스트에서 신호가 약할 때 한 번 실패하면 동기화가 멈춤",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M05-D3",
+     "seq": 13,
+     "evidence_seq": [
+      11,
+      13
+     ],
+     "topic": "release",
+     "statement": "시범 앱 APK는 CAB 없이 사내 메신저 단체방에 올려 배포한다.",
+     "decided_by": "진태오",
+     "rationale": "MDM 계약 전, 시범은 운영 반영이 아니라는 주장",
+     "alternatives_rejected": [
+      "CAB 승인 후 배포"
+     ],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "OPS-01"
+       ],
+       "detail": "실사용자에게 나가는 시범 배포도 운영 반영 — CAB 승인 없이 불가"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "FLD-M05-D4",
+     "seq": 16,
+     "evidence_seq": [
+      15,
+      16
+     ],
+     "topic": "fld.photo",
+     "statement": "점검 사진을 줄이지 않고 원본으로 올린다.",
+     "decided_by": "진태오",
+     "rationale": "1600픽셀로 줄이면 균열 실금이 안 보인다는 현장 의견",
+     "alternatives_rejected": [
+      "1600픽셀 유지"
+     ],
+     "conflicts": [
+      {
+       "type": "past_decision",
+       "against": [
+        "{FLD-M04-D2}"
+       ],
+       "detail": "1600픽셀·워터마크 유효 결정과 모순, PM 부재 중 협력사가 바꿈"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "FLD-M05-D5",
+     "seq": 22,
+     "evidence_seq": [
+      19,
+      22
+     ],
+     "topic": "fld.auth",
+     "statement": "SSO(OIDC) 로그인은 유지하고, 오프라인인 동안은 마지막 로그인을 최대 12시간 유지했다가 연결되면 다시 인증한다 (보안 담당 확인 조건).",
+     "decided_by": "표지환",
+     "rationale": "SSO 토큰 8시간 만료로 지하에서 나오면 로그아웃돼 기록을 못 올림",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M05-A1",
+     "seq": 27,
+     "evidence_seq": [
+      27,
+      28
+     ],
+     "statement": "시범 첫날(12/7) 남부사업소 현장 지원 (맹주원·진태오)",
+     "owner": "맹주원",
+     "due": "2026-12-07",
+     "requester": "표지환",
+     "tags": []
+    },
+    {
+     "id": "FLD-M05-A2",
+     "seq": 30,
+     "evidence_seq": [
+      30,
+      31
+     ],
+     "statement": "동기화 재시도(30초 간격 3회·미전송 표시) 적용",
+     "owner": "맹주원",
+     "due": "2026-12-01",
+     "requester": "표지환",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M05-U1",
+     "seq": 33,
+     "evidence_seq": [
+      32,
+      33
+     ],
+     "subject": "점검 항목 응답에 '해당 없음' 추가",
+     "topic": "fld.checklist",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 3,
+     "kind": "회의 밖 결정",
+     "why": "시범 일정 유지는 본부장 보고 때 정리된 것 — 이 회의의 결정 아님"
+    },
+    {
+     "seq": 23,
+     "kind": "잡담",
+     "why": "앱 아이콘 색"
+    },
+    {
+     "seq": 25,
+     "kind": "회상",
+     "why": "동의서 진행 상황 보고"
+    }
+   ]
+  },
+  "FLD-M06": {
+   "split": "test",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "돌려 말한 결정",
+    "번복",
+    "권한 밖 결정",
+    "요청자≠담당자",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M06-D1",
+     "seq": 4,
+     "evidence_seq": [
+      4
+     ],
+     "topic": "fld.auth",
+     "statement": "SSO(OIDC) 로그인은 유지하고, 오프라인인 동안은 마지막 로그인을 최대 12시간 유지했다가 연결되면 다시 인증한다 (보안 담당 확인 조건).",
+     "decided_by": "육성재",
+     "rationale": "보안 담당 검토 통과 — 단말 화면 잠금이 이미 걸려 있음",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{FLD-M05-D5}"
+       ],
+       "detail": "승인 대기였던 오프라인 로그인 유지 결정을 보안 담당이 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{FLD-M05-D5}"
+    },
+    {
+     "id": "FLD-M06-D2",
+     "seq": 8,
+     "evidence_seq": [
+      7,
+      8
+     ],
+     "topic": "fld.offline",
+     "statement": "오프라인 동기화는 점검 기록을 먼저 보내고 사진은 별도 대기열로 나중에 보낸다 (암호화 SQLite 저장, 겹치면 먼저 올라간 값 기준은 그대로).",
+     "decided_by": "은서율",
+     "rationale": "사진 하나가 막히면 점검 기록까지 같이 안 올라가던 동기화 실패",
+     "alternatives_rejected": [
+      "기록과 사진을 한 번에 전송"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M06-D3",
+     "seq": 11,
+     "evidence_seq": [
+      10,
+      11
+     ],
+     "topic": "schedule",
+     "statement": "시범 운영 시작을 3주 미뤄 12월 28일로 한다.",
+     "decided_by": "은서율",
+     "rationale": "오프라인 동기화 버그(실패율 약 5%)",
+     "alternatives_rejected": [
+      "12월 7일 예정대로"
+     ],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-03"
+       ],
+       "detail": "2주 이상 지연은 본부장 승인 사항인데 PL이 PM·본부장 없이 정함"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "FREQ-06"
+       ],
+       "detail": "기준 문서의 시범 운영일은 2026-12-07"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "FLD-M06-D4",
+     "seq": 17,
+     "evidence_seq": [
+      16,
+      17
+     ],
+     "topic": "mobile.storage",
+     "statement": "업로드 전 사진은 키스토어 키로 암호화한 앱 전용 영역에만 두고, 업로드되면 바로 지운다.",
+     "decided_by": "육성재",
+     "rationale": "업로드 실패 사진이 암호화 안 된 임시 폴더에 남아 있었음 (SEC-05)",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M06-D5",
+     "seq": 24,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "topic": "qa.test",
+     "statement": "시범 첫 주에는 매일 오후 5시에 15분씩 현장 이슈 취합 회의를 한다.",
+     "decided_by": "은서율",
+     "rationale": "오전에는 현장 인원이 출동 나가 있음",
+     "alternatives_rejected": [
+      "매일 오전 9시"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "번복"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M06-A1",
+     "seq": 17,
+     "evidence_seq": [
+      17,
+      18
+     ],
+     "statement": "업로드 전 사진을 키스토어 암호화 앱 전용 영역으로 옮기고 업로드 후 즉시 삭제",
+     "owner": "맹주원",
+     "due": "2026-12-04",
+     "requester": "육성재",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "FLD-M06-A2",
+     "seq": 29,
+     "evidence_seq": [
+      29,
+      30
+     ],
+     "statement": "위치 동의서 미서명 2명 목록을 진태오에게 전달",
+     "owner": "길봉수",
+     "due": "2026-12-02",
+     "requester": "은서율",
+     "tags": []
+    },
+    {
+     "id": "FLD-M06-A3",
+     "seq": 29,
+     "evidence_seq": [
+      29,
+      31
+     ],
+     "statement": "미서명 2명은 GPS 꺼진 상태로 배포되는지 확인",
+     "owner": "진태오",
+     "due": "2026-12-04",
+     "requester": "은서율",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M06-U1",
+     "seq": 28,
+     "evidence_seq": [
+      27,
+      28
+     ],
+     "subject": "점검 결과 PDF 보고서 내보내기",
+     "topic": "scope.core",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 3,
+     "kind": "잡담",
+     "why": "워크숍 장소 얘기"
+    },
+    {
+     "seq": 19,
+     "kind": "제안",
+     "why": "동의 전 GPS 수집 제안 — 보안 담당이 거절"
+    },
+    {
+     "seq": 22,
+     "kind": "번복 전 결정",
+     "why": "오전 9시로 했다가 오후 5시로 바꿈"
+    }
+   ]
+  },
+  "FLD-M07": {
+   "split": "test",
+   "phenomena": [
+    "STT 오인식",
+    "말 끊김",
+    "진행자 단정",
+    "조건부 확정",
+    "권한 밖 결정",
+    "회상",
+    "회의 밖 결정 언급",
+    "기한 정정",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M07-D1",
+     "seq": 8,
+     "evidence_seq": [
+      6,
+      8
+     ],
+     "topic": "realtime.transport",
+     "statement": "관제 상황판 실시간 전송을 SSE에서 WebSocket으로 바꾼다.",
+     "decided_by": "은서율",
+     "rationale": "SSE 연결이 프록시에서 1분마다 끊김",
+     "alternatives_rejected": [
+      "SSE 재연결 보완"
+     ],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "ARC-02"
+       ],
+       "detail": "WebSocket은 아키텍처 위원회 예외 승인 필요 — 예외 없음"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{FLD-M03-D2}"
+       ],
+       "detail": "상황판은 SSE로 한 유효 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "FLD-M07-D2",
+     "seq": 13,
+     "evidence_seq": [
+      11,
+      13
+     ],
+     "topic": "fld.checklist",
+     "statement": "점검 항목 응답에 '해당 없음'을 추가한다 (표준 점검표 32종과 배수펌프 소음 항목은 그대로).",
+     "decided_by": "표지환",
+     "rationale": "시범 첫 주 '정상' 응답의 15%가 실제로는 해당 없음",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M07-D3",
+     "seq": 16,
+     "evidence_seq": [
+      14,
+      16
+     ],
+     "topic": "fld.auth",
+     "statement": "SSO(OIDC) 로그인과 오프라인 12시간 유지는 그대로 두고, 앱 화면 잠금 해제에 4자리 PIN을 추가한다 (보안 담당 확인 조건).",
+     "decided_by": "표지환",
+     "rationale": "장갑을 낀 채 SSO 비밀번호 입력이 어려움",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    },
+    {
+     "id": "FLD-M07-D4",
+     "seq": 21,
+     "evidence_seq": [
+      19,
+      20,
+      21
+     ],
+     "topic": "privacy.location",
+     "statement": "시범 사용자 20명의 GPS 수집을 업무 시간 외까지 24시간으로 늘린다.",
+     "decided_by": "진태오",
+     "rationale": "야간 출동 인원 위치가 안 보임",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-04"
+       ],
+       "detail": "위치정보는 업무 시간 중에만 수집 가능, W-003도 업무 시간 한정"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{FLD-M01-D3}"
+       ],
+       "detail": "업무 시간 10분 간격으로 한 유효 결정과 모순"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-05"
+       ],
+       "detail": "보안 담당 불참, PM 자리 비운 사이 협력사가 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "FLD-M07-D5",
+     "seq": 28,
+     "evidence_seq": [
+      26,
+      27,
+      28
+     ],
+     "topic": "fld.push",
+     "statement": "이상 알림은 사내 푸시 게이트웨이로 설비 담당자에게는 모두 즉시 보내고, 파트장에게는 '긴급' 등급만 보낸다. 요구사항정의서를 고친다.",
+     "decided_by": "표지환",
+     "rationale": "파트장들이 하루 수십 개 알림 때문에 알림을 꺼 둠",
+     "alternatives_rejected": [
+      "파트장에게도 모든 이상 알림"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "{FLD-M02-D2}"
+       ],
+       "detail": "PM이 자기 결정(파트장 전체 알림)을 정당하게 좁힘"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M07-A1",
+     "seq": 23,
+     "evidence_seq": [
+      23
+     ],
+     "statement": "'해당 없음' 버튼 시안 공유",
+     "owner": "국하윤",
+     "due": "2026-12-11",
+     "requester": null,
+     "tags": []
+    },
+    {
+     "id": "FLD-M07-A2",
+     "seq": 29,
+     "evidence_seq": [
+      29,
+      30
+     ],
+     "statement": "파트장 '긴급' 등급 알림 필터 적용",
+     "owner": "소하늘",
+     "due": "2026-12-14",
+     "requester": "표지환",
+     "tags": [
+      "기한 정정"
+     ]
+    },
+    {
+     "id": "FLD-M07-A3",
+     "seq": 31,
+     "evidence_seq": [
+      31
+     ],
+     "statement": "상황판 WebSocket 전환 배포 (반려 대상 결정에 딸린 일)",
+     "owner": "진태오",
+     "due": "2026-12-09",
+     "requester": null,
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M07-U1",
+     "seq": 34,
+     "evidence_seq": [
+      32,
+      33,
+      34
+     ],
+     "subject": "시범 사용자 확대 (북부사업소 포함 40명)",
+     "topic": "privacy.location",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "회상",
+     "why": "지난주 3주 연기 제안을 돌아봄"
+    },
+    {
+     "seq": 3,
+     "kind": "회의 밖 결정",
+     "why": "본부장 통화로 시범 일정 유지 — 이 회의의 결정 아님"
+    }
+   ]
+  },
+  "FLD-M08": {
+   "split": "test",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "말 끊김",
+    "진행자 단정",
+    "돌려 말한 결정",
+    "권한 밖 결정",
+    "회상",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M08-D1",
+     "seq": 2,
+     "evidence_seq": [
+      2
+     ],
+     "topic": "fld.auth",
+     "statement": "SSO(OIDC) 로그인과 오프라인 12시간 유지는 그대로 두고, 앱 화면 잠금 해제에 4자리 PIN을 추가한다 (보안 담당 확인 조건).",
+     "decided_by": "육성재",
+     "rationale": "보안 담당 검토 — SSO 대체가 아니라 화면 잠금 해제용이면 허용",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "confirms",
+       "against": [
+        "{FLD-M07-D3}"
+       ],
+       "detail": "승인 대기였던 PIN 잠금 해제를 보안 담당이 확정"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "confirms",
+     "tags": [],
+     "confirms": "{FLD-M07-D3}"
+    },
+    {
+     "id": "FLD-M08-D2",
+     "seq": 6,
+     "evidence_seq": [
+      5,
+      6
+     ],
+     "topic": "privacy.location",
+     "statement": "GPS 시범 수집은 동의한 20명, 업무 시간 중 10분 간격, 12월 31일 종료로 그대로 두고 인원을 늘리지 않는다. 나머지는 QR 스캔 위치만 남긴다.",
+     "decided_by": "육성재",
+     "rationale": "W-003 범위가 20명·12월 31일까지이고 시범이 이달 말 종료",
+     "alternatives_rejected": [
+      "북부사업소 포함 40명으로 확대"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M08-D3",
+     "seq": 10,
+     "evidence_seq": [
+      9,
+      10
+     ],
+     "topic": "scope.core",
+     "statement": "정식 오픈부터 iOS(개인 아이폰)도 지원한다.",
+     "decided_by": "진태오",
+     "rationale": "개인 아이폰 쓰는 반장들이 단말 두 개를 들고 다님",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "baseline",
+       "against": [
+        "FREQ-07"
+       ],
+       "detail": "기준 문서는 회사 지급 안드로이드 업무 단말만 지원"
+      },
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-02"
+       ],
+       "detail": "범위 변경은 PM 승인 사항인데 PM 불참 중 협력사가 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    },
+    {
+     "id": "FLD-M08-D4",
+     "seq": 17,
+     "evidence_seq": [
+      16,
+      17
+     ],
+     "topic": "saas.new",
+     "statement": "앱 크래시 로그는 외부 서비스(Crashlytics) 대신 사내 로그 수집 서버로 보낸다.",
+     "decided_by": "은서율",
+     "rationale": "외부 SaaS는 보안성 검토에 2주 이상 걸림, 사내 서버에 이미 수신 API 있음",
+     "alternatives_rejected": [
+      "Firebase Crashlytics"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M08-D5",
+     "seq": 18,
+     "evidence_seq": [
+      18
+     ],
+     "topic": "release",
+     "statement": "정식 오픈 반영은 1월 5일 CAB 회의에 올린다.",
+     "decided_by": "은서율",
+     "rationale": "정식 오픈(1월 11일) 전 CAB 승인 필요 (OPS-01)",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M08-D6",
+     "seq": 21,
+     "evidence_seq": [
+      20,
+      21
+     ],
+     "topic": "budget",
+     "statement": "정식 오픈 교육용 단말 10대를 추가 렌탈한다 (월 150만 원).",
+     "decided_by": "은서율",
+     "rationale": "북부·동부사업소 교육용 단말 부족",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "authority",
+       "against": [
+        "AUTH-04"
+       ],
+       "detail": "비용 지출은 PM 승인 사항인데 PM 불참 중 PL이 정함"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "pending",
+     "tags": [
+      "권한 밖 결정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M08-A1",
+     "seq": 18,
+     "evidence_seq": [
+      18,
+      19
+     ],
+     "statement": "정식 오픈 CAB 상정 자료 초안 작성",
+     "owner": "소하늘",
+     "due": "2026-12-30",
+     "requester": "은서율",
+     "tags": []
+    },
+    {
+     "id": "FLD-M08-A2",
+     "seq": 26,
+     "evidence_seq": [
+      26,
+      27
+     ],
+     "statement": "크래시 로그 사내 로그 서버 연동",
+     "owner": "소하늘",
+     "due": "2026-12-18",
+     "requester": "은서율",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M08-U1",
+     "seq": 29,
+     "evidence_seq": [
+      28,
+      29
+     ],
+     "subject": "지하 설비 배치도 오프라인 보기",
+     "topic": "scope.core",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 3,
+     "kind": "회상",
+     "why": "반려된 24시간 GPS 건을 돌아보며 업무 시간 범위를 다시 말함"
+    },
+    {
+     "seq": 14,
+     "kind": "제안",
+     "why": "Crashlytics 제안 — 사내 로그 서버로 정리됨"
+    },
+    {
+     "seq": 24,
+     "kind": "잡담",
+     "why": "날씨 얘기"
+    }
+   ]
+  },
+  "FLD-M09": {
+   "split": "test",
+   "phenomena": [
+    "잡담",
+    "말 끊김",
+    "STT 오인식",
+    "돌려 말한 결정",
+    "진행자 단정",
+    "회상",
+    "회의 밖 결정 언급",
+    "기한 정정",
+    "요청자≠담당자",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M09-D1",
+     "seq": 5,
+     "evidence_seq": [
+      4,
+      5
+     ],
+     "topic": "schedule",
+     "statement": "정식 오픈을 2027년 1월 11일에서 1월 18일로 1주 미루고 요구사항정의서 일정을 고친다.",
+     "decided_by": "표지환",
+     "rationale": "CAB 회의가 1월 5일에서 12일로 밀려 11일 전에 반영 승인을 못 받음",
+     "alternatives_rejected": [
+      "1월 11일 유지"
+     ],
+     "conflicts": [
+      {
+       "type": "change_approved",
+       "against": [
+        "FREQ-06"
+       ],
+       "detail": "1주 지연은 PM 권한(AUTH-03), PM이 정의서 개정까지 승인"
+      }
+     ],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M09-D2",
+     "seq": 7,
+     "evidence_seq": [
+      6,
+      7
+     ],
+     "topic": "release",
+     "statement": "정식 오픈 반영은 1월 12일 CAB 회의에 올린다.",
+     "decided_by": "표지환",
+     "rationale": "CAB 1월 5일 회의가 12일로 밀림",
+     "alternatives_rejected": [
+      "1월 5일 CAB"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": []
+    },
+    {
+     "id": "FLD-M09-D3",
+     "seq": 13,
+     "evidence_seq": [
+      11,
+      13
+     ],
+     "topic": "mobile.storage",
+     "statement": "업로드한 사진 원본을 단말 암호화 영역에 30일 남겨 둔다.",
+     "decided_by": "진태오",
+     "rationale": "조치 전후 비교용으로 단말에 사진이 남아 있었으면 한다는 현장 요청",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "SEC-05"
+       ],
+       "detail": "사진 원본은 서버 업로드가 끝나면 단말에서 지워야 함"
+      },
+      {
+       "type": "baseline",
+       "against": [
+        "FREQ-03"
+       ],
+       "detail": "기준 문서는 업로드 후 단말에서 삭제"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{FLD-M06-D4}"
+       ],
+       "detail": "업로드되면 바로 지우기로 한 유효 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "FLD-M09-D4",
+     "seq": 21,
+     "evidence_seq": [
+      20,
+      21
+     ],
+     "topic": "qa.test",
+     "statement": "정식 오픈 전 회귀 테스트는 2027년 1월 11일부터 13일까지 사흘, 시범 사용자 10명과 한다.",
+     "decided_by": "은서율",
+     "rationale": "정식 오픈이 1월 18일로 밀려 그 앞 주에 테스트 가능",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "돌려 말한 결정"
+     ]
+    },
+    {
+     "id": "FLD-M09-D5",
+     "seq": 24,
+     "evidence_seq": [
+      23,
+      24
+     ],
+     "topic": "budget",
+     "statement": "MDM은 기본 요금제로 300대 월 450만 원에 계약한다.",
+     "decided_by": "표지환",
+     "rationale": "원격 잠금·삭제는 기본 요금제로도 되고 PM 승인 한도(월 500만 원) 안",
+     "alternatives_rejected": [
+      "월 700만 원 상위 요금제"
+     ],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M09-A1",
+     "seq": 26,
+     "evidence_seq": [
+      25,
+      26,
+      27
+     ],
+     "statement": "MDM 보안성 검토 자료를 육성재에게 전달",
+     "owner": "진태오",
+     "due": "2026-12-28",
+     "requester": "육성재",
+     "tags": [
+      "기한 정정",
+      "요청자≠담당자"
+     ]
+    },
+    {
+     "id": "FLD-M09-A2",
+     "seq": 29,
+     "evidence_seq": [
+      29,
+      30
+     ],
+     "statement": "회귀 테스트용 계정 10개 생성",
+     "owner": "소하늘",
+     "due": "2026-12-29",
+     "requester": "표지환",
+     "tags": []
+    },
+    {
+     "id": "FLD-M09-A3",
+     "seq": 32,
+     "evidence_seq": [
+      31,
+      32,
+      33
+     ],
+     "statement": "정식 오픈 교육용 화면 가이드 작성해 설비운영팀에 전달",
+     "owner": "국하윤",
+     "due": "2027-01-06",
+     "requester": "길봉수",
+     "tags": [
+      "요청자≠담당자"
+     ]
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M09-U1",
+     "seq": 18,
+     "evidence_seq": [
+      17,
+      18
+     ],
+     "subject": "시범 GPS 수집 종료와 위치 이력 파기 일정",
+     "topic": "privacy.location",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 1,
+     "kind": "잡담",
+     "why": "크리스마스 이브 얘기"
+    },
+    {
+     "seq": 3,
+     "kind": "회의 밖 결정",
+     "why": "CAB 사무국 공지 — 이 회의의 결정 아님"
+    },
+    {
+     "seq": 8,
+     "kind": "질문",
+     "why": "CAB 자료 일정 확인 질문"
+    },
+    {
+     "seq": 22,
+     "kind": "회상",
+     "why": "반려된 MDM 700만 원 건을 돌아봄"
+    }
+   ]
+  },
+  "FLD-M10": {
+   "split": "test",
+   "phenomena": [
+    "잡담",
+    "STT 오인식",
+    "진행자 단정",
+    "조건부 확정",
+    "회의 밖 결정 언급",
+    "보류"
+   ],
+   "decisions": [
+    {
+     "id": "FLD-M10-D1",
+     "seq": 4,
+     "evidence_seq": [
+      4
+     ],
+     "topic": "privacy.location",
+     "statement": "W-003이 끝나는 12월 31일 업무 종료 시 GPS 수집을 끄고, 위치 이력은 1월 30일에 파기한다. 정식 오픈부터는 설비 QR 스캔 위치만 남긴다.",
+     "decided_by": "육성재",
+     "rationale": "예외 W-003 만료(연장 없음), SEC-04 위치 이력 30일 파기",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": false,
+     "outcome": "approved",
+     "tags": [
+      "진행자 단정"
+     ]
+    },
+    {
+     "id": "FLD-M10-D2",
+     "seq": 12,
+     "evidence_seq": [
+      11,
+      12
+     ],
+     "topic": "db.rdbms",
+     "statement": "리포팅용 DB를 MySQL로 따로 둔다.",
+     "decided_by": "은서율",
+     "rationale": "점검 이력 조회가 느리고 설비관리 시스템이 MySQL",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "policy",
+       "against": [
+        "ARC-01"
+       ],
+       "detail": "PostgreSQL 외 RDBMS는 아키텍처 위원회 승인 필요 (위키의 MySQL 표준은 구 정책 v2)"
+      },
+      {
+       "type": "past_decision",
+       "against": [
+        "{FLD-M03-D3}"
+       ],
+       "detail": "서버 DB는 PostgreSQL로 한 유효 결정과 모순"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": false,
+     "outcome": "rejected",
+     "tags": []
+    },
+    {
+     "id": "FLD-M10-D3",
+     "seq": 17,
+     "evidence_seq": [
+      15,
+      17
+     ],
+     "topic": "fld.checklist",
+     "statement": "정식 오픈부터 점검표에서 '외관 청결' 항목을 뺀다.",
+     "decided_by": "길봉수",
+     "rationale": "시범 기간 모두 정상으로만 찍혀 의미가 없음",
+     "alternatives_rejected": [],
+     "conflicts": [
+      {
+       "type": "baseline",
+       "against": [
+        "FREQ-01"
+       ],
+       "detail": "항목 삭제는 설비운영팀 승인 후 반영 — 팀장에게 말만 해 둔 상태로 승인 확인 안 됨"
+      }
+     ],
+     "expected_label": "확인 필요",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": []
+    },
+    {
+     "id": "FLD-M10-D4",
+     "seq": 22,
+     "evidence_seq": [
+      20,
+      22
+     ],
+     "topic": "fld.push",
+     "statement": "보안 담당 검토를 통과하면 정식 오픈 때 긴급 이상 알림을 사내 메신저로도 보낸다.",
+     "decided_by": "표지환",
+     "rationale": "파트장들이 앱 알림을 잘 안 봄",
+     "alternatives_rejected": [],
+     "conflicts": [],
+     "expected_label": "승인 대기",
+     "ambiguous": true,
+     "outcome": "pending",
+     "tags": [
+      "조건부 확정"
+     ]
+    }
+   ],
+   "action_items": [
+    {
+     "id": "FLD-M10-A1",
+     "seq": 5,
+     "evidence_seq": [
+      5,
+      6
+     ],
+     "statement": "12월 31일 GPS 수집 종료 확인",
+     "owner": "소하늘",
+     "due": "2026-12-31",
+     "requester": "표지환",
+     "tags": []
+    },
+    {
+     "id": "FLD-M10-A2",
+     "seq": 25,
+     "evidence_seq": [
+      25,
+      26
+     ],
+     "statement": "메신저 알림 문구 샘플을 육성재에게 송부",
+     "owner": "맹주원",
+     "due": "2027-01-05",
+     "requester": "표지환",
+     "tags": []
+    }
+   ],
+   "undecided": [
+    {
+     "id": "FLD-M10-U1",
+     "seq": 9,
+     "evidence_seq": [
+      8,
+      9
+     ],
+     "subject": "정식 오픈 뒤 전 직원 업무 시간 GPS 수집",
+     "topic": "privacy.location",
+     "tags": [
+      "보류"
+     ]
+    }
+   ],
+   "traps": [
+    {
+     "seq": 2,
+     "kind": "잡담",
+     "why": "시범 종료 소감"
+    },
+    {
+     "seq": 3,
+     "kind": "회의 밖 결정",
+     "why": "정보보호팀 공문(예외 연장 없음) — 이 회의의 결정 아님"
+    },
+    {
+     "seq": 7,
+     "kind": "제안",
+     "why": "정식 오픈 전 직원 GPS 제안 — 보류"
+    },
+    {
+     "seq": 23,
+     "kind": "잡담",
+     "why": "시무식 시간"
+    }
+   ]
+  }
+ },
+ "opinions": [
+  {
+   "id": "FLD-O01",
+   "split": "dev",
+   "at": "FLD-M01",
+   "scope_project": "FLD",
+   "text": "시범 사용자 20명은 동의 받고 업무 시간에 10분마다 GPS를 받아도 되죠?",
+   "expected": "allowed_with_waiver",
+   "against": [
+    "SEC-04"
+   ],
+   "waiver": "W-003",
+   "ambiguous": false,
+   "note": "W-003 범위(시범 20명·동의·업무 시간·10분 간격, ~12-31) 안"
+  },
+  {
+   "id": "FLD-O02",
+   "split": "dev",
+   "at": "FLD-M02",
+   "scope_project": "FLD",
+   "text": "점검 사진을 단말 갤러리에도 저장해 두면 카톡으로 공유하기 편할 것 같은데요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-05",
+    "FREQ-03"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "사진 원본은 암호화 저장소에 두고 업로드 후 삭제해야 함 (M02-D4가 같은 이유로 반려)"
+  },
+  {
+   "id": "FLD-O03",
+   "split": "dev",
+   "at": "FLD-M02",
+   "scope_project": null,
+   "text": "현장 작업자 전원 GPS를 24시간 켜 두면 야간 출동 관리가 쉬울 텐데 어때요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-04",
+    "{FLD-M01-D3}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "W-003은 시범 20명·업무 시간만 — 전원·24시간은 예외 범위 밖"
+  },
+  {
+   "id": "FLD-O04",
+   "split": "dev",
+   "at": "FLD-M03",
+   "scope_project": "FLD",
+   "text": "점검 앱 관제 상황판을 SSE로 실시간 갱신하면 문제없죠?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "ARC-02 표준 HTTP(SSE) 범위, M03-D2와 같음"
+  },
+  {
+   "id": "FLD-O05",
+   "split": "dev",
+   "at": "FLD-M04",
+   "scope_project": "FLD",
+   "text": "이상 알림은 사내 푸시 게이트웨이로 설비 담당자랑 파트장한테 같이 보내면 되겠죠?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "M02-D2와 같은 내용"
+  },
+  {
+   "id": "FLD-O06",
+   "split": "dev",
+   "at": "FLD-M04",
+   "scope_project": "FLD",
+   "text": "단말 관리용 MDM 솔루션을 월 700만 원에 계약하면 어떨까요?",
+   "expected": "needs_approval",
+   "against": [
+    "AUTH-04"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "월 500만 원 초과 — 본부장 승인이 있으면 가능 (M04-D4는 PM이 정해 반려)"
+  },
+  {
+   "id": "FLD-O07",
+   "split": "dev",
+   "at": "FLD-M05",
+   "scope_project": null,
+   "text": "시범 사용자 GPS를 퇴근 뒤에도 계속 받으면 안 될까요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-04"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "SEC-04·W-003 모두 업무 시간 중 수집만 허용"
+  },
+  {
+   "id": "FLD-O08",
+   "split": "test",
+   "at": "FLD-M06",
+   "scope_project": "FLD",
+   "text": "시범 사용자 20명 GPS를 10분 간격으로 12월 말까지 계속 받아도 되죠?",
+   "expected": "allowed_with_waiver",
+   "against": [
+    "SEC-04"
+   ],
+   "waiver": "W-003",
+   "ambiguous": false,
+   "note": "W-003 만료일 12-31 이내, 동의한 인원 한정"
+  },
+  {
+   "id": "FLD-O09",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": "FLD",
+   "text": "상황판이 SSE로 자꾸 끊기는데 WebSocket으로 바꾸면 어때요?",
+   "expected": "conflict",
+   "against": [
+    "ARC-02",
+    "{FLD-M03-D2}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "WebSocket은 아키텍처 위원회 예외 필요, FLD에 예외 없음 (W-002는 CSB·만료)"
+  },
+  {
+   "id": "FLD-O10",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": null,
+   "text": "점검 앱 정식 오픈 범위에 iOS 단말도 넣으면 어떨까요?",
+   "expected": "needs_approval",
+   "against": [
+    "AUTH-02",
+    "FREQ-07"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "기준 문서는 회사 지급 안드로이드만 — PM 승인·정의서 개정이 있으면 가능"
+  },
+  {
+   "id": "FLD-O11",
+   "split": "test",
+   "at": "FLD-M08",
+   "scope_project": "FLD",
+   "text": "크래시 로그를 Firebase Crashlytics로 모으면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-03",
+    "{FLD-M08-D4}"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "외부 SaaS 보안성 검토 없음, 사내 로그 서버로 한 유효 결정과 다름"
+  },
+  {
+   "id": "FLD-O12",
+   "split": "test",
+   "at": "FLD-M09",
+   "scope_project": "FLD",
+   "text": "정식 오픈 뒤 1월에도 시범 사용자 GPS 수집을 계속하면 어떨까요?",
+   "expected": "conflict",
+   "against": [
+    "SEC-04"
+   ],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "W-003은 2026-12-31 만료 — 1월은 예외 기간 밖"
+  },
+  {
+   "id": "FLD-O13",
+   "split": "test",
+   "at": "FLD-M09",
+   "scope_project": "FLD",
+   "text": "업로드가 끝난 점검 사진은 단말에서 바로 지우는 게 맞죠?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "SEC-05·FREQ-03·M06-D4와 같음"
+  },
+  {
+   "id": "FLD-O14",
+   "split": "test",
+   "at": "FLD-M10",
+   "scope_project": "FLD",
+   "text": "정식 오픈 때 전 직원 업무 시간 GPS를 동의 받고 수집하면 어떨까요?",
+   "expected": "needs_approval",
+   "against": [
+    "SEC-04",
+    "{FLD-M10-D1}"
+   ],
+   "waiver": null,
+   "ambiguous": true,
+   "note": "SEC-04는 동의·보안 담당 승인·30일 파기 조건이면 허용 — 보안 승인 절차 필요, 현재 결정(QR만)과 다름"
+  },
+  {
+   "id": "FLD-O15",
+   "split": "test",
+   "at": "FLD-M10",
+   "scope_project": null,
+   "text": "점검 앱 로컬 저장을 암호화 SQLite로 계속 쓰는 거 괜찮죠?",
+   "expected": "no_conflict",
+   "against": [],
+   "waiver": null,
+   "ambiguous": false,
+   "note": "SEC-05·FLD 오프라인 결정과 같음"
+  }
+ ],
+ "questions": [
+  {
+   "id": "FLD-Q01",
+   "split": "dev",
+   "at": "FLD-M01",
+   "scope_project": "FLD",
+   "text": "시범 사용자 GPS는 왜 20명만 받기로 했어요?",
+   "kind": "why",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M01-D3}"
+   ],
+   "expected_keywords": [
+    "20명"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "W-003 예외 범위"
+  },
+  {
+   "id": "FLD-Q02",
+   "split": "dev",
+   "at": "FLD-M01",
+   "scope_project": "FLD",
+   "text": "그건 누가 승인했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "FLD-Q01",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M01-D3}"
+   ],
+   "expected_keywords": [
+    "육성재"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "보안 담당 육성재가 확정"
+  },
+  {
+   "id": "FLD-Q03",
+   "split": "dev",
+   "at": "FLD-M01",
+   "scope_project": "FLD",
+   "text": "점검 사진은 항목당 10장까지 올릴 수 있게 됐죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [],
+   "expected_keywords": [
+    "3장"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "10장 결정(M01-D5)은 PM 퇴장 뒤 협력사가 정해 반려 — 기준 문서 FREQ-03 최대 3장이 유효"
+  },
+  {
+   "id": "FLD-Q04",
+   "split": "dev",
+   "at": "FLD-M01",
+   "scope_project": "FLD",
+   "text": "이상 알림을 파트장님한테도 보내기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M01-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "PM 부재로 다음 주로 미룸"
+  },
+  {
+   "id": "FLD-Q05",
+   "split": "dev",
+   "at": "FLD-M01",
+   "scope_project": null,
+   "text": "점검 앱이랑 경비 정산 시스템 둘 다 백엔드가 Spring Boot예요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "EXP-0001",
+    "{FLD-M01-D4}"
+   ],
+   "expected_keywords": [
+    "Spring Boot"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "두 프로젝트 모두 Spring Boot"
+  },
+  {
+   "id": "FLD-Q06",
+   "split": "dev",
+   "at": "FLD-M02",
+   "scope_project": "FLD",
+   "text": "푸시 알림 FCM으로 바꾸기로 한 거, 지금 그렇게 가는 거죠?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M02-D2}"
+   ],
+   "expected_keywords": [
+    "게이트웨이"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "FCM 결정(M02-D1)은 반려, 지금 기준은 사내 게이트웨이로 담당자·파트장 발송(M02-D2가 FLD-0004 대체)"
+  },
+  {
+   "id": "FLD-Q07",
+   "split": "dev",
+   "at": "FLD-M02",
+   "scope_project": "FLD",
+   "text": "러기드 케이스 렌탈은 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M02-D5}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "설비운영팀 예산 승인 조건부"
+  },
+  {
+   "id": "FLD-Q08",
+   "split": "dev",
+   "at": "FLD-M02",
+   "scope_project": "FLD",
+   "text": "점검 결과 PDF 보고서 기능은 하기로 했나요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M02-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q09",
+   "split": "dev",
+   "at": "FLD-M02",
+   "scope_project": null,
+   "text": "점검 앱 다크 모드는 지원하기로 했어요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "논의된 적 없음"
+  },
+  {
+   "id": "FLD-Q10",
+   "split": "dev",
+   "at": "FLD-M02",
+   "scope_project": "FLD",
+   "text": "같은 점검 건을 두 사람이 고쳐서 올리면 어느 쪽 기록이 남아요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M02-D3}"
+   ],
+   "expected_keywords": [
+    "먼저"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "먼저 올라간 값 기준, 나중 값은 충돌 표시"
+  },
+  {
+   "id": "FLD-Q11",
+   "split": "dev",
+   "at": "FLD-M03",
+   "scope_project": "FLD",
+   "text": "로컬 DB 암호화 키는 키스토어로 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M03-D5}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "보안 담당 확인 조건부"
+  },
+  {
+   "id": "FLD-Q12",
+   "split": "dev",
+   "at": "FLD-M03",
+   "scope_project": "FLD",
+   "text": "현장 인원 전원 GPS를 24시간 켜기로 정해졌다면서요?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M01-D3}"
+   ],
+   "expected_keywords": [
+    "20명"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M03-D1은 보안 담당 없이 현장팀이 정해 반려 — 시범 20명·업무 시간이 유효"
+  },
+  {
+   "id": "FLD-Q13",
+   "split": "dev",
+   "at": "FLD-M03",
+   "scope_project": "FLD",
+   "text": "관제 상황판 실시간 갱신은 뭘로 하기로 했어요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M03-D2}"
+   ],
+   "expected_keywords": [
+    "SSE"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q14",
+   "split": "dev",
+   "at": "FLD-M03",
+   "scope_project": "FLD",
+   "text": "왜 웹소켓이 아니라 그걸로 했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "FLD-Q13",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M03-D2}"
+   ],
+   "expected_keywords": [
+    "프록시"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "사내 프록시·ARC-02"
+  },
+  {
+   "id": "FLD-Q15",
+   "split": "dev",
+   "at": "FLD-M03",
+   "scope_project": null,
+   "text": "고객센터 챗봇은 상담원 실시간 알림을 결국 뭘로 바꿨어요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "CSB-0004"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "WebSocket → Long Polling"
+  },
+  {
+   "id": "FLD-Q16",
+   "split": "dev",
+   "at": "FLD-M03",
+   "scope_project": "FLD",
+   "text": "점검 앱 결재선은 몇 단계로 정했어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "결재선은 EXP에만 있음(EXP-0007)"
+  },
+  {
+   "id": "FLD-Q17",
+   "split": "dev",
+   "at": "FLD-M04",
+   "scope_project": "FLD",
+   "text": "점검 사진 올리는 규칙, 지금 기준으로 알려 주세요.",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M04-D2}"
+   ],
+   "expected_keywords": [
+    "1600",
+    "워터마크"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M04-D2가 M01-D2 대체"
+  },
+  {
+   "id": "FLD-Q18",
+   "split": "dev",
+   "at": "FLD-M04",
+   "scope_project": "FLD",
+   "text": "이상 알림을 한 시간씩 묶어서 보내는 건 어떻게 됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M03-D6}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "PL이 PM 없이 정해 막는 충돌 있음 — 승인 대기로 남음"
+  },
+  {
+   "id": "FLD-Q19",
+   "split": "dev",
+   "at": "FLD-M04",
+   "scope_project": "FLD",
+   "text": "시범 오픈 1주 미루는 건 정해졌어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M04-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q20",
+   "split": "dev",
+   "at": "FLD-M04",
+   "scope_project": null,
+   "text": "점검 앱 결과를 Tableau 대시보드로도 보기로 했나요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "Tableau는 SLS-0001에만 있음"
+  },
+  {
+   "id": "FLD-Q21",
+   "split": "dev",
+   "at": "FLD-M05",
+   "scope_project": "FLD",
+   "text": "오프라인일 때 로그인 12시간 유지하는 거 확정이에요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M05-D5}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "보안 담당 확인 조건부"
+  },
+  {
+   "id": "FLD-Q22",
+   "split": "dev",
+   "at": "FLD-M05",
+   "scope_project": "FLD",
+   "text": "러기드 케이스 렌탈 예산은 이제 승인 났어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M02-D5}"
+   ],
+   "expected_keywords": [
+    "120만"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M05-D1에서 확정"
+  },
+  {
+   "id": "FLD-Q23",
+   "split": "dev",
+   "at": "FLD-M05",
+   "scope_project": "FLD",
+   "text": "점검 항목에 '해당 없음' 넣는 건 정했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M05-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q24",
+   "split": "dev",
+   "at": "FLD-M05",
+   "scope_project": "FLD",
+   "text": "점검 결과를 음성으로 입력하는 기능 넣기로 했나요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "논의된 적 없음"
+  },
+  {
+   "id": "FLD-Q25",
+   "split": "dev",
+   "at": "FLD-M05",
+   "scope_project": null,
+   "text": "점검 앱도 OCR로 종이 점검표를 읽기로 했어요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "OCR은 EXP에만 있음(EXP-0002)"
+  },
+  {
+   "id": "FLD-Q26",
+   "split": "test",
+   "at": "FLD-M06",
+   "scope_project": "FLD",
+   "text": "오프라인일 때 로그인 12시간 유지하는 거 확정됐어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M05-D5}"
+   ],
+   "expected_keywords": [
+    "12시간"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M06-D1에서 확정 (FLD-0002 대체)"
+  },
+  {
+   "id": "FLD-Q27",
+   "split": "test",
+   "at": "FLD-M06",
+   "scope_project": "FLD",
+   "text": "그건 누가 승인했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "FLD-Q26",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M05-D5}"
+   ],
+   "expected_keywords": [
+    "육성재"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q28",
+   "split": "test",
+   "at": "FLD-M06",
+   "scope_project": "FLD",
+   "text": "시범 오픈이 12월 28일로 미뤄졌죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [],
+   "expected_keywords": [
+    "12월 7일"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M06-D3은 PL이 본부장 승인 없이 정해 반려 — FREQ-06 2026-12-07 유효"
+  },
+  {
+   "id": "FLD-Q29",
+   "split": "test",
+   "at": "FLD-M06",
+   "scope_project": "FLD",
+   "text": "PDF 보고서 기능은 결국 하기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M06-U1}",
+    "{FLD-M02-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q30",
+   "split": "test",
+   "at": "FLD-M06",
+   "scope_project": null,
+   "text": "점검 앱 이상 알림 한 시간 단위로 묶는 거 아직 결정 안 났죠?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M03-D6}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q31",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": "FLD",
+   "text": "파트장님한테 이상 알림은 지금 어떻게 가요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M07-D5}"
+   ],
+   "expected_keywords": [
+    "긴급"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M07-D5가 M02-D2 대체"
+  },
+  {
+   "id": "FLD-Q32",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": "FLD",
+   "text": "상황판 웹소켓으로 바꾸기로 했죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M03-D2}"
+   ],
+   "expected_keywords": [
+    "SSE"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M07-D1은 ARC-02 위반으로 반려 — SSE 유효"
+  },
+  {
+   "id": "FLD-Q33",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": "FLD",
+   "text": "PIN으로 화면 잠금 푸는 거 확정이에요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M07-D3}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "보안 담당 확인 조건부"
+  },
+  {
+   "id": "FLD-Q34",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": "FLD",
+   "text": "시범 사용자 40명으로 늘리는 건 정해졌어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M07-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q35",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": "FLD",
+   "text": "점검 앱 상황판 WebSocket 예외 승인은 받았어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "WebSocket 예외는 CSB의 W-002(만료)뿐"
+  },
+  {
+   "id": "FLD-Q36",
+   "split": "test",
+   "at": "FLD-M07",
+   "scope_project": null,
+   "text": "고객센터 챗봇은 대화 이력을 MySQL로 옮겼다던데, 점검 앱 서버 DB도 MySQL이에요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "CSB-0005",
+    "{FLD-M03-D3}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "CSB는 MySQL, FLD는 PostgreSQL"
+  },
+  {
+   "id": "FLD-Q37",
+   "split": "test",
+   "at": "FLD-M08",
+   "scope_project": "FLD",
+   "text": "앱 크래시 로그는 어디로 모으기로 했어요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M08-D4}"
+   ],
+   "expected_keywords": [
+    "사내 로그"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q38",
+   "split": "test",
+   "at": "FLD-M08",
+   "scope_project": "FLD",
+   "text": "Crashlytics는 왜 안 쓰기로 했어요?",
+   "kind": "follow_up",
+   "follow_up_of": "FLD-Q37",
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M08-D4}"
+   ],
+   "expected_keywords": [
+    "보안성 검토"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q39",
+   "split": "test",
+   "at": "FLD-M08",
+   "scope_project": "FLD",
+   "text": "정식 오픈 때부터 아이폰도 되는 거죠?",
+   "kind": "authority",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [],
+   "expected_keywords": [
+    "안드로이드"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M08-D3은 PM 없이 협력사가 정해 반려 — FREQ-07 안드로이드 업무 단말만"
+  },
+  {
+   "id": "FLD-Q40",
+   "split": "test",
+   "at": "FLD-M08",
+   "scope_project": "FLD",
+   "text": "교육용 단말 10대 추가 렌탈 승인 났어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M08-D6}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "PL이 정해 권한 충돌, 승인 대기"
+  },
+  {
+   "id": "FLD-Q41",
+   "split": "test",
+   "at": "FLD-M08",
+   "scope_project": "FLD",
+   "text": "이상 알림을 카카오 알림톡으로도 보내기로 했어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "M08 시점에는 메신저 알림 논의 없음"
+  },
+  {
+   "id": "FLD-Q42",
+   "split": "test",
+   "at": "FLD-M09",
+   "scope_project": null,
+   "text": "점검 앱 정식 오픈 날짜, 지금 기준으로 언제예요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M09-D1}"
+   ],
+   "expected_keywords": [
+    "1월 18일"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "FREQ-06 1월 11일을 PM이 1주 연기"
+  },
+  {
+   "id": "FLD-Q43",
+   "split": "test",
+   "at": "FLD-M09",
+   "scope_project": "FLD",
+   "text": "정식 오픈 반영은 며칠 CAB 회의에 올려요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M09-D2}"
+   ],
+   "expected_keywords": [
+    "1월 12일"
+   ],
+   "forbidden_keywords": [
+    "1월 5일"
+   ],
+   "ambiguous": false,
+   "note": "M09-D2가 M08-D5(1월 5일) 대체"
+  },
+  {
+   "id": "FLD-Q44",
+   "split": "test",
+   "at": "FLD-M09",
+   "scope_project": "FLD",
+   "text": "점검 앱 영어 지원도 하기로 했어요?",
+   "kind": "fact",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "논의된 적 없음"
+  },
+  {
+   "id": "FLD-Q45",
+   "split": "test",
+   "at": "FLD-M09",
+   "scope_project": "FLD",
+   "text": "시범 끝나면 GPS 위치 이력은 언제 파기해요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M09-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "다음 회의로 미룸"
+  },
+  {
+   "id": "FLD-Q46",
+   "split": "test",
+   "at": "FLD-M09",
+   "scope_project": null,
+   "text": "점검 앱도 영업 대시보드처럼 매일 아침 7시에 배치를 돌려요?",
+   "kind": "cross_project",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "07시 배치는 SLS-0002에만 있음"
+  },
+  {
+   "id": "FLD-Q47",
+   "split": "test",
+   "at": "FLD-M10",
+   "scope_project": "FLD",
+   "text": "정식 오픈 뒤에는 점검 위치를 어떻게 남겨요?",
+   "kind": "value",
+   "follow_up_of": null,
+   "expected_state": "확정",
+   "expected_ids": [
+    "{FLD-M10-D1}"
+   ],
+   "expected_keywords": [
+    "QR"
+   ],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "W-003 종료 뒤 QR 스캔만"
+  },
+  {
+   "id": "FLD-Q48",
+   "split": "test",
+   "at": "FLD-M10",
+   "scope_project": "FLD",
+   "text": "긴급 알림을 메신저로도 보내는 건 확정이에요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "승인 대기",
+   "expected_ids": [
+    "{FLD-M10-D4}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "보안 담당 검토 조건부"
+  },
+  {
+   "id": "FLD-Q49",
+   "split": "test",
+   "at": "FLD-M10",
+   "scope_project": "FLD",
+   "text": "정식 오픈 뒤 전 직원 GPS 수집은 하기로 했어요?",
+   "kind": "status",
+   "follow_up_of": null,
+   "expected_state": "미결",
+   "expected_ids": [
+    "{FLD-M10-U1}"
+   ],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": ""
+  },
+  {
+   "id": "FLD-Q50",
+   "split": "test",
+   "at": "FLD-M10",
+   "scope_project": null,
+   "text": "점검 사진은 서버에 몇 년 보관하기로 했어요?",
+   "kind": "trap",
+   "follow_up_of": null,
+   "expected_state": "찾지 못함",
+   "expected_ids": [],
+   "expected_keywords": [],
+   "forbidden_keywords": [],
+   "ambiguous": false,
+   "note": "5년 보관(FIN-01)은 경비 증빙 — 점검 사진 서버 보관 기간은 정한 적 없음"
+  }
+ ]
+}

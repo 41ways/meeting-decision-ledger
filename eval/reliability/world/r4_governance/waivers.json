@@ -1,0 +1,35 @@
+{
+  "_note": "기존 waivers.json 뒤에 붙는 예외. 기간·범위를 일부러 좁게 잡아 범위 밖·만료 후 함정을 만든다.",
+  "waivers": [
+    {
+      "waiver_id": "W-003",
+      "rule_id": "SEC-04",
+      "project_id": "PRJ-FIELDAPP",
+      "scope": "시범 운영 기간 중 시범 사용자 20명(본인 동의 완료)의 업무 시간 중 GPS 위치를 10분 간격으로 수집",
+      "approved_by": "육성재",
+      "approved_at": "2026-10-21",
+      "expires_at": "2026-12-31",
+      "reason": "지하 현장 동선 분석을 위한 시범 측정"
+    },
+    {
+      "waiver_id": "W-004",
+      "rule_id": "SEC-03",
+      "project_id": "PRJ-SALESDASH",
+      "scope": "BI SaaS(Superset Cloud) 30일 체험판에서 마스킹된 샘플 실적 데이터만 사용한 화면 시안 검증",
+      "approved_by": "육성재",
+      "approved_at": "2026-10-28",
+      "expires_at": "2026-11-27",
+      "reason": "사내 BI와 화면 구성 비교"
+    },
+    {
+      "waiver_id": "W-005",
+      "rule_id": "ARC-01",
+      "project_id": "PRJ-EXPAUTO",
+      "scope": "OCR 솔루션에 포함된 MySQL을 OCR 인식 결과 임시 저장(7일) 용도로만 사용. 정산·전표 데이터 저장은 제외",
+      "approved_by": "아키텍처 위원회",
+      "approved_at": "2026-10-15",
+      "expires_at": "2027-03-31",
+      "reason": "OCR 솔루션 구조상 분리 불가"
+    }
+  ]
+}
