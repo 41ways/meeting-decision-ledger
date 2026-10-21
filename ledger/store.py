@@ -14,6 +14,8 @@ from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
+from . import term_index
+
 ROOT = Path(__file__).resolve().parent.parent
 STORE_DIR = Path(os.environ.get("LEDGER_STORE", ROOT / "store"))   # 평가는 별도 사본(LEDGER_STORE)으로 돈다
 DEFAULT_DB = STORE_DIR / "ledger.db"
@@ -92,6 +94,7 @@ class LedgerStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._conn() as c:
             c.executescript(SCHEMA)
+            term_index.ensure(c, ("D",))      # 별칭 판이 바뀌었거나 색인이 없으면 결정 색인을 다시 만든다
 
     @contextmanager
     def _conn(self):
@@ -124,6 +127,7 @@ class LedgerStore:
         with self._conn() as c:
             for table in ("decisions", "policy_rules", "waivers", "documents"):
                 c.execute(f"DELETE FROM {table}")
+            term_index.drop(c, "D")
         decisions = json.loads((data_dir / "r3_ledger" / "decisions_seed.json").read_text())["decisions"]
         for d in decisions:
             self._insert_decision(d)
@@ -166,6 +170,7 @@ class LedgerStore:
                        d.get("decided_by"), d.get("approved_by"), d["status"], d.get("effective_from"),
                        d.get("superseded_by"), json.dumps(d.get("evidence", []), ensure_ascii=False),
                        json.dumps(extra, ensure_ascii=False)))
+            term_index.index_decision(c, d)
 
     # ---------- 결정 원장 ----------
     @staticmethod
@@ -342,6 +347,7 @@ class LedgerStore:
                       (after["statement"], after["topic"], after["rationale"],
                        json.dumps(after["alternatives_rejected"], ensure_ascii=False),
                        json.dumps(extra, ensure_ascii=False), decision_id))
+            term_index.index_decision(c, {**d, **after})       # 문장·주제·이유가 바뀌면 찾는 말도 바뀐다
         return {"updated": decision_id, "before": before, "after": after}
 
     def reject(self, decision_id: str, rejected_by: str, reason: str = "") -> dict:

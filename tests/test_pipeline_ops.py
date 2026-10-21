@@ -54,7 +54,7 @@ def test_version_changes_with_threshold_prompt_vocab_model(repo):
     f = repo / "agent/retrieve.py"
     f.write_text(f.read_text(encoding="utf-8").replace("질문에 답하는 데 직접 필요한", "질문에 꼭 필요한"), encoding="utf-8")
     c2 = PR.components("ollama:qwen3:8b", "ollama:qwen3:8b", repo)
-    assert c2["prompt_fp"] != c1["prompt_fp"] and PR.diff_components(c1, c2)["prompts"] == ["agent/retrieve.py:pick#1"]
+    assert c2["prompt_fp"] != c1["prompt_fp"] and PR.diff_components(c1, c2)["prompts"] == ["agent/retrieve.py:read_list#1"]
     t = repo / "data/project/topics.json"
     t.write_text(t.read_text(encoding="utf-8").replace('"routing"', '"routing2"'), encoding="utf-8")
     assert PR.components("ollama:qwen3:8b", "ollama:qwen3:8b", repo)["vocab_fp"] != c2["vocab_fp"]
@@ -75,10 +75,10 @@ def test_crosscheck_switch_is_part_of_version(monkeypatch):
 
 def test_prompts_cover_inline_and_named_system_prompts():
     keys = PR.prompt_texts()
-    assert "agent/retrieve.py:pick#1" in keys                     # 상수(PICK_SYSTEM)로 넘긴 지시문
+    assert "agent/retrieve.py:read_list#1" in keys                     # 상수(PICK_SYSTEM)로 넘긴 지시문
     assert any(k.startswith("agent/ledger_graph.py:plan_node#") for k in keys)   # 문장을 바로 쓴 지시문
     assert "mcp_ledger_server.py:extract_decisions_prompt" in keys
-    assert "질문에 답하는 데" in keys["agent/retrieve.py:pick#1"]
+    assert "질문에 답하는 데" in keys["agent/retrieve.py:read_list#1"]
 
 
 # ---------------------------------------------------------------- 레지스트리·승격·롤백

@@ -14,8 +14,9 @@ import re
 from dataclasses import dataclass, field
 
 from .rag import LedgerRAG
-from .store import LedgerStore
-from .thresholds import CROSS_TOPIC_SCORE, MIN_DISCUSSION_SCORE, MIN_TOPIC_SCORE
+from .store import DATA, LedgerStore
+from .term_index import TranscriptIndex
+from .thresholds import CROSS_TOPIC_SCORE, MIN_TOPIC_SCORE
 
 # 문장에 직접 적힌 결정 ID (OPS-0007, CSB-0004)
 # \b는 한글 앞에서 경계로 안 잡혀서("OPS-0007은") 영숫자 기준 전후 확인으로 쓴다
@@ -75,21 +76,27 @@ class Resolver:
     """
     R1~R4를 우선순위대로 조합해 "지금 유효한 기준"을 판정하는 해석기
 
-    후보 찾기는 벡터 검색(LedgerRAG), 유효성 판정은 SQLite 원장(LedgerStore) 기준.
+    기준 문서·정책 후보는 벡터 검색(LedgerRAG), 회의 원문은 단어 검색(TranscriptIndex),
+    유효성 판정은 SQLite 원장(LedgerStore) 기준.
     """
 
     def __init__(self, store: LedgerStore | None = None, rag: LedgerRAG | None = None,
-                 project_id: str = "PRJ-OPSAI"):
+                 project_id: str = "PRJ-OPSAI", transcripts: TranscriptIndex | None = None):
         """
         해석기 생성
         Args:
-            store:      SQLite 원장. None이면 기본 경로로 생성
-            rag:        벡터 검색기. None이면 기본 경로로 생성
-            project_id: 호출 측이 지정하지 않을 때 쓰는 기준 프로젝트
+            store:       SQLite 원장. None이면 기본 경로로 생성
+            rag:         벡터 검색기. None이면 기본 경로로 생성
+            project_id:  호출 측이 지정하지 않을 때 쓰는 기준 프로젝트
+            transcripts: 회의 원문 단어 색인. None이면 원장과 같은 파일에 만들고 원문 파일과 맞춘다
         """
         self.store = store or LedgerStore()
         self.rag = rag or LedgerRAG()
         self.project_id = project_id
+        if transcripts is None:
+            transcripts = TranscriptIndex(self.store.db_path)
+            transcripts.sync(DATA)
+        self.transcripts = transcripts
 
     def topic_candidates(self, text: str, k: int = 3) -> list[dict]:
         """
@@ -181,7 +188,8 @@ class Resolver:
             res.authority = "baseline"
         else:
             # 권위 있는 기준이 없을 때만 원문을 찾는다 — 원문은 "미결정" 안내용
-            res.discussion = self.rag.search_transcript(text, project_id=pid, k=3, min_score=MIN_DISCUSSION_SCORE)
+            # 단어 검색: 잡담·주제 이탈이 많은 회의에서 의미만 비슷한 발언이 '관련 논의'로 붙지 않게 낱말이 겹치는 것만
+            res.discussion = self.transcripts.search(text, project_id=pid, k=3)
             res.authority = "discussion" if res.discussion else "none"
             # '논의는 있었지만 미결정'과 '관련된 게 아예 없음'을 구분한다
             res.notes.append("유효한 결정·기준 문서 없음 — 원문 논의만 있음 (미결정)" if res.discussion
