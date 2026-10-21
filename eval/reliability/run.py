@@ -482,6 +482,7 @@ class Runner:
                         out[kind][x["id"]] = await self.question(x, m["date"], parent.get("refs"))
                     if out[kind][x["id"]].get("mode") == "meeting":
                         self.reset_records()       # 질문이 회의 정리로 잘못 가면 예측 기록이 남는다
+                    save_raw(self.split, {**out, "id_map": self.led.gid})   # 일시정지·중단돼도 --resume으로 이어 가게 항목마다
                 print(f"[{n}/{len(self.timeline)}] {mid} {tag} · 의견·질문 {len(self.at.get(mid, []))}건", flush=True)
                 self.raw.update(out)
                 save_raw(self.split, {**out, "id_map": self.led.gid})
@@ -530,6 +531,7 @@ def save_raw(split: str, raw: dict) -> None:
 STATE_WORDS = {"미결": r"결정되지 않|미결|확정되지 않|정해지지 않|논의 중|논의만",
                "찾지 못함": r"찾지 못|결정되지 않|정해지지 않|정하지 않|논의된 적 없|관련 결정이 없|기록이 없"}
 ANY_ID = re.compile(r"(?<![A-Za-z0-9])[A-Z]{3,4}-\d{2,4}(?!\d)")
+PAUSE_SEC = 1800                                  # 이보다 긴 요청 시간은 일시정지가 섞인 것으로 보고 응답 시간 통계에서 뺀다
 CLARIFY = "어떤 결정이나 회의를 말씀하시는지"       # 사실 조회가 대상을 되묻는 답 — 사람에게 되돌린 것으로 본다
 
 
@@ -913,12 +915,14 @@ def summarize(gold: dict, raw: dict) -> dict:
     for k in KINDS:
         xs = list(raw.get(k, {}).values())
         if xs:
-            secs = [x["sec"] for x in xs]
+            # 배터리 감시가 측정을 일시정지(SIGSTOP)하면 그 요청 시간에 멈춘 시간이 섞인다 — 30분 넘는 건 빼고 따로 적는다
+            paused = [x for x in xs if x["sec"] > PAUSE_SEC]
+            secs = [x["sec"] for x in xs if x["sec"] <= PAUSE_SEC]
             cost[k] = {"n": len(xs), "median_sec": pctl(secs, 0.5), "p95_sec": pctl(secs, 0.95),
                        "llm_calls": sum(x["calls"] for x in xs), "tokens": sum(x["tokens"] for x in xs),
                        "calls_per_item": round(sum(x["calls"] for x in xs) / len(xs), 1),
                        "tokens_per_item": round(sum(x["tokens"] for x in xs) / len(xs)),
-                       "errors": sum(bool(x.get("error")) for x in xs)}
+                       "errors": sum(bool(x.get("error")) for x in xs), "paused_excluded": len(paused)}
     bd = {"회의 현상별": {k: rate(*v) for k, v in sorted(mt.items())},
           "의견 기대 판정별": {k: rate(*v) for k, v in sorted(ob.items())},
           "질문 상태·종류별": {k: rate(*v) for k, v in sorted(qb.items())}}
@@ -965,11 +969,11 @@ def to_md(split: str, s: dict, meta: dict) -> str:
     rows += [f"| {k} | {fmt(v)} |" for k, v in s["metrics"].items() if k not in key]
     rows += ["", "## 자동 처리 · 사람 확인 (종류별)", "", "| 지표 | 값 (95% 신뢰구간) · 표본 |", "|---|---|"]
     rows += [f"| {k} | {fmt(s['metrics'][k])} |" for k in key if not k.endswith("전체")]
-    rows += ["", "## 비용", "", "| 종류 | 건수 | 응답 시간 중앙값(초) | 상위 5%(초) | LLM 호출(건당) | 토큰(건당) | 오류 |",
-             "|---|---|---|---|---|---|---|"]
+    rows += ["", "## 비용", "", "| 종류 | 건수 | 응답 시간 중앙값(초) | 상위 5%(초) | LLM 호출(건당) | 토큰(건당) | 오류 | 일시정지로 시간 제외 |",
+             "|---|---|---|---|---|---|---|---|"]
     for k, v in s["cost"].items():
         rows.append(f"| {k} | {v['n']} | {v['median_sec']} | {v['p95_sec']} | {v['llm_calls']} ({v['calls_per_item']}) "
-                    f"| {v['tokens']} ({v['tokens_per_item']}) | {v['errors']} |")
+                    f"| {v['tokens']} ({v['tokens_per_item']}) | {v['errors']} | {v.get('paused_excluded', 0)} |")
     if s.get("handoff_reasons"):
         rows += ["", "## 사람에게 넘긴 사유", "", "| 종류 | 사유 | 건수 |", "|---|---|---|"]
         rows += [f"| {k} | {r} | {n} |" for k, tab in s["handoff_reasons"].items() for r, n in tab.items()]
