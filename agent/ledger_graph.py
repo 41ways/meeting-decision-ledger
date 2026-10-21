@@ -629,12 +629,13 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
         "- undecided: 논의했지만 확정하지 않은 주제.\n"
         "- overview: 전체 흐름을 보고 topic(회의 주제 한 줄), discussion(논의한 내용 3~5개, 각 40자 이내), "
         "direction(앞으로의 방향 1~2문장)을 쓴다. 결정 목록을 반복하지 말고 왜 그 얘기가 나왔는지를 담는다.")
-    out, usage = await deps.quality_llm.json(extract_system, user, EXTRACT_SCHEMA, max_tokens=3000)
+    # 긴 회의는 추출 한 번이 수 분 걸린다 — 호출 제한(기본 300초)에 걸려 재시도까지 시간 초과로 끝나지 않게 넉넉히
+    out, usage = await deps.quality_llm.json(extract_system, user, EXTRACT_SCHEMA, max_tokens=3000, timeout=600)
     if usage.get("parse_error"):
         # 출력이 잘려 해석하지 못하면 빈 결과가 '결정 없음'으로 조용히 넘어간다 — 한 번 더, 더 길게 허용하고 짧게 쓰게
         out, retry_usage = await deps.quality_llm.json(
             extract_system + "\n- 출력이 길어지지 않게 각 항목 문장은 짧게, discussion은 3개까지만.", user, EXTRACT_SCHEMA,
-            max_tokens=4500)
+            max_tokens=4500, timeout=900)
         # 두 호출을 한 사용량으로 합친다 (extra_calls로 호출 수를 세고, 파싱 실패 기록은 첫 호출 몫으로 남김)
         usage = {**retry_usage, "tokens": usage.get("tokens", 0) + retry_usage.get("tokens", 0), "extra_calls": 1,
                  "parse_error": True}
@@ -1680,13 +1681,14 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
             problems.append(f"근거 결정 ID({', '.join(ids)})를 답변에 밝히세요.")
         if res.get("pending") and "승인 대기" not in short:
             problems.append("승인 대기 결정이라는 점을 밝히세요.")
+        # 근거에 승인 대기 결정이 없는데 '아직 승인 대기'라고 쓰면 안 된다 — 확정 결정이 근거일 때도 지시문 예시를 따라 쓰던 오류
+        if not res.get("pending") and "승인 대기" in short:
+            problems.append("근거에 승인 대기 결정이 없습니다. '승인 대기'라고 쓰지 마세요.")
         if not ids and res["authority"] in ("none", "discussion"):
             if item.get("discussion") and "결정되지 않" not in short:
                 problems.append("유효한 결정이 없으니 '결정되지 않음'을 밝히세요.")
             elif not item.get("discussion") and "찾지 못" not in short:
                 problems.append("관련 결정·논의가 없으니 '찾지 못했다'고 밝히세요.")
-            if "승인 대기" in short:
-                problems.append("승인 대기 결정이 없습니다. '승인 대기'라고 쓰지 마세요.")
         # 답에 쓴 날짜·숫자·ID가 근거에 있는지 글자로 대조 (공백 무시)
         known = (state.get("answer_sources", "") + state["draft"][len(short):]).replace(" ", "")
         made_up = [v for v in dict.fromkeys(VALUE.findall(short)) if v.replace(" ", "") not in known]
