@@ -47,6 +47,9 @@
 | rewrites, judge_min | `Validation` 이벤트 | 재작성 횟수, 마지막 심판 점수 중 최저 |
 | seconds, llm_calls, tokens | 서버 시계, usage | 응답 시간, 호출·토큰 |
 | cached, error | 서버 | 저장된 답 재사용, 실행 오류 |
+| node_ms | 서버 스트림 (앞 노드가 끝난 뒤부터 이 노드가 끝날 때까지) | 노드별 지연. 보고서·화면에 최근 창의 중앙값·최대 |
+
+LangSmith 추적에도 실행 설정 메타데이터로 `pipeline_version`·`model_preset`을 붙인다. 승격 평가 결과(`store/eval_runs/*.json`)에는 버전·커밋·미커밋 여부·명령·시각을 `meta`로 붙인다.
 
 사람 신호는 이미 `events`에 있다 — `decision_approved`·`decision_rejected`·`decision_edited`·`item_closed`. 결정이 어느 버전에서 나왔는지는 원장에 올린 요청의 버전(`decision_versions` 표)을 먼저 보고, 없으면 그 회의를 정리한 버전(`meetings.pipeline_version`)을 쓴다.
 

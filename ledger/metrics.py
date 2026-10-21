@@ -31,14 +31,15 @@ CREATE TABLE IF NOT EXISTS requests (
     labels TEXT,                     -- JSON {라벨: 건수}
     check_kinds TEXT,                -- JSON {확인 필요 사유 종류: 건수}
     top1 TEXT,                       -- JSON [항목별 검색 1위 점수]
-    proposed TEXT                    -- JSON [원장에 올린 결정 ID]
+    proposed TEXT,                   -- JSON [원장에 올린 결정 ID]
+    node_ms TEXT                     -- JSON {노드: 밀리초} (스트리밍 요청만, 다시 돈 노드는 합)
 );
 CREATE INDEX IF NOT EXISTS requests_version ON requests(version, id);
 CREATE TABLE IF NOT EXISTS decision_versions (
     decision_id TEXT PRIMARY KEY, version TEXT, at TEXT
 );
 """
-JSON_COLS = ("labels", "check_kinds", "top1", "proposed")
+JSON_COLS = ("labels", "check_kinds", "top1", "proposed", "node_ms")
 LABELS = ("확정", "승인 대기", "미결", "확인 필요", "찾지 못함")
 
 # 확인 필요 사유를 몇 가지 종류로 묶는다 — 문구가 조금 바뀌어도 종류 비율은 비교할 수 있게. 앞 규칙이 우선
@@ -200,7 +201,8 @@ def extract(state: dict, seconds: float, version: str, source: str = "chat", use
             "full_read": sum(1 for e in events if e.get("type") == "FullReadFallback"),
             "oov_ratio": oov_ratio(text) if mode in ("meeting", "opinion", "question") else None,
             "labels": labels, "check_kinds": kinds, "top1": top1,
-            "proposed": [x for x in report.get("proposed") or [] if x]}
+            "proposed": [x for x in report.get("proposed") or [] if x],
+            "node_ms": {k: round(v) for k, v in (state.get("node_ms") or {}).items()}}
 
 
 class MetricsStore:
@@ -218,6 +220,9 @@ class MetricsStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._conn() as c:
             c.executescript(SCHEMA)
+            # 칸을 나중에 더했다 — 먼저 만든 파일에도 붙인다
+            if "node_ms" not in {r["name"] for r in c.execute("PRAGMA table_info(requests)")}:
+                c.execute("ALTER TABLE requests ADD COLUMN node_ms TEXT")
 
     @contextmanager
     def _conn(self):
@@ -292,7 +297,8 @@ class MetricsStore:
             for r in c.execute(q + " ORDER BY id", args):
                 d = dict(r)
                 for k in JSON_COLS:
-                    d[k] = json.loads(d[k]) if d.get(k) else ({} if k in ("labels", "check_kinds") else [])
+                    empty = {} if k in ("labels", "check_kinds", "node_ms") else []
+                    d[k] = json.loads(d[k]) if d.get(k) else empty
                 out.append(d)
             return out
 

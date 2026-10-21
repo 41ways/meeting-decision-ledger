@@ -461,7 +461,8 @@ async def _run(message: str, thread_id: str, user: str) -> dict:
     """
     deps, t0 = app.state.deps, time.perf_counter()
     result = await app.state.graph.ainvoke({"message": message, "user_id": user,
-                                            "history": deps.session_store.load(thread_id), "events": []})
+                                            "history": deps.session_store.load(thread_id), "events": []},
+                                           config=monitor_api.run_config(app.state))
     monitor_api.record(app.state, result, t0, user)
     deps.session_store.append(thread_id, "user", message)
     deps.session_store.append(thread_id, "assistant", result["final"])
@@ -586,16 +587,20 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
         # seen: 이미 보낸 이벤트 수. 노드는 누적된 events 목록 전체를 돌려주므로 새로 붙은 것만 보낸다
         # state: 노드 갱신분을 합친 최종 상태 (events는 위에서 따로 처리해 제외)
         seen, state = 0, {}
+        tick, node_ms = time.perf_counter(), {}         # 노드별 지연 — 앞 노드가 끝난 뒤부터 이 노드가 끝날 때까지
         try:
             # updates = 노드 종료마다 상태 갱신분, custom = 노드가 직접 쓰는 답변 토큰 등
             async for mode, payload in graph.astream(
                     {"message": message, "user_id": user, "history": history, "events": [],
                      "scope_project": project, "scope_meeting": meeting, "context_refs": refs},
-                    stream_mode=["updates", "custom"]):
+                    stream_mode=["updates", "custom"], config=monitor_api.run_config(app.state, model)):
                 if mode == "custom":
                     yield sse(payload)
                     continue
                 for node_name, delta in payload.items():
+                    now = time.perf_counter()
+                    node_ms[node_name] = node_ms.get(node_name, 0) + (now - tick) * 1000
+                    tick = now
                     evs = delta.get("events") or []
                     for ev in evs[seen:]:
                         yield sse({**ev, "node": node_name})
@@ -635,7 +640,7 @@ async def chat_stream(message: str, thread_id: str = "default", user: str = "kjh
         deps.session_store.append(thread_id, "assistant", final)
         app.state.access.set_thread_refs(thread_id, report.get("refs") or [])
         after_run(user, thread_id, message, state)
-        monitor_api.record(app.state, {**state, "message": message}, t0, user, model)
+        monitor_api.record(app.state, {**state, "message": message, "node_ms": node_ms}, t0, user, model)
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(gen(), media_type="text/event-stream")

@@ -40,6 +40,10 @@ def to_text(rep: dict) -> str:
     for f in rep["findings"]:
         lines.append(f"| {MARK[f['level']]} | {f['group']} | {f['metric']} | {f['base']} | {f['recent']} | "
                      f"{f['test']} | {f['level']} |")
+    nodes = rep.get("nodes", {}).get("recent") or []
+    if nodes:
+        lines += ["", "노드별 지연 (최근 창, 중앙값·최대 ms): "
+                  + ", ".join(f"{x['node']} {x['median_ms']}·{x['max_ms']}" for x in nodes)]
     pol = rep.get("policy")
     if pol:
         lines += ["", f"정책: 현행 {pol['current']} · 지난번 확인 {pol['seen']}"

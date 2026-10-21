@@ -337,6 +337,22 @@ def drift_findings(base: list[dict], recent: list[dict], base_human: list[dict] 
     return out
 
 
+def node_latency(rows: list[dict]) -> list[dict]:
+    """
+    노드별 지연 중앙값·최대 (스트리밍 요청의 node_ms에서)
+    Args:
+        rows: 요청 지표 행
+    Returns:
+        [{node, n, median_ms, max_ms}] 중앙값 큰 순
+    """
+    by: dict[str, list[float]] = {}
+    for r in rows:
+        for k, v in (r.get("node_ms") or {}).items():
+            by.setdefault(k, []).append(v)
+    out = [{"node": k, "n": len(v), "median_ms": round(median(v)), "max_ms": round(max(v))} for k, v in by.items()]
+    return sorted(out, key=lambda x: -x["median_ms"])
+
+
 def windows(rows: list[dict], n: int, start: str | None = None,
             recent_rows: list[dict] | None = None) -> tuple[list[dict], list[dict]]:
     """
@@ -479,6 +495,7 @@ def report(metrics, records, registry, store=None, running: str | None = None, r
             "window": {"size": R["window"], "base": {"version": base_id, **span(base)},
                        "recent": {"version": run_id, **span(recent)}},
             "findings": findings,
+            "nodes": {"base": node_latency(base), "recent": node_latency(recent)},
             "alerts": sum(f["level"] == "경보" for f in findings) + bool(policy and policy["changed"]),
             "warnings": sum(f["level"] == "주의" for f in findings),
             "human": {v: human_rates(s) for v, s in by_ver.items()},

@@ -41,6 +41,20 @@ def setup(state, fast_name: str, quality_name: str, presets: dict[str, tuple[str
         reg.save()
 
 
+def run_config(state, model: str = "accurate") -> dict:
+    """
+    그래프 실행 설정 — LangSmith 추적에 파이프라인 버전을 메타데이터로 남긴다
+    Args:
+        state: app.state
+        model: 모델 조합 키
+    Returns:
+        astream·ainvoke의 config 인자
+    """
+    versions = getattr(state, "versions", {}) or {}
+    return {"metadata": {"pipeline_version": versions.get(model) or versions.get("accurate", "unknown"),
+                         "model_preset": model}}
+
+
 def record(state, result: dict, t0: float, user: str, model: str = "accurate", cached: bool = False,
            error: str | None = None) -> None:
     """

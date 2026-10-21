@@ -556,6 +556,7 @@ tr.lock td { color: var(--muted); }
                   <td :class="{ '경보': 'st-bad', '주의': 'st-wait', '정상': 'st-ok' }[f.level] || 'muted'">{{ f.level }}</td>
                 </tr>
               </table>
+              <p class="note" style="margin-top:12px" v-if="mon.nodes && mon.nodes.recent.length">노드별 지연 (최근 창, 중앙값 · 최대): <span class="mono" v-for="x in mon.nodes.recent" :key="x.node">{{ x.node }} {{ (x.median_ms / 1000).toFixed(1) }}·{{ (x.max_ms / 1000).toFixed(1) }}초 &nbsp;</span></p>
               <table style="margin-top:14px">
                 <tr><th>버전</th><th style="width:90px">상태</th><th style="width:150px">승격</th><th style="width:80px">커밋</th><th style="width:70px">요청</th><th style="width:80px">평균 초</th><th style="width:150px">사람 신호 (승인·반려·수정)</th></tr>
                 <tr v-for="v in mon.versions" :key="v.id">

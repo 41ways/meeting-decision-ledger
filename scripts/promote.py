@@ -162,7 +162,11 @@ def run_eval(runner: dict, vid: str) -> tuple[dict, Path]:
         subprocess.run(runner["cmd"], cwd=ROOT, check=True)
         keep = STORE_DIR / "eval_runs" / f"{vid}-{datetime.now():%Y%m%d-%H%M%S}.json"
         keep.parent.mkdir(parents=True, exist_ok=True)
-        keep.write_bytes((ROOT / runner["result"]).read_bytes())
+        data = json.loads((ROOT / runner["result"]).read_text(encoding="utf-8"))
+        # 결과만 보고도 어느 코드·모델·시각의 측정인지 알 수 있게 붙인다
+        data["meta"] = {"version": vid, **PR.git_info(), "cmd": " ".join(runner["cmd"]),
+                        "at": datetime.now().isoformat(timespec="seconds")}
+        keep.write_text(json.dumps(data, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
         return read_scores(keep, runner["key"]), keep
     finally:
         for p, b in backup.items():
@@ -332,6 +336,7 @@ def main(argv: list[str] | None = None) -> int:
     for w in j["warnings"]:
         print("경고:", w)
     result = {"runner": a.runner, "at": datetime.now().isoformat(timespec="seconds"), "scores": scores,
+              "models": comp["models"], "commit": entry["git"].get("commit"), "dirty": entry["git"].get("dirty"),
               "baseline": left, "verdict": j["verdict"], "drops": j["drops"], "warnings": j["warnings"],
               "file": str(kept)}
     if a.dry_run:

@@ -191,6 +191,31 @@ def test_extract_question_label_rewrites_judge_and_fallback_event():
     assert row["full_read"] == 1 and row["no_topic"] == 1 and row["below_floor"] == 1 and row["top1"] == [0.47]
 
 
+def test_node_latency_recorded_and_old_db_migrated(tmp_path):
+    import sqlite3
+    db = tmp_path / "old.db"
+    with sqlite3.connect(db) as c:                         # node_ms 칸이 없던 옛 표
+        c.execute("CREATE TABLE requests (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, version TEXT, "
+                  "source TEXT, mode TEXT, user TEXT, model TEXT, cached INTEGER NOT NULL DEFAULT 0, error TEXT, "
+                  "seconds REAL, llm_calls INTEGER, tokens INTEGER, parse_errors INTEGER, rewrites INTEGER, "
+                  "judge_min INTEGER, items INTEGER, no_topic INTEGER, below_floor INTEGER, full_read INTEGER, "
+                  "oov_ratio REAL, labels TEXT, check_kinds TEXT, top1 TEXT, proposed TEXT)")
+    ms = MetricsStore(db)
+    for w in (900, 1500, 3000):
+        ms.record(extract({"mode": "question", "node_ms": {"write": w, "route": 10.4}}, 1.0, "pv-n"))
+    rows = ms.rows()
+    assert rows[0]["node_ms"] == {"write": 900, "route": 10}
+    assert monitor.node_latency(rows)[0] == {"node": "write", "n": 3, "median_ms": 1500, "max_ms": 3000}
+
+
+def test_run_config_tags_langsmith_metadata():
+    from types import SimpleNamespace
+    from ledger import monitor_api
+    st = SimpleNamespace(versions={"accurate": "pv-a", "fast": "pv-f"})
+    assert monitor_api.run_config(st, "fast")["metadata"] == {"pipeline_version": "pv-f", "model_preset": "fast"}
+    assert monitor_api.run_config(st, "모르는 키")["metadata"]["pipeline_version"] == "pv-a"
+
+
 def test_check_kind_and_helpers():
     assert check_kind("규정 충돌 · 권한 초과") == "규정 충돌"
     assert check_kind("주제 불확실 — 결정·기준 비교 결과를 확인해야 함") == "주제 불확실"
