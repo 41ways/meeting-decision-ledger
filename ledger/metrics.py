@@ -107,6 +107,8 @@ def vocab_words(root: Path = ROOT) -> set[str]:
         texts.append(gl.read_text(encoding="utf-8"))
     for p in list(root.glob("data/project/**/*alias*.json")) + list(root.glob("data/project/**/*alias*.md")):
         texts.append(p.read_text(encoding="utf-8"))
+    from ledger import vocab  # pylint: disable=import-outside-toplevel
+    texts.append(vocab.extra_text())          # 운영 중 더한 주제·별칭
     return {w.lower() for t in texts for w in WORD.findall(t)}
 
 

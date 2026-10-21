@@ -277,6 +277,9 @@ class LedgerStore:
         d = self.get_decision(decision_id)
         if d is None:
             raise KeyError(decision_id)
+        if not d.get("topic"):
+            # 주제가 비면 '같은 주제의 유효 결정 대체'가 주제 없는 다른 결정들을 서로 무효로 만든다
+            raise ValueError(f"주제가 없는 결정은 승인할 수 없습니다: {decision_id} — 수정에서 주제를 고르거나 새 주제를 만드세요")
         eff = effective_from or date.today().isoformat()
         # 대체 처리와 승인을 한 연결에서 처리해 한 번에 커밋
         with self._conn() as c:
@@ -305,7 +308,7 @@ class LedgerStore:
             대체될 결정 목록 (decision_id, statement, topic, effective_from)
         """
         d = self.get_decision(decision_id)
-        if d is None:
+        if d is None or not (topic or d["topic"]):    # 주제가 없으면 승인 자체가 막힌다 (decisions()는 빈 주제를 '전체'로 본다)
             return []
         return [{"decision_id": x["decision_id"], "statement": x["statement"], "topic": x["topic"],
                  "effective_from": x.get("effective_from")}

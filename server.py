@@ -843,6 +843,81 @@ async def edit_decision(decision_id: str, req: EditReq):
     return {**out, "reindexed": ok}
 
 
+class TopicReq(BaseModel):
+    """
+    새 주제 요청 본문
+    Attributes:
+        user:    요청한 사용자 ID (팀장)
+        key:     주제 키 (예: notice.channel)
+        desc:    설명
+        aliases: 질문·발언에 나오는 표현
+    """
+    user: str
+    key: str
+    desc: str
+    aliases: list[str]
+
+
+class AliasReq(BaseModel):
+    """
+    별칭 보태기 요청 본문
+    Attributes:
+        user:    요청한 사용자 ID (팀장)
+        aliases: 보탤 표현
+    """
+    user: str
+    aliases: list[str]
+
+
+def _tool_error(r) -> None:
+    """
+    MCP 도구 오류 문장이면 400으로 돌려준다
+    Args:
+        r: 도구 반환값
+    Raises:
+        HTTPException: 400 — 도구가 오류 문장을 돌려줬을 때
+    """
+    if isinstance(r, str):
+        raise HTTPException(400, r.split(": ", 1)[-1])
+
+
+@app.post("/topics")
+async def add_topic(req: TopicReq):
+    """
+    새 주제 만들기 (팀장 전용) — 목록에 없는 사안이 나왔을 때. 모델은 주제를 만들지 않는다
+    Args:
+        req: 키·설명·별칭
+    Returns:
+        {"topic", "desc", "aliases", "reindexed"}
+    Raises:
+        HTTPException: 403 — 팀장이 아님 / 400 — 키 형식·중복·빈 설명·빈 별칭
+    """
+    lead_only(req.user)
+    r = await app.state.deps.mcp.call("add_topic", key=req.key, desc=req.desc, aliases=req.aliases,
+                                      actor=app.state.access.user(req.user)["name"])
+    _tool_error(r)
+    return r
+
+
+@app.post("/topics/{topic}/aliases")
+async def add_topic_aliases(topic: str, req: AliasReq):
+    """
+    기존 주제에 별칭 보태기 (팀장 전용) — 질문에 나온 표현을 색인이 찾지 못했을 때
+    Args:
+        topic: 주제 키
+        req:   보탤 표현
+    Returns:
+        {"topic", "added", "reindexed"}
+    Raises:
+        HTTPException: 403 — 팀장이 아님 / 400 — 없는 주제·보탤 별칭 없음
+    """
+    lead_only(req.user)
+    r = await app.state.deps.mcp.call("add_topic_aliases", topic=topic, aliases=req.aliases,
+                                      actor=app.state.access.user(req.user)["name"])
+    _tool_error(r)
+    return r
+
+
 async def _topics() -> list[dict]:
     """
     주제 목록 (키·설명) — MCP Resource ledger://topics
@@ -927,14 +1002,19 @@ async def topic_suggest(decision_id: str, user: str, text: str):
         user:        요청한 사용자 ID (팀장)
         text:        결정 문장
     Returns:
-        {"suggested": [{topic, score}], "note": 건너뛴 이유}
+        {"suggested": [{topic, alias | score}], "note": 건너뛴 이유} — 별칭 일치가 앞
     """
     lead_only(user)
+    # 별칭 일치를 먼저 — 임베딩 유사도는 결정·문서가 있는 주제만 걸려, 결정이 아직 없는 주제(새 주제 포함)를 놓친다
+    hits = await app.state.deps.mcp.call("alias_topics", text=text)
+    out = [{"topic": h["topic"], "alias": h["alias"]} for h in hits if isinstance(h, dict)] if isinstance(hits, list) else []
+    note = ""
     try:
         got = await asyncio.wait_for(app.state.deps.mcp.call("topic_candidates", text=text, k=5), timeout=15)
+        out += [c for c in got if c.get("topic") and c["topic"] not in {x["topic"] for x in out}]
     except asyncio.TimeoutError:
-        return {"suggested": [], "note": "임베딩 모델이 바빠 추천을 건너뜀"}
-    return {"suggested": [c for c in got if c.get("topic")], "note": ""}
+        note = "임베딩 모델이 바빠 유사도 추천은 건너뜀"
+    return {"suggested": out[:6], "note": note if not out else ""}
 
 
 @app.get("/decisions/{decision_id}/edit-preview")
@@ -1050,6 +1130,8 @@ async def approve(decision_id: str, req: UserReq):
     acc = app.state.access
     r = await app.state.deps.mcp.call("approve_decision", decision_id=decision_id,
                                       approved_by=f"{acc.user(req.user)['name']} {acc.user(req.user)['role']}")
+    if isinstance(r, str):                       # 도구 오류(예: 주제 없는 결정)는 문장으로 돌아온다
+        raise HTTPException(400, r.split(": ", 1)[-1])
     if isinstance(r, dict) and r.get("error"):
         raise HTTPException(400, r["error"])
     acc.after_decision(decision_id, req.user, True, r.get("superseded", []))

@@ -189,7 +189,11 @@ def vocab_files(root: Path = ROOT) -> dict[str, str]:
     paths = {root / f for f in VOCAB_FILES}
     for g in VOCAB_GLOBS:
         paths |= set(root.glob(g))
-    return {str(p.relative_to(root)): _sha(p.read_text(encoding="utf-8")) for p in sorted(paths) if p.exists()}
+    out = {str(p.relative_to(root)): _sha(p.read_text(encoding="utf-8")) for p in sorted(paths) if p.exists()}
+    from ledger import vocab  # pylint: disable=import-outside-toplevel
+    if vocab.extra_text():      # 운영 중 팀장이 더한 주제·별칭도 어휘 판에 든다 (더하면 버전이 바뀐다)
+        out["store/vocab_extra.json"] = _sha(vocab.extra_text())
+    return out
 
 
 def git_info(root: Path = ROOT) -> dict:
