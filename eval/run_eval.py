@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from agent.crosscheck import build_checkers  # noqa: E402
 from agent.ledger_graph import LedgerDeps, build_ledger_graph  # noqa: E402
 from ledger.llm import LocalLLM  # noqa: E402
 from ledger.mcp_bridge import LedgerMCP  # noqa: E402
@@ -147,7 +148,7 @@ async def run_after(llm: LocalLLM, meetings, opinions, questions) -> dict:
     """
     mcp = LedgerMCP()
     await mcp.start()
-    graph = build_ledger_graph(LedgerDeps(fast_llm=llm, quality_llm=llm, mcp=mcp))
+    graph = build_ledger_graph(LedgerDeps(fast_llm=llm, quality_llm=llm, mcp=mcp, checkers=build_checkers()))
     out = {"meetings": {}, "opinions": {}, "questions": {}}
 
     async def go(msg):

@@ -18,6 +18,7 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv()   # ledger.llm이 import 시점에 OLLAMA_URL 등을 읽는다
 
+from agent.crosscheck import build_checkers  # noqa: E402
 from agent.ledger_graph import LedgerDeps, build_ledger_graph  # noqa: E402
 from ledger.llm import build_llms  # noqa: E402
 from ledger.mcp_bridge import LedgerMCP  # noqa: E402
@@ -47,7 +48,8 @@ async def main(ids: list[str]) -> None:
     mcp = LedgerMCP()
     await mcp.start()
     try:
-        graph = build_ledger_graph(LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, propose_to_ledger=False))
+        graph = build_ledger_graph(LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, propose_to_ledger=False,
+                                                  checkers=build_checkers()))
         for mid in ids:
             t0 = time.perf_counter()
             st = await graph.ainvoke({"message": f"{mid} 회의 정리해줘", "user_id": "agent", "history": [], "events": []})

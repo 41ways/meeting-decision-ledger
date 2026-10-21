@@ -29,6 +29,7 @@ from langsmith import traceable
 from pydantic import BaseModel
 
 from agent.enrich import _overlap
+from agent.crosscheck import build_checkers
 from agent.ledger_graph import TODAY, LedgerDeps, build_ledger_graph, normalize_meeting_id
 from agent.session_store import SqliteSessionStore
 from ledger.access import AccessStore
@@ -226,6 +227,7 @@ async def lifespan(application: FastAPI):
     fast, quality = build_llms()
     application.state.access = AccessStore()
     deps = LedgerDeps(fast_llm=fast, quality_llm=quality, mcp=mcp, session_store=SqliteSessionStore(),
+                      checkers=build_checkers(),   # CROSSCHECK=1이면 작은 모델 교차검증
                       propose_to_ledger=True, can_view=can_view_decision_for_answer, calendar=build_calendar())
     application.state.deps = deps
     application.state.graph = build_ledger_graph(deps)
