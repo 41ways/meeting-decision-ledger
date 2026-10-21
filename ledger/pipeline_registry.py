@@ -27,7 +27,7 @@ REGISTRY = STORE_DIR / "pipeline_registry.json"
 CODE_FILES = ["agent/ledger_graph.py", "agent/enrich.py", "agent/retrieve.py", "agent/facts.py", "agent/crosscheck.py",
               "agent/schedule_add.py", "agent/retry.py", "ledger/resolve.py", "ledger/rag.py", "ledger/store.py",
               "ledger/records.py", "ledger/llm.py", "ledger/mcp_bridge.py", "ledger/schedule_parse.py",
-              "mcp_ledger_server.py"]
+              "ledger/aliases.py", "ledger/term_index.py", "mcp_ledger_server.py"]
 # LLM에 지시문을 보내는 파일 — 프롬프트 지문은 이 파일들의 LLM 호출 인자와 MCP Prompt에서 뽑는다
 PROMPT_FILES = ["agent/ledger_graph.py", "agent/enrich.py", "agent/retrieve.py", "agent/facts.py",
                 "agent/schedule_add.py", "agent/crosscheck.py", "mcp_ledger_server.py"]

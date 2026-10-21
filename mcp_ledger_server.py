@@ -22,19 +22,22 @@ sys.path.insert(0, str(ROOT))
 from ledger.calendar import build_calendar, find_conflicts   # noqa: E402
 from ledger.rag import LedgerRAG          # noqa: E402
 from ledger.records import MeetingRecords  # noqa: E402
-from ledger.resolve import MIN_DISCUSSION_SCORE, Resolver  # noqa: E402
+from ledger.resolve import Resolver  # noqa: E402
 from ledger.schedule_parse import add_permission, build_draft   # noqa: E402
 from ledger.store import LedgerStore      # noqa: E402
+from ledger.term_index import TranscriptIndex, find_candidates, project_records  # noqa: E402
 
 # 저장소·검색기는 프로세스당 하나만 만들어 모든 도구가 공유
 mcp = FastMCP(name="decision-ledger")
+DATA = ROOT / "data" / "project"
 store = LedgerStore()
 rag = LedgerRAG()
-resolver = Resolver(store, rag)
 records = MeetingRecords()
 records.sync_meetings()          # 원문 파일의 머리 정보(날짜·참석자)를 회의 목록에 반영 — 파기된 회의도 목록에는 남는다
+transcripts = TranscriptIndex(store.db_path)
+transcripts.sync(DATA)           # 원문 단어 색인을 원문 파일과 맞춘다 (바뀐 파일만 다시, 파기된 회의는 삭제)
+resolver = Resolver(store, rag, transcripts=transcripts)
 calendar = build_calendar()
-DATA = ROOT / "data" / "project"
 
 
 def _slim(rows: list[dict], keep: tuple[str, ...]) -> list[dict]:
@@ -52,20 +55,21 @@ def _slim(rows: list[dict], keep: tuple[str, ...]) -> list[dict]:
 
 # ---------------- Tool: R1 회의 원문 ----------------
 @mcp.tool()
-def search_transcript(query: str, meeting_id: str = "", k: int = 5) -> list[dict]:
-    """회의·면접 원문(R1)에서 질의와 관련된 발언을 찾는다.
+def search_transcript(query: str, meeting_id: str = "", project_id: str = "", k: int = 5) -> list[dict]:
+    """회의·면접 원문(R1)에서 질의와 낱말이 겹치는 발언을 찾는다 (단어 검색, BM25).
 
-    원문은 권위가 없고 인용 근거로만 쓴다.
+    원문은 권위가 없고 인용 근거로만 쓴다. 의미만 비슷한 잡담이 붙지 않게, 같은 별칭 주제를 말하거나
+    내용어가 두 개 이상 겹치는 발언만 돌려준다.
     Args:
         query:      찾을 내용
         meeting_id: 특정 회의로 한정. 비우면 전체
+        project_id: 특정 프로젝트로 한정. 비우면 전체
         k:          최대 결과 수
     Returns:
-        발언 목록 (meeting_id, date, seq, ts, speaker, role, text, _score)
+        발언 목록 (meeting_id, date, seq, ts, speaker, role, text, _score, matched)
     """
-    # 유사도 하한 미만은 '관련 논의'로 돌려주지 않는다 (논의한 적 없는 주제에 아무 발언이나 붙는 것 방지)
-    rows = rag.search_transcript(query, meeting_id=meeting_id or None, k=k, min_score=MIN_DISCUSSION_SCORE)
-    return _slim(rows, ("meeting_id", "date", "seq", "ts", "speaker", "role", "text", "_score"))
+    rows = transcripts.search(query, project_id=project_id or None, meeting_id=meeting_id or None, k=k)
+    return _slim(rows, ("meeting_id", "date", "seq", "ts", "speaker", "role", "text", "_score", "matched"))
 
 
 @mcp.tool()
@@ -119,6 +123,41 @@ def list_decisions(project_id: str = "PRJ-OPSAI") -> list[dict]:
     return _slim(store.decisions(project_id=project_id or None),
                  ("decision_id", "project_id", "topic", "status", "statement", "decided_by", "approved_by",
                   "effective_from", "superseded_by", "evidence"))
+
+
+@mcp.tool()
+def index_candidates(project_id: str, topics: list[str] | None = None, decision_ids: list[str] | None = None,  # pylint: disable=too-many-arguments
+                     meeting_ids: list[str] | None = None, words: list[str] | None = None,
+                     date_from: str = "", date_to: str = "") -> dict:
+    """낱말 색인으로 결정·미결 후보를 좁힌다 (벡터 검색 없음).
+
+    주제·결정 ID로 먼저 찾고, 하나도 없으면 단어로 찾는다. 후보마다 왜 걸렸는지(via)를 붙인다.
+    Args:
+        project_id:   질문 대상 프로젝트 (결정 ID로 직접 찾은 것은 프로젝트를 가리지 않는다)
+        topics:       주제 키 (별칭 일치·LLM 선택)
+        decision_ids: 질문에 적힌 결정 ID
+        meeting_ids:  질문에 적혔거나 입력창에서 고른 회의 ID
+        words:        질문 내용어 (주제·ID로 못 찾을 때만)
+        date_from:    기간 시작일 (질문에 기간 표현이 있을 때)
+        date_to:      기간 종료일
+    Returns:
+        {"candidates": [...], "tier": "주제·ID" | "단어" | "", "period_dropped": bool}
+    """
+    period = (date_from, date_to) if date_from and date_to else None
+    return find_candidates(store, records, project_id, topics or [], decision_ids or [], meeting_ids or [],
+                           words or [], period)
+
+
+@mcp.tool()
+def project_records_all(project_id: str) -> list[dict]:
+    """프로젝트 기록 전체(유효·승인 대기 결정 + 열린·이어진 미결). 색인으로 못 좁힐 때의 전체 읽기용.
+
+    Args:
+        project_id: 프로젝트 ID
+    Returns:
+        후보 목록
+    """
+    return project_records(store, records, project_id)
 
 
 @mcp.tool()

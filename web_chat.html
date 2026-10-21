@@ -919,11 +919,15 @@ const STEP = {
   ScheduleAnswered: e => `회의 목록에서 ${e.range} 조회 — ${e.count}건`,
   ScheduleDrafted: e => `일정 초안: ${e.date || '날짜 미정'} ${e.start || '시간 미정'}${e.missing.length ? ' · 되물을 항목 ' + e.missing.length + '개' : ''}${e.conflicts ? ' · ⚠ 겹침 ' + e.conflicts + '건' : ''} (저장 전)`,
   PlanCreated: e => e.domain === 'interview' ? `계획: 질문·답변 ${e.competencies}쌍, 공정성 점검 ${e.items}건`
-    : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic} · 프로젝트 ${e.project} (${e.how})` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건${e.rechecked ? ` (누락 의심 ${e.rechecked}건 재확인)` : ''}`,
+    : e.items === 0 ? `계획: ${e.reason || '검토할 항목 없음'}` : e.topic ? `계획: 주제 ${e.topic}${e.topic_by === '별칭' || e.topic_by === '별칭+LLM' ? ` (별칭 '${e.aliases.join("', '")}')` : ''}${e.topic_disagree ? ` · LLM은 ${e.topic_disagree.llm || '새 주제'}` : ''} · 프로젝트 ${e.project} (${e.how})` : `계획: 결정 후보 ${e.items}건, 할 일 ${e.action_items}건${e.rechecked ? ` (누락 의심 ${e.rechecked}건 재확인)` : ''}`,
   GateApplied: e => !e.removed ? null : e.removed_seq ? `권위 게이트: 결정 아닌 후보 ${e.removed}건 제외 (발언 ${e.removed_seq.join(', ')})` : `권위 게이트: 근거로 못 쓰는 발언 ${e.removed}건 제외`,
   FairnessFlag: e => `공정성 점검 대상 [${e.seq}] → ${e.rule}`,
   DecisionFound: e => `결정 발견 [${e.seq}] ${e.decided_by}: ${e.statement}`,
   TaskCompleted: e => e.source ? `원문 논의 추가 조회: ${e.statement}` : `기준 조회 (${e.topic}): ${({ decision: '유효 결정 ' + (e.current || ''), baseline: '기준 문서', discussion: '논의만 있음', none: '기준 없음' })[e.authority]}`,
+  CandidatesPicked: e => e.how === '없음' ? '색인 후보 없음 — 결정·미결을 찾지 못함' : e.how === '전체' ? null
+    : `색인으로 후보 ${e.shown}건 (${e.tier}) → ${e.picked.length ? e.picked.join(', ') : '관련 없음'}`,
+  FullReadFallback: e => `${e.notice.replace(/^※ /, '')} → ${e.parts > 1 ? e.parts + '번 나눠 ' : ''}읽음`,
+  TopicDisagree: e => `미결 주제: 별칭 기준으로 정함 (LLM과 다름 ${e.items.length}건)`,
   ReplanCheck: e => e.is_sufficient ? null : '기준 부족 → 회의 원문에서 논의 추가 조사',
   ConflictChecked: e => `${({ ok: '문제없음', conflict: '충돌', change_approved: '기준 변경(승인됨)', needs_approval: '확인 필요', no_basis: '비교할 기준 없음' })[e.status]}: ${e.statement}${e.conflicts.length ? ' — ' + e.conflicts.join(' / ') : ''}`,
   DraftWritten: e => `답변 작성 (시도 ${e.attempt})`,
