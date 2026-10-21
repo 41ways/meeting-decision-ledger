@@ -56,3 +56,29 @@ def test_waiver_respects_expiry_and_project(store):
 
 def test_next_decision_id(store):
     assert store.next_decision_id() == "OPS-0011"
+
+
+def test_edit_proposed_replaces_alternatives_and_slots_and_returns_diff(store):
+    new_id = store.propose({"project_id": "PRJ-OPSAI", "topic": "perf.latency", "statement": "최종 답변 기준 60초",
+                            "decided_by": "정한결", "alternatives_rejected": ["90초"],
+                            "slots": {"target": "최종 답변", "change": "30초 → 60초"}})
+    out = store.update_proposed(new_id, rationale="사용자 체감 조사", alternatives=["45초", "120초"],
+                                slots={"target": "최종 답변", "change": "30초 → 60초", "scope": "운영 화면"})
+    assert out["before"]["alternatives_rejected"] == ["90초"]
+    d = store.get_decision(new_id)
+    assert d["alternatives_rejected"] == ["45초", "120초"]          # 기존 값이 있어도 새 값으로 바뀐다
+    assert d["slots"]["scope"] == "운영 화면" and d["rationale"] == "사용자 체감 조사"
+    assert d["statement"] == "최종 답변 기준 60초"                  # 안 넘긴 값은 그대로
+
+
+def test_edit_preview_of_topic_change_shows_other_decisions_to_be_superseded(store):
+    new_id = store.propose({"project_id": "PRJ-OPSAI", "topic": "perf.latency", "statement": "최종 답변 기준 60초",
+                            "decided_by": "정한결"})
+    assert [x["decision_id"] for x in store.will_supersede(new_id)] == ["OPS-0005"]
+    moved = [x["decision_id"] for x in store.will_supersede(new_id, topic="realtime.transport")]
+    assert moved == ["OPS-0007"]                                      # 주제를 바꾸면 대체 대상도 바뀐다
+
+
+def test_approved_decision_cannot_be_edited(store):
+    with pytest.raises(ValueError):
+        store.update_proposed("OPS-0007", statement="바꿈")

@@ -75,13 +75,19 @@ class EditReq(BaseModel):
     """
     승인 전 결정 수정 요청 본문
     Attributes:
-        user:      요청한 사용자 ID (팀장)
-        statement: 고친 결정 문장 (비우면 그대로)
-        topic:     고친 주제 키 (비우면 그대로)
+        user:         요청한 사용자 ID (팀장)
+        statement:    고친 결정 문장 (비우면 그대로)
+        topic:        고친 주제 키 (비우면 그대로)
+        rationale:    고친 이유 (None이면 그대로)
+        alternatives: 고친 기각 대안 목록 (None이면 그대로)
+        slots:        고친 칸 기록 {target, change, scope, condition} (None이면 그대로)
     """
     user: str
     statement: str = ""
     topic: str = ""
+    rationale: str | None = None
+    alternatives: list[str] | None = None
+    slots: dict | None = None
 
 
 class CloseReq(BaseModel):
@@ -793,12 +799,158 @@ async def edit_decision(decision_id: str, req: EditReq):
         HTTPException: 403 — 팀장이 아님 / 400 — 승인 대기 상태가 아님
     """
     lead_only(req.user)
+    if req.topic and req.topic not in await _topic_keys():
+        raise HTTPException(400, f"주제 목록에 없는 키입니다: {req.topic}")
     try:
         return await app.state.deps.mcp.call("update_proposed_decision", decision_id=decision_id,
                                              actor=app.state.access.user(req.user)["name"],
-                                             statement=req.statement, topic=req.topic)
+                                             statement=req.statement, topic=req.topic, rationale=req.rationale,
+                                             alternatives_rejected=req.alternatives, slots=req.slots)
     except Exception as e:  # pylint: disable=broad-exception-caught  # MCP 도구 오류 메시지를 그대로 전달
         raise HTTPException(400, str(e)) from e
+
+
+async def _topics() -> list[dict]:
+    """
+    주제 목록 (키·설명) — MCP Resource ledger://topics
+    Returns:
+        [{"key", "desc"}]
+    """
+    text = await app.state.deps.mcp.resource("ledger://topics")
+    return [{"key": k.strip(), "desc": v.strip()} for k, _, v in (ln.partition(":") for ln in text.splitlines()) if k.strip()]
+
+
+async def _topic_keys() -> set[str]:
+    """주제 키 집합"""
+    return {x["key"] for x in await _topics()}
+
+
+def _value_warnings(statement: str, evidence: list[dict]) -> list[str]:
+    """
+    결정 문장의 숫자·단위가 근거 발언에 있는지 (없으면 경고)
+    Args:
+        statement: 결정 문장
+        evidence:  근거 [{quote}]
+    Returns:
+        경고 문장 목록
+    """
+    from agent.enrich import values_ok  # pylint: disable=import-outside-toplevel
+    bad = values_ok(statement, " ".join(e.get("quote") or "" for e in evidence))
+    return [f"근거 발언에 없는 값: {', '.join(bad)}"] if bad else []
+
+
+async def _same_topic(project_id: str, topic: str, exclude: str) -> list[dict]:
+    """
+    같은 프로젝트·주제의 다른 결정 (상태 포함, 날짜순)
+    Args:
+        project_id: 프로젝트 ID
+        topic:      주제 키
+        exclude:    빼고 볼 결정 ID
+    Returns:
+        [{decision_id, statement, status, superseded_by, effective_from}]
+    """
+    rows = await app.state.deps.mcp.call("list_decisions", project_id=project_id)
+    keep = ("decision_id", "statement", "status", "superseded_by", "effective_from")
+    return sorted([{k: d.get(k) for k in keep} for d in rows if d.get("topic") == topic and d["decision_id"] != exclude],
+                  key=lambda d: d.get("effective_from") or "9999")
+
+
+@app.get("/decisions/{decision_id}/edit-context")
+async def edit_context(decision_id: str, user: str):
+    """
+    결정 수정 화면의 재료 — 근거 발언 앞뒤 원문, 근거 회의, 주제 목록·추천, 같은 주제 결정, 대체 미리보기, 근거 대조 경고
+    Args:
+        decision_id: 승인 대기 결정 ID
+        user:        요청한 사용자 ID (팀장)
+    Returns:
+        {decision, context:[{meeting, segments, evidence_seqs}], topics, same_topic, will_supersede, warnings}
+    Raises:
+        HTTPException: 403 — 팀장이 아님 / 404 — 없는 결정
+    """
+    lead_only(user)
+    mcp = app.state.deps.mcp
+    d = (await mcp.call("decision_history", decision_id=decision_id)).get("decision")
+    if not d:
+        raise HTTPException(404, "없는 결정입니다.")
+    context = []
+    for mid in dict.fromkeys(e["meeting_id"] for e in d.get("evidence", []) if e.get("meeting_id")):
+        seqs = sorted(e["seq"] for e in d["evidence"] if e.get("meeting_id") == mid and e.get("seq"))
+        lo, hi = (max(1, seqs[0] - 3), seqs[-1] + 3) if seqs else (1, 0)
+        context.append({"meeting": await _meeting_brief(mid), "evidence_seqs": seqs, "from": lo, "to": hi,
+                        "segments": await mcp.call("get_segments", meeting_id=mid, seq_from=lo, seq_to=hi) if seqs else []})
+    # 주제 추천은 임베딩이 필요해 느릴 수 있어 /topic-suggest로 따로 받는다 (패널은 바로 뜬다)
+    return {"decision": d, "context": context, "topics": await _topics(),
+            "same_topic": await _same_topic(d["project_id"], d["topic"], decision_id),
+            "will_supersede": await mcp.call("will_supersede", decision_id=decision_id),
+            "warnings": _value_warnings(d["statement"], d.get("evidence", []))}
+
+
+@app.get("/decisions/{decision_id}/topic-suggest")
+async def topic_suggest(decision_id: str, user: str, text: str):
+    """
+    문장 기준 주제 추천 (임베딩 유사도 상위 5개). 모델이 바쁘면 기다리지 않고 빈 목록
+    Args:
+        decision_id: 승인 대기 결정 ID (기록용)
+        user:        요청한 사용자 ID (팀장)
+        text:        결정 문장
+    Returns:
+        {"suggested": [{topic, score}], "note": 건너뛴 이유}
+    """
+    lead_only(user)
+    try:
+        got = await asyncio.wait_for(app.state.deps.mcp.call("topic_candidates", text=text, k=5), timeout=15)
+    except asyncio.TimeoutError:
+        return {"suggested": [], "note": "임베딩 모델이 바빠 추천을 건너뜀"}
+    return {"suggested": [c for c in got if c.get("topic")], "note": ""}
+
+
+@app.get("/decisions/{decision_id}/edit-preview")
+async def edit_preview(decision_id: str, user: str, topic: str = "", statement: str = ""):
+    """
+    수정 중 영향 미리보기 — 바꾼 주제로 승인하면 대체될 결정, 그 주제의 기존 결정, 바꾼 문장의 근거 대조 경고
+    Args:
+        decision_id: 승인 대기 결정 ID
+        user:        요청한 사용자 ID (팀장)
+        topic:       가정할 주제 키
+        statement:   고친 문장
+    Returns:
+        {will_supersede, same_topic, warnings, topic_ok}
+    Raises:
+        HTTPException: 403 — 팀장이 아님 / 404 — 없는 결정
+    """
+    lead_only(user)
+    mcp = app.state.deps.mcp
+    d = (await mcp.call("decision_history", decision_id=decision_id)).get("decision")
+    if not d:
+        raise HTTPException(404, "없는 결정입니다.")
+    t = topic or d["topic"]
+    return {"will_supersede": await mcp.call("will_supersede", decision_id=decision_id, topic=t),
+            "same_topic": await _same_topic(d["project_id"], t, decision_id),
+            "warnings": _value_warnings(statement or d["statement"], d.get("evidence", [])),
+            "topic_ok": t in await _topic_keys()}
+
+
+@app.get("/decisions/{decision_id}/segments")
+async def decision_segments(decision_id: str, user: str, meeting: str, seq_from: int, seq_to: int):
+    """
+    수정 화면에서 원문 범위 넓히기 (앞 더 보기 / 뒤 더 보기) — 그 결정의 근거 회의만
+    Args:
+        decision_id: 결정 ID
+        user:        요청한 사용자 ID (팀장)
+        meeting:     근거 회의 ID
+        seq_from:    시작 발언 번호
+        seq_to:      끝 발언 번호
+    Returns:
+        {"segments": [...]}
+    Raises:
+        HTTPException: 403 — 팀장이 아님 / 400 — 이 결정의 근거 회의가 아님
+    """
+    lead_only(user)
+    d = (await app.state.deps.mcp.call("decision_history", decision_id=decision_id)).get("decision") or {}
+    if meeting not in {e.get("meeting_id") for e in d.get("evidence", [])}:
+        raise HTTPException(400, "이 결정의 근거 회의가 아닙니다.")
+    return {"segments": await app.state.deps.mcp.call("get_segments", meeting_id=meeting,
+                                                      seq_from=max(1, seq_from), seq_to=seq_to)}
 
 
 @app.get("/open-items")

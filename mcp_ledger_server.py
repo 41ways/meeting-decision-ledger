@@ -212,34 +212,42 @@ def reject_decision(decision_id: str, rejected_by: str, reason: str = "") -> dic
 
 
 @mcp.tool()
-def will_supersede(decision_id: str) -> list[dict]:
-    """이 결정을 승인하면 대체될 유효 결정 목록 (승인 전 미리보기).
+def will_supersede(decision_id: str, topic: str = "") -> list[dict]:
+    """이 결정을 승인하면 대체될 유효 결정 목록 (승인 전 미리보기). 주제를 바꿔 볼 때는 topic에 가정한 주제를 넣는다.
 
     Args:
         decision_id: 승인 대기 결정 ID
+        topic:       가정할 주제 키 (비우면 지금 주제)
     Returns:
-        [{decision_id, statement, topic}]
+        [{decision_id, statement, topic, effective_from}]
     """
-    return store.will_supersede(decision_id)
+    return store.will_supersede(decision_id, topic or None)
 
 
 @mcp.tool()
-def update_proposed_decision(decision_id: str, actor: str, statement: str = "", topic: str = "") -> dict:
-    """[사람 전용] 승인 전 결정의 문장·주제를 고친다.
+def update_proposed_decision(decision_id: str, actor: str, statement: str = "",  # pylint: disable=too-many-arguments
+                             topic: str = "", rationale: str | None = None,
+                             alternatives_rejected: list[str] | None = None, slots: dict | None = None) -> dict:
+    """[사람 전용] 승인 전 결정을 고치고 검색 색인(R3)과 이력을 함께 갱신한다.
 
     Args:
-        decision_id: 승인 대기 결정 ID
-        actor:       고친 사람
-        statement:   고친 문장 (비우면 그대로)
-        topic:       고친 주제 키 (비우면 그대로)
+        decision_id:           승인 대기 결정 ID
+        actor:                 고친 사람
+        statement:             고친 문장 (비우면 그대로)
+        topic:                 고친 주제 키 (비우면 그대로)
+        rationale:             고친 이유 (None이면 그대로)
+        alternatives_rejected: 고친 기각 대안 (None이면 그대로)
+        slots:                 고친 칸 기록 (None이면 그대로)
     Returns:
-        {"updated": 결정 ID, "before": {...}}
+        {"updated", "before", "after", "reindexed": True}
     """
-    out = store.update_proposed(decision_id, statement or None, topic or None)
-    records.log(actor, "decision_edited", decision_id, {"before": out["before"],
-                                                         "after": {"statement": statement, "topic": topic}})
+    out = store.update_proposed(decision_id, statement or None, topic or None, rationale, alternatives_rejected, slots)
+    changed = {k: {"before": out["before"][k], "after": out["after"][k]}
+               for k in out["after"] if out["before"].get(k) != out["after"][k]}
+    records.log(actor, "decision_edited", decision_id, {"changed": changed})
+    # 원장만 바꾸면 검색 색인이 옛 문장·주제로 남아 엉뚱하게 찾힌다 — 같은 자리에서 다시 적재
     rag.ingest_decision(store.get_decision(decision_id))
-    return out
+    return {**out, "changed": list(changed), "reindexed": True}
 
 
 @mcp.tool()
