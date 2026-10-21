@@ -282,7 +282,7 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 |---|---|
 | ![](docs/images/sse_flow.jpg) | ![](docs/images/opinion_question.jpg) |
 
-| 승인함 — 원문 인용·승인 전 수정·대체될 결정 미리보기 | 미결함 — 경과일·후속 할 일·닫기 |
+| 관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의 | 미결함 — 경과일·후속 할 일·결정 없이 닫기 |
 |---|---|
 | ![](docs/images/admin_approve.jpg) | ![](docs/images/open_items.jpg) |
 

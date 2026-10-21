@@ -184,6 +184,46 @@ input.sel { padding-right: 10px; background-image: none; cursor: text; }
 .quote { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .sup-warn { font-size: 12px; color: #a35a00; background: #fff4e5; border-radius: 4px; padding: 3px 6px; margin-top: 4px; }
 tr.stale td { background: #fffaf2; }
+/* 관리자 콘솔: 대화 기록 대신 관리 메뉴 */
+.app.adm { grid-template-columns: minmax(0, 1fr); }
+.top.admtop { background: #16233a; } .top .shield { width: 22px; height: 22px; color: #9fb6d6; flex: none; }
+.adm-page { padding: 0 !important; overflow: hidden; display: flex; }
+.adm { display: grid; grid-template-columns: 256px minmax(0, 1fr); flex: 1; min-height: 0; }
+.adm-nav { background: var(--navy); color: #c9d4e3; padding: 18px 12px; overflow-y: auto; }
+.adm-who { display: flex; gap: 10px; align-items: center; padding: 4px 8px 16px; border-bottom: 1px solid #2f4462; margin-bottom: 10px; }
+.adm-who .av { width: 36px; height: 36px; border-radius: 8px; background: #2f4a72; color: #fff; display: grid; place-items: center; font-weight: 600; }
+.adm-who b { color: #fff; font-size: 14.5px; display: block; } .adm-who small { color: #8fa1ba; font-size: 12px; }
+.adm-sec { font-size: 11.5px; color: #7f92ad; padding: 14px 10px 6px; letter-spacing: .02em; }
+.adm-nav button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 8px; text-align: left; color: #c9d4e3; margin-bottom: 2px; }
+.adm-nav button svg { width: 20px; height: 20px; flex: none; opacity: .9; }
+.adm-nav button span { flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.3; } .adm-nav button small { display: block; font-size: 12px; color: #8fa1ba; margin-top: 2px; }
+.adm-nav button:hover { background: #283c5a; color: #fff; } .adm-nav button.on { background: #34507a; color: #fff; } .adm-nav button.on small { color: #c4d2e6; }
+.adm-nav em { font-style: normal; font-size: 12px; min-width: 22px; text-align: center; padding: 1px 6px; border-radius: 5px; background: #3e5a85; color: #fff; }
+.adm-nav em.warn { background: #b86b10; }
+.adm-main { overflow-y: auto; padding: 26px 34px 90px; min-width: 0; background: var(--bg); }
+.adm-hd { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; } .adm-hd h2 { font-size: 20px; font-weight: 600; margin: 0; }
+.adm-main .note { margin: 0 0 16px; }
+.empty-box { padding: 26px; text-align: center; color: var(--muted); background: #fff; border: 1px dashed var(--line2); border-radius: 10px; }
+.arow { background: #fff; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+.arow.open { border-color: #9fb1c8; } .arow.stale { border-left: 4px solid #d08a2c; }
+.ahead { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto 18px; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; text-align: left; }
+.ahead.static { grid-template-columns: auto auto minmax(0, 1fr) auto auto; cursor: default; }
+.ahead:hover { background: #f8fafc; } .ahead.static:hover { background: none; }
+.atx { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14.5px; }
+.ameta { font-size: 12.5px; color: var(--muted); white-space: nowrap; } .ameta.hot { color: #a35a00; font-weight: 600; }
+.chev { width: 16px; height: 16px; color: var(--muted); transition: transform .15s; } .arow.open .chev { transform: rotate(180deg); }
+.tb { font-size: 12px; padding: 2px 8px; border-radius: 5px; font-weight: 600; }
+.t-dec { background: #E6F1FB; color: #0C447C; } .t-op { background: #EEEDFE; color: #3C3489; } .t-req { background: #E1F5EE; color: #085041; }
+.t-open { background: #FAEEDA; color: #633806; } .t-ok { background: #EAF3DE; color: #27500A; } .t-bad { background: #FCEBEB; color: #791F1F; }
+.adet { border-top: 1px solid var(--line); padding: 16px 18px; background: #fafbfd; border-radius: 0 0 10px 10px; }
+.dgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 26px; } .dgrid .span2 { grid-column: 1 / -1; }
+.dgrid h5 { font-size: 12px; color: var(--muted); font-weight: 600; margin: 0 0 5px; } .dgrid p { margin: 0 0 3px; font-size: 13.5px; }
+.q2 { background: #fff; border-left: 3px solid #9fb1c8; padding: 6px 10px; margin-bottom: 5px; font-size: 13.5px; }
+.sup2 { color: #8a4b00; } .ai2 { font-size: 11.5px; background: #EEEDFE; color: #3C3489; padding: 1px 6px; border-radius: 4px; margin-right: 6px; }
+.lb2 { font-size: 12px; padding: 1px 7px; border-radius: 4px; } .l-chk { background: #FAEEDA; color: #633806; } .l-pend { background: #E6F1FB; color: #0C447C; }
+.aact { display: flex; gap: 8px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+.done-hd { font-size: 12.5px; color: var(--muted); margin: 20px 0 8px; } .arow.done { opacity: .9; }
+.atable { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 10px; border-collapse: separate; overflow: hidden; }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
 /* 공통 버튼·표 */
@@ -337,8 +377,8 @@ tr.lock td { color: var(--muted); }
     </div>
   </div>
 
-  <div class="app" v-if="me">
-    <aside class="side">
+  <div class="app" :class="{ adm: page === 'admin' }" v-if="me">
+    <aside class="side" v-show="page !== 'admin'">
       <button class="brand" title="새 대화 홈으로" @click="goHome"><b>회의 요약 · 결정 정리 비서</b><small>SKALA · Decision Ledger</small></button>
       <button class="newchat" @click="newChat">+ 새 대화</button>
       <div class="sorthint"><span>{{ selPrj ? '관련순' : '최신순' }}</span><b>{{ selPrj }}</b></div>
@@ -373,7 +413,8 @@ tr.lock td { color: var(--muted); }
     </aside>
 
     <main class="main">
-      <div class="top">
+      <div class="top" :class="{ admtop: page === 'admin' }">
+        <svg v-if="page === 'admin'" class="shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
         <h1>{{ titleText }}<small>{{ titleSub }}</small></h1>
         <button class="tab" :class="{ on: page === 'chat' }" @click="go('chat')">대화</button>
         <button class="tab" v-if="me.role === '팀장'" :class="{ on: page === 'admin' }" @click="go('admin')">관리자 콘솔</button>
@@ -456,94 +497,128 @@ tr.lock td { color: var(--muted); }
       </div>
 
       <!-- 관리자 콘솔 -->
-      <div class="page" v-show="page === 'admin'">
-        <div class="col wide">
-          <div class="ptabs">
-            <button :class="{ on: atab === 'dec' }" @click="atab = 'dec'">결정·의견 승인<span class="cnt">{{ admin.decisions.length }}</span></button>
-            <button :class="{ on: atab === 'req' }" @click="atab = 'req'">열람 요청<span class="cnt">{{ admin.requests.length }}</span></button>
-            <button :class="{ on: atab === 'open' }" @click="atab = 'open'; loadOpen()">미결<span class="cnt">{{ openItems.length }}</span></button>
-            <button :class="{ on: atab === 'acl' }" @click="atab = 'acl'; loadAcl()">회의 접근 권한</button>
-            <button :class="{ on: atab === 'his' }" @click="atab = 'his'">처리 이력</button>
-          </div>
-          <div v-if="atab === 'dec'">
-            <p class="note">승인하면 같은 주제의 기존 결정은 지우지 않고 '대체됨'으로 표시합니다. 승인 뒤 '확인'에서 이 결정을 볼 수 있는 범위를 정합니다 (기본: 근거 회의 참석자).</p>
-            <table>
-              <tr><th style="width:96px">번호</th><th>내용</th><th style="width:90px">요청</th><th style="width:96px">근거</th><th style="width:170px"></th></tr>
-              <tr v-if="!admin.decisions.length && !doneDec.length"><td colspan="5" class="muted">승인 대기 없음</td></tr>
-              <tr v-for="d in admin.decisions" :key="d.decision_id">
-                <td class="mono">{{ d.decision_id }}</td>
-                <td>{{ d.statement }}<br><span class="muted" style="font-size:12px">{{ d.topic }} · {{ d.source }}</span>
-                  <div class="quote" v-for="(q, i) in d.quotes || []" :key="i">“{{ q }}”</div>
-                  <div class="sup-warn" v-if="d.will_supersede && d.will_supersede.length">승인하면 대체: <span v-for="x in d.will_supersede" :key="x.decision_id"><b class="mono">{{ x.decision_id }}</b> {{ x.statement }} </span></div></td>
-                <td>{{ d.requested_by }}</td><td class="mono">{{ d.meetings.join(', ') || '의견' }}</td>
-                <td><button class="btn pri" @click="decide(d, true)">승인</button> <button class="btn dng" @click="decide(d, false)">반려</button>
-                  <button class="btn" style="margin-top:4px" @click="editDec(d)">수정</button></td>
-              </tr>
-              <tr v-for="d in doneDec" :key="'x' + d.decision_id">
-                <td class="mono">{{ d.decision_id }}</td><td>{{ d.statement }}
-                  <div class="perm" v-if="d.open && d.ok">
-                    <span class="muted">열람 범위 ({{ d.meetings.join(', ') || '의견' }}):</span>
-                    <label v-for="r in ['인턴', '팀원', '담당자']" :key="r"><input type="checkbox" :checked="d.roles.includes(r)" @change="toggleDecRole(d, r, $event.target.checked)">{{ r }}</label>
-                    <span class="muted">참석자·팀장은 항상</span>
-                  </div></td>
-                <td>{{ d.requested_by }}</td><td class="mono">{{ d.meetings.join(', ') }}</td>
-                <td><span :class="d.ok ? 'done' : 'st-bad'">{{ d.ok ? '승인됨' : '반려됨' }}</span><span class="muted" v-if="d.sup" style="font-size:12px"> · 대체 {{ d.sup }}</span>
-                  <button class="btn" v-if="d.ok" style="margin-left:6px" @click="d.open = !d.open">확인</button></td>
-              </tr>
-            </table>
-          </div>
-          <div v-if="atab === 'req'">
-            <p class="note">회의 권한 밖의 사람이 승인된 결정·회의 원문을 보려면 여기서 승인합니다.</p>
-            <table>
-              <tr><th>요청자</th><th>대상</th><th>사유</th><th style="width:430px">범위 · 기간</th></tr>
-              <tr v-if="!admin.requests.length"><td colspan="4" class="muted">열람 요청 없음</td></tr>
-              <tr v-for="r in admin.requests" :key="r.id">
-                <td>{{ r.requester_name }} <span class="muted">({{ r.requester_role }})</span></td><td class="mono">{{ r.target }}</td><td>{{ r.reason || '—' }}</td>
-                <td>
-                  <template v-if="!r.done">
+      <div class="page adm-page" v-show="page === 'admin'">
+        <div class="adm">
+          <nav class="adm-nav">
+            <div class="adm-who"><span class="av">{{ me.name[0] }}</span><div><b>{{ me.name }}</b><small>{{ me.team }} · {{ me.role }}</small></div></div>
+            <div class="adm-sec">승인과 요청</div>
+            <button :class="{ on: atab === 'dec' }" @click="atab = 'dec'; sel = '';"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>결정·의견 승인<small>원장에 올릴 결정 확인</small></span><em v-if="admin.decisions.length">{{ admin.decisions.length }}</em></button>
+            <button :class="{ on: atab === 'req' }" @click="atab = 'req'; sel = '';"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>열람 요청<small>권한 밖 회의·결정 열람</small></span><em v-if="admin.requests.length">{{ admin.requests.length }}</em></button>
+            <button :class="{ on: atab === 'open' }" @click="atab = 'open'; sel = ''; loadOpen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h12M6 22h12M7 2v4l5 6-5 6v4M17 2v4l-5 6 5 6v4"/></svg><span>미결함<small>결론 안 난 논의 관리</small></span><em v-if="openItems.length" :class="{ warn: openItems.some(o => o.stale) }">{{ openItems.length }}</em></button>
+            <div class="adm-sec">권한과 기록</div>
+            <button :class="{ on: atab === 'acl' }" @click="atab = 'acl'; sel = ''; loadAcl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>회의 접근 권한<small>역할별 열람 범위</small></span></button>
+            <button :class="{ on: atab === 'his' }" @click="atab = 'his'; sel = '';"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span>처리 이력<small>승인·반려·열람 기록</small></span></button>
+          </nav>
+          <section class="adm-main">
+            <div v-if="atab === 'dec'">
+              <div class="adm-hd"><h2>결정·의견 승인</h2><span class="muted">대기 {{ admin.decisions.length }}건</span></div>
+              <p class="note">눌러서 근거 발언·근거 회의·대체될 결정을 확인한 뒤 승인합니다. 승인하면 같은 주제의 기존 결정은 지우지 않고 '대체됨'으로 남습니다.</p>
+              <div class="empty-box" v-if="!admin.decisions.length && !doneDec.length">승인 대기 없음</div>
+              <div class="arow" v-for="d in admin.decisions" :key="d.decision_id" :class="{ open: sel === d.decision_id }">
+                <button class="ahead" @click="sel = sel === d.decision_id ? '' : d.decision_id">
+                  <span class="tb" :class="d.meetings.length ? 't-dec' : 't-op'">{{ d.meetings.length ? '결정' : '의견' }}</span>
+                  <span class="mono">{{ d.decision_id }}</span><span class="atx">{{ d.statement }}</span>
+                  <span class="ameta">{{ d.requested_by }} · {{ d.meetings.join(', ') || '의견 검토' }}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="adet" v-if="sel === d.decision_id">
+                  <div class="dgrid">
+                    <div class="span2"><h5>근거 발언</h5>
+                      <div class="q2" v-for="(e, i) in d.evidence" :key="i"><span class="mono">{{ e.meeting_id }} [{{ e.seq ?? '—' }}]</span> {{ e.quote }}</div>
+                      <div class="muted" v-if="!d.evidence.length">근거 발언 없음 (의견에서 올린 결정)</div></div>
+                    <div><h5>근거 회의</h5>
+                      <template v-if="d.meeting && d.meeting.meeting_id"><p><b>{{ d.meeting.meeting_id }}</b> {{ d.meeting.title }} · {{ d.meeting.date }}</p><p class="muted">참석 {{ d.meeting.attendees.join(' · ') }}</p></template>
+                      <p class="muted" v-else>—</p></div>
+                    <div><h5>승인하면 대체될 결정</h5>
+                      <p v-for="x in d.will_supersede" :key="x.decision_id" class="sup2"><b class="mono">{{ x.decision_id }}</b> {{ x.statement }}</p>
+                      <p class="muted" v-if="!d.will_supersede.length">없음 — 이 주제의 첫 결정</p></div>
+                    <div><h5>정보</h5><p>주제 <span class="mono">{{ d.topic }}</span> · 결정 {{ d.decided_by || '—' }} · 요청 {{ d.requested_by }}</p>
+                      <p v-if="d.label">회의 정리 때 판단: <span class="lb2" :class="d.label === '확인 필요' ? 'l-chk' : 'l-pend'">{{ d.label }}</span> <span class="muted">{{ d.label_reason }}</span></p></div>
+                    <div v-if="d.prior.length"><h5>이전 논의</h5><p v-for="x in d.prior" :key="x.meeting_id + x.statement">{{ x.meeting_id }} ({{ (x.date || '').slice(5) }}) 미결 '{{ x.statement }}' → 이 결정으로 이어짐</p></div>
+                    <div class="span2" v-if="d.suggestions.length"><h5>해결 방향</h5><p v-for="(s, i) in d.suggestions" :key="i">· <span v-if="s.ai" class="ai2">AI 제안</span>{{ s.text }}</p></div>
+                  </div>
+                  <div class="aact"><button class="btn pri" @click="decide(d, true)">승인</button><button class="btn dng" @click="decide(d, false)">반려</button><button class="btn" @click="editDec(d)">문장·주제 수정</button></div>
+                </div>
+              </div>
+              <div class="done-hd" v-if="doneDec.length">방금 처리</div>
+              <div class="arow done" v-for="d in doneDec" :key="'x' + d.decision_id">
+                <div class="ahead static"><span class="tb" :class="d.ok ? 't-ok' : 't-bad'">{{ d.ok ? '승인됨' : '반려됨' }}</span><span class="mono">{{ d.decision_id }}</span><span class="atx">{{ d.statement }}</span>
+                  <span class="ameta">{{ d.sup ? '대체 ' + d.sup : '' }}</span><button class="btn" v-if="d.ok" @click="d.open = !d.open">열람 범위</button></div>
+                <div class="adet" v-if="d.open && d.ok"><div class="perm"><span class="muted">열람 범위 ({{ d.meetings.join(', ') || '의견' }}):</span>
+                  <label v-for="r in ['인턴', '팀원', '담당자']" :key="r"><input type="checkbox" :checked="d.roles.includes(r)" @change="toggleDecRole(d, r, $event.target.checked)">{{ r }}</label>
+                  <span class="muted">참석자·팀장은 항상</span></div></div>
+              </div>
+            </div>
+
+            <div v-if="atab === 'req'">
+              <div class="adm-hd"><h2>열람 요청</h2><span class="muted">대기 {{ admin.requests.length }}건</span></div>
+              <p class="note">회의 권한 밖의 사람이 결정·회의 원문을 보려는 요청입니다. 눌러서 대상 회의와 사유를 보고 범위·기간을 정합니다.</p>
+              <div class="empty-box" v-if="!admin.requests.length">열람 요청 없음</div>
+              <div class="arow" v-for="r in admin.requests" :key="r.id" :class="{ open: sel === 'r' + r.id }">
+                <button class="ahead" @click="sel = sel === 'r' + r.id ? '' : 'r' + r.id">
+                  <span class="tb t-req">열람</span><span class="mono">{{ r.target }}</span>
+                  <span class="atx">{{ r.requester_name }} <span class="muted">({{ r.requester_role }})</span> · {{ r.reason || '사유 없음' }}</span>
+                  <span class="ameta">{{ when(r.created) }}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="adet" v-if="sel === 'r' + r.id">
+                  <div class="dgrid">
+                    <div><h5>요청자</h5><p>{{ r.requester_name }} · {{ r.requester_role }}</p><p class="muted">사유: {{ r.reason || '—' }}</p></div>
+                    <div><h5>대상</h5>
+                      <template v-if="r.meeting && r.meeting.meeting_id"><p><b>{{ r.meeting.meeting_id }}</b> {{ r.meeting.title }} · {{ r.meeting.date }}</p><p class="muted">참석 {{ r.meeting.attendees.join(' · ') }} — 요청자는 참석자가 아니라 기본 열람 불가</p></template>
+                      <p v-else class="mono">{{ r.target }}</p></div>
+                  </div>
+                  <div class="aact" v-if="!r.done">
                     <select v-model="r.scope" class="sel" title="범위"><option value="user">이 사람만</option><option value="role">같은 역할 전체</option><option value="all">전체 (권장하지 않음)</option></select>
                     <select v-model="r.duration" class="sel" title="기간"><option value="once">1회</option><option value="project">프로젝트 기간 동안</option><option value="forever">무기한 (권장하지 않음)</option><option value="until">직접 입력</option></select>
                     <input v-if="r.duration === 'until'" type="date" v-model="r.until" class="sel" :min="todayIso" title="열람 기한">
-                    <button class="btn pri" @click="decideReq(r, true)">승인</button> <button class="btn dng" @click="decideReq(r, false)">반려</button>
-                  </template>
-                  <span v-else :class="r.done === 'approved' ? 'done' : 'st-bad'">{{ r.done === 'approved' ? '승인됨 · ' + scopeKo(r.scope) + ' · ' + durKo(r.duration, r.until) : '반려됨' }}</span>
-                </td>
-              </tr>
-            </table>
-          </div>
-          <div v-if="atab === 'acl'">
-            <p class="note">기본값은 그 회의 참석자만 열람. 체크한 역할은 참석하지 않았어도 원문과 결정을 볼 수 있습니다. 팀장은 항상 열람.</p>
-            <table>
-              <tr><th>회의</th><th>제목</th><th>참석자</th><th>인턴</th><th>팀원</th><th>담당자</th></tr>
-              <tr v-for="m in acl" :key="m.meeting_id">
-                <td class="mono">{{ m.meeting_id }}</td><td>{{ m.title }}</td><td class="muted" style="font-size:12px">{{ m.attendees.join(', ') }}</td>
-                <td v-for="r in ['인턴', '팀원', '담당자']" :key="r"><input type="checkbox" :checked="m.roles.includes(r)" @change="setAcl(m, r, $event.target.checked)"></td>
-              </tr>
-            </table>
-          </div>
-          <div v-if="atab === 'open'">
-            <p class="note">회의에서 결론을 내지 않은 논의입니다. 말이 없다고 결정된 것으로 보지 않습니다. 후속 할 일 기한이 지났거나 2주 넘게 열려 있으면 '확인 필요'로 표시합니다. 회의 밖에서 정해졌거나 하지 않기로 했으면 여기서 닫습니다.</p>
-            <table>
-              <tr><th style="width:140px">회의</th><th style="width:120px">주제</th><th>미결 내용</th><th style="width:200px">후속 할 일</th><th style="width:80px">경과</th><th style="width:90px"></th></tr>
-              <tr v-if="!openItems.length"><td colspan="6" class="muted">열린 미결 없음</td></tr>
-              <tr v-for="o in openItems" :key="o.item_id" :class="{ stale: o.stale }">
-                <td class="mono">{{ o.meeting_id }}<br><span class="muted">{{ o.date }}</span></td>
-                <td class="mono">{{ o.topic || '—' }}</td>
-                <td>{{ o.statement }}<div class="quote" v-for="e in (o.evidence || []).slice(0, 1)" :key="e.seq">[{{ e.seq }}] {{ e.speaker }} “{{ e.quote }}”</div></td>
-                <td><div v-for="a in o.follow_up" :key="a.statement">{{ a.statement }} <span class="muted">{{ a.owner || '?' }} · {{ a.due || '기한 없음' }}</span></div><span v-if="!o.follow_up.length" class="muted">없음</span></td>
-                <td><span :class="o.stale ? 'st-wait' : ''">{{ o.age_days }}일{{ o.stale ? ' · 확인 필요' : '' }}</span></td>
-                <td><button class="btn" @click="closeOpen(o)">닫기</button></td>
-              </tr>
-            </table>
-          </div>
-          <div v-if="atab === 'his'">
-            <table>
-              <tr><th>요청자</th><th>대상</th><th>결과</th><th>처리</th><th>시각</th></tr>
-              <tr v-for="r in admin.history" :key="r.id"><td>{{ r.requester_name }}</td><td class="mono">{{ r.target }}</td>
-                <td :class="r.status === 'approved' ? 'st-ok' : r.status === 'rejected' ? 'st-bad' : 'st-wait'">{{ { approved: '승인', rejected: '반려', pending: '대기' }[r.status] }}{{ r.scope ? ' · ' + scopeKo(r.scope) + (r.duration ? ' · ' + durKo(r.duration, r.expires) : '') : '' }}</td>
-                <td>{{ r.decided_by ? userName(r.decided_by) : '—' }}</td><td class="mono">{{ when(r.decided || r.created) }}</td></tr>
-            </table>
-          </div>
+                    <button class="btn pri" @click="decideReq(r, true)">승인</button><button class="btn dng" @click="decideReq(r, false)">반려</button>
+                  </div>
+                  <div class="aact" v-else><span :class="r.done === 'approved' ? 'done' : 'st-bad'">{{ r.done === 'approved' ? '승인됨 · ' + scopeKo(r.scope) + ' · ' + durKo(r.duration, r.until) : '반려됨' }}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="atab === 'open'">
+              <div class="adm-hd"><h2>미결함</h2><span class="muted">열린 미결 {{ openItems.length }}건</span></div>
+              <p class="note">회의에서 결론을 내지 않은 논의입니다. 말이 없다고 결정된 것으로 보지 않습니다. 후속 할 일 기한이 지났거나 2주 넘게 열려 있으면 확인 필요로 표시합니다. 회의 밖에서 정해졌거나 하지 않기로 했으면 닫습니다.</p>
+              <div class="empty-box" v-if="!openItems.length">열린 미결 없음</div>
+              <div class="arow" v-for="o in openItems" :key="o.item_id" :class="{ open: sel === o.item_id, stale: o.stale }">
+                <button class="ahead" @click="sel = sel === o.item_id ? '' : o.item_id">
+                  <span class="tb t-open">미결</span><span class="mono">{{ o.meeting_id }}</span><span class="atx">{{ o.statement }}</span>
+                  <span class="ameta" :class="{ hot: o.stale }">{{ o.age_days }}일째{{ o.stale ? ' · 확인 필요' : '' }}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="adet" v-if="sel === o.item_id">
+                  <div class="dgrid">
+                    <div class="span2"><h5>근거 발언</h5><div class="q2" v-for="e in o.evidence || []" :key="e.seq"><span class="mono">[{{ e.seq }}]</span> {{ e.speaker }} “{{ e.quote }}”</div></div>
+                    <div><h5>회의·주제</h5><p>{{ o.meeting_id }} · {{ o.date }}</p><p class="muted">주제 <span class="mono">{{ o.topic || '—' }}</span></p></div>
+                    <div><h5>후속 할 일</h5><p v-for="a in o.follow_up" :key="a.statement">{{ a.statement }} <span class="muted">{{ a.owner || '?' }} · {{ a.due || '기한 없음' }}</span></p><p class="muted" v-if="!o.follow_up.length">없음</p></div>
+                  </div>
+                  <div class="aact"><button class="btn" @click="closeOpen(o)">결정 없이 닫기</button></div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="atab === 'acl'">
+              <div class="adm-hd"><h2>회의 접근 권한</h2></div>
+              <p class="note">기본값은 그 회의 참석자만 열람. 체크한 역할은 참석하지 않았어도 원문과 결정을 볼 수 있습니다. 팀장은 항상 열람.</p>
+              <table class="atable">
+                <tr><th>회의</th><th>제목</th><th>참석자</th><th>인턴</th><th>팀원</th><th>담당자</th></tr>
+                <tr v-for="m in acl" :key="m.meeting_id">
+                  <td class="mono">{{ m.meeting_id }}</td><td>{{ m.title }}</td><td class="muted" style="font-size:12px">{{ m.attendees.join(', ') }}</td>
+                  <td v-for="r in ['인턴', '팀원', '담당자']" :key="r"><input type="checkbox" :checked="m.roles.includes(r)" @change="setAcl(m, r, $event.target.checked)"></td>
+                </tr>
+              </table>
+            </div>
+
+            <div v-if="atab === 'his'">
+              <div class="adm-hd"><h2>처리 이력</h2></div>
+              <table class="atable">
+                <tr><th>요청자</th><th>대상</th><th>결과</th><th>처리</th><th>시각</th></tr>
+                <tr v-for="r in admin.history" :key="r.id"><td>{{ r.requester_name }}</td><td class="mono">{{ r.target }}</td>
+                  <td :class="r.status === 'approved' ? 'st-ok' : r.status === 'rejected' ? 'st-bad' : 'st-wait'">{{ { approved: '승인', rejected: '반려', pending: '대기' }[r.status] }}{{ r.scope ? ' · ' + scopeKo(r.scope) + (r.duration ? ' · ' + durKo(r.duration, r.expires) : '') : '' }}</td>
+                  <td>{{ r.decided_by ? userName(r.decided_by) : '—' }}</td><td class="mono">{{ when(r.decided || r.created) }}</td></tr>
+              </table>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -802,7 +877,7 @@ createApp({
     const drawer = ref(false), selPrj = ref(null), projects = ref([]), meetings = ref([]), ledger = ref([]), reqSent = reactive({});
     const events = ref([]), selEvent = ref(null);     // 채팅에서 확인 후 추가한 일정 (GET /events)
     const calY = ref(2026), calM = ref(10);
-    const admin = reactive({ decisions: [], requests: [], history: [] }), doneDec = ref([]), atab = ref('dec'), acl = ref([]);
+    const admin = reactive({ decisions: [], requests: [], history: [] }), doneDec = ref([]), atab = ref('dec'), acl = ref([]), sel = ref('');
     const dlg = reactive({ open: false, title: '', message: '', input: null, placeholder: '', ok: '확인', cancel: '취소', danger: false });
     const dlgInput = ref(null);
     let dlgResolve = null;
@@ -1162,6 +1237,7 @@ createApp({
       if (me.value && qs.get('thread')) { const t = threads.value.find(x => x.thread_id === qs.get('thread')); if (t) await openThread(t); }
       if (me.value && qs.get('page')) go(qs.get('page'));
       if (me.value && qs.get('tab')) { atab.value = qs.get('tab'); if (qs.get('tab') === 'acl') loadAcl(); }
+      if (me.value && qs.get('sel')) sel.value = qs.get('sel');   // 캡처용: 관리자 콘솔에서 펼칠 대기 건
       if (me.value && qs.get('prj')) { drawer.value = true; await loadMeetings(); await loadProjects(); await pickPrj(qs.get('prj')); }
       if (me.value && qs.get('mtg')) { drawer.value = true; await loadMeetings(); await loadProjects(); const m = meetings.value.find(x => x.meeting_id === qs.get('mtg')); if (m) await pickMeeting(m); }
       if (me.value && qs.get('mini')) openMini();
@@ -1171,7 +1247,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { sel, openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,

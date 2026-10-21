@@ -737,8 +737,47 @@ async def admin_pending(user: str):
             "meetings": sorted({e["meeting_id"] for e in r.get("evidence", [])}),
             # 승인하면 대체될 결정 미리보기 — 주제가 틀리면 무관한 결정이 무효가 되므로 누르기 전에 보여 준다
             "will_supersede": await app.state.deps.mcp.call("will_supersede", decision_id=did),
-            "quotes": [e.get("quote") for e in r.get("evidence", [])][:2]})
-    return {"decisions": pending, "requests": acc.requests("pending"), "history": acc.requests(None)[:20]}
+            "quotes": [e.get("quote") for e in r.get("evidence", [])][:2]} | await _decision_detail(r))
+    requests = acc.requests("pending")
+    for q in requests:                        # 열람 대상 회의 정보 — 펼쳤을 때 왜 못 보는지(참석자 아님) 바로 보이게
+        q["meeting"] = await _meeting_brief(q["target"] if "-M" in q["target"] or "-I" in q["target"] else "")
+    return {"decisions": pending, "requests": requests, "history": acc.requests(None)[:20]}
+
+
+async def _meeting_brief(meeting_id: str) -> dict:
+    """
+    회의 요약 정보 (관리자 콘솔 세부사항용)
+    Args:
+        meeting_id: 회의 ID (비우면 빈 dict)
+    Returns:
+        {meeting_id, title, date, attendees:[이름(역할)]} 또는 빈 dict
+    """
+    if not meeting_id:
+        return {}
+    m = await app.state.deps.mcp.call("meeting_info", meeting_id=meeting_id)
+    return {"meeting_id": meeting_id, "title": m.get("title", ""), "date": m.get("date", ""),
+            "attendees": [f"{a['name']}({a['role']})" if a.get("role") else a["name"] for a in m.get("attendees", [])]} if m else {}
+
+
+async def _decision_detail(d: dict) -> dict:
+    """
+    승인 대기 결정의 세부사항 — 근거 발언 전체, 근거 회의, 회의 정리 때의 라벨·해결 방향, 이 결정으로 이어진 이전 미결
+    Args:
+        d: 원장 결정 (evidence 포함)
+    Returns:
+        {evidence, meeting, label, label_reason, suggestions, prior}
+    """
+    h = await app.state.deps.mcp.call("decision_history", decision_id=d["decision_id"])
+    items = h.get("items", [])
+    cand = next((i for i in items if i["kind"] == "decision"), {})
+    review = cand.get("review") or {}
+    ev = d.get("evidence", [])
+    return {"evidence": [{"meeting_id": e.get("meeting_id"), "seq": e.get("seq"), "quote": e.get("quote")} for e in ev],
+            "meeting": await _meeting_brief(ev[0]["meeting_id"] if ev else ""),
+            "label": cand.get("label"), "label_reason": review.get("label_reason"),
+            "suggestions": review.get("suggestions", []),
+            "prior": [{"meeting_id": i["meeting_id"], "date": i.get("date"), "statement": i["statement"]}
+                      for i in items if i["kind"] == "open"]}
 
 
 @app.post("/decisions/{decision_id}/edit")
