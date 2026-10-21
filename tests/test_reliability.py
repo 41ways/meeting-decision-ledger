@@ -32,6 +32,9 @@ def test_answer_rules():
     nf = {"expected_state": "찾지 못함", "expected_ids": []}
     assert R.answer_ok(nf, {"final": "[찾지 못함] 관련 결정이나 논의를 찾지 못했습니다.", "label": "찾지 못함"}, {})
     assert not R.answer_ok(nf, {"final": "[확정] OPS-0007입니다.", "label": "확정"}, {})
+    assert R.answer_ok(nf, {"final": "[확정] 숙박비 한도는 결정되지 않았습니다.", "label": "확정"}, {})
+    assert not R.answer_ok(nf, {"final": "[확정] 아직 승인 대기", "label": "확정"}, {})
+    assert not R.answer_ok(nf, {"final": "[미결] 결재선은 1단계로 정했다. EXP-0007", "label": "미결"}, {})
     day = {"expected_state": "확정", "expected_ids": [], "expected_keywords": ["12월 7일"]}
     assert R.answer_ok(day, {"final": "[확정] 시범 운영은 2026-12-07입니다.", "label": "확정"}, {})
 

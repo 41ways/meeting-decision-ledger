@@ -528,7 +528,9 @@ def save_raw(split: str, raw: dict) -> None:
 
 # ---------------------------------------------------------------- 채점
 STATE_WORDS = {"미결": r"결정되지 않|미결|확정되지 않|정해지지 않|논의 중|논의만",
-               "찾지 못함": r"찾지 못"}
+               "찾지 못함": r"찾지 못|결정되지 않|정해지지 않|정하지 않|논의된 적 없|관련 결정이 없|기록이 없"}
+ANY_ID = re.compile(r"(?<![A-Za-z0-9])[A-Z]{3,4}-\d{2,4}(?!\d)")
+CLARIFY = "어떤 결정이나 회의를 말씀하시는지"       # 사실 조회가 대상을 되묻는 답 — 사람에게 되돌린 것으로 본다
 
 
 def score_meetings(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]:
@@ -602,6 +604,7 @@ def score_meetings(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]:
             auto.append({"type": "결정", "mid": mid, "auto": d["label"] != "확인 필요", "ok": ok_auto,
                          "justified": justified})
         # 할 일
+        attendees = json.loads((D.MEETINGS / f"{mid}.json").read_text(encoding="utf-8"))["attendees"]
         pas = pred.get("action_items", [])
         used = set()
         for ga in g["action_items"]:
@@ -618,6 +621,9 @@ def score_meetings(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]:
             used.add(pa)
             a = pas[pa]
             owner = re.sub(r"\s*\(.*\)", "", a["owner"]).strip() if a.get("owner") else None
+            # 성을 뺀 이름('지수')은 참석자 한 명으로 정해지면 그 사람으로 본다
+            full = [x for x in attendees if owner and x.endswith(owner) and len(owner) >= 2]
+            owner = full[0] if len(full) == 1 else owner
             ok_o, ok_d = owner == ga.get("owner"), a.get("due") == ga.get("due")
             c["act_hit"] += 1
             c["act_owner"] += ok_o
@@ -694,7 +700,11 @@ def answer_ok(q: dict, p: dict, idm: dict) -> bool:
         return ("승인 대기" in short or label == "승인 대기") and hit
     if s == "미결":
         return label == "미결" or (label != "확정" and bool(re.search(STATE_WORDS["미결"], short)))
-    return label == "찾지 못함" or (label not in ("확정", "승인 대기") and bool(re.search(STATE_WORDS["찾지 못함"], short)))
+    # 찾지 못함: 결정을 지어내지 않으면 정답 — 라벨이 틀려도 결정·조항 ID나 '승인 대기'를 대지 않고 '없다·정하지 않았다'고 답하면 맞다
+    if label == "찾지 못함":
+        return True
+    return (not ANY_ID.search(short) and "승인 대기" not in short and label != "승인 대기"
+            and bool(re.search(STATE_WORDS["찾지 못함"], short)))
 
 
 def score_questions(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]:
@@ -720,7 +730,8 @@ def score_questions(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]
                   "화면 프로젝트 선택 없음" if not q.get("scope_project") else "화면 프로젝트 선택"):
             by[k][1] += 1
             by[k][0] += ok
-        is_auto = bool(p.get("label")) and p["label"] != "확인 필요"
+        # 질문을 잡담 등 다른 경로로 보내 라벨 없이 답했으면 자동으로 낸 답이다. 되묻기만 사람에게 넘긴 것으로 센다
+        is_auto = p.get("label") != "확인 필요" and not (p.get("final") or "").startswith(CLARIFY)
         c["misrouted"] += p.get("mode") not in (None, "question", "fact")
         auto.append({"type": "질문", "auto": is_auto, "ok": ok, "justified": not ok or bool(q.get("ambiguous"))})
     return c, auto, by
@@ -786,9 +797,10 @@ def handoff_reasons(raw: dict) -> dict:
             for r in reason_key(p.get("label_reason") or p.get("error")):
                 out["의견"][r] += 1
     for p in raw.get("questions", {}).values():
-        if not p.get("label") or p["label"] == "확인 필요":
-            for r in reason_key((p.get("reasons") or [None])[0] if p.get("label") else "되물음·라벨 없음"):
-                out["질문"][r] += 1
+        if p.get("label") != "확인 필요" and not (p.get("final") or "").startswith(CLARIFY):
+            continue
+        for r in reason_key((p.get("reasons") or [None])[0] if p.get("label") else "대상 되묻기"):
+            out["질문"][r] += 1
     return {k: dict(sorted(v.items(), key=lambda x: -x[1])) for k, v in out.items() if v}
 
 
@@ -973,7 +985,9 @@ def to_md(split: str, s: dict, meta: dict) -> str:
             rows += ["", f"## {name}", "", "| 구분 | 값 (95% 신뢰구간) · 표본 |", "|---|---|"]
             rows += [f"| {k} | {fmt(v)} |" for k, v in tab.items()]
     rows += ["", "## 지표 정의", "",
-             "- 자동 처리: 결정은 라벨이 '확인 필요'가 아님, 의견은 판정이 needs_approval이 아님(다른 경로로 가 판정이 없으면 자동 처리한 오답), 질문은 답 라벨이 '확인 필요'가 아니고 되묻지 않음.",
+             "- 자동 처리: 결정은 라벨이 '확인 필요'가 아님, 의견은 판정이 needs_approval이 아님(다른 경로로 가 판정이 없으면 자동 처리한 오답), 질문은 답 라벨이 '확인 필요'가 아니고 대상을 되묻지 않음(잡담 경로로 간 답도 자동 처리).",
+             "- 질문 정답: 확정은 결정 ID나 핵심어 전부, 승인 대기는 '승인 대기'와 ID, 미결은 미결 라벨이나 '결정되지 않음' 표현, 찾지 못함은 결정·조항 ID와 '승인 대기'를 대지 않고 '찾지 못함·정하지 않음'으로 답함(라벨이 틀려도 내용으로 채점). 금지어(지난 값)가 있으면 오답.",
+             "- 할 일 담당: 괄호 설명을 떼고, 성을 뺀 이름은 참석자 한 명으로 정해지면 같은 사람으로 본다.",
              "- 자동 처리 정확도: 결정은 정답 결정이면서 기대 라벨이 '승인 대기'(충돌 없음), 의견은 판정 일치, 질문은 정답.",
              "- 넘긴 것 중 애매·오류: 결정은 정답에 없는 결정이거나 기대 라벨이 '확인 필요'이거나 애매 표시이거나 주제를 잘못 고름, "
              "의견은 기대 판정이 needs_approval이거나 애매 표시, 질문은 답이 틀렸거나 애매 표시.",
