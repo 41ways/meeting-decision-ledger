@@ -227,7 +227,8 @@ def rollback(reg: PR.Registry, apply: bool, dry: bool) -> int:
         print(f"champion: {out['retired']} → {out['champion']} (내려간 버전은 retired)")
     else:
         print(f"[dry-run] champion을 {lineage[-1]} → {target['id']}로 되돌립니다")
-    now = PR.components(*target["components"]["models"].values())
+    tm = target["components"]["models"]
+    now = PR.components(tm["fast"], tm["quality"])
     diff = PR.diff_components(now, target["components"])
     commit = (target.get("git") or {}).get("commit") or "(커밋 기록 없음)"
     print(f"\n복원 대상 {target['id']} — 기준 커밋 {commit}")

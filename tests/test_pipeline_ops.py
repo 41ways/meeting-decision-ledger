@@ -61,6 +61,18 @@ def test_version_changes_with_threshold_prompt_vocab_model(repo):
     assert PR.version_id(PR.components("ollama:qwen3:0.6b", "ollama:qwen3:8b", repo)) != _vid(repo)
 
 
+def test_crosscheck_switch_is_part_of_version(monkeypatch):
+    off = PR.version_id(PR.components("ollama:qwen3:8b", "ollama:qwen3:8b"))
+    monkeypatch.setenv("CROSSCHECK", "1")
+    comp = PR.components("ollama:qwen3:8b", "ollama:qwen3:8b")
+    assert comp["models"]["checkers"] == ["ollama:qwen3:0.6b", "ollama:qwen2.5:0.5b"] and PR.version_id(comp) != off
+
+    class D:
+        fast_llm = quality_llm = type("L", (), {"name": "ollama:qwen3:8b"})()
+        checkers = [type("C", (), {"name": "ollama:qwen3:0.6b"})(), type("C", (), {"name": "ollama:qwen2.5:0.5b"})()]
+    assert PR.version_of(D()) == PR.version_id(comp)        # 그래프 의존성과 환경변수가 같은 버전을 낸다
+
+
 def test_prompts_cover_inline_and_named_system_prompts():
     keys = PR.prompt_texts()
     assert "agent/retrieve.py:pick#1" in keys                     # 상수(PICK_SYSTEM)로 넘긴 지시문

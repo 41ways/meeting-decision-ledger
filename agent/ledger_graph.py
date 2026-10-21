@@ -36,7 +36,7 @@ from langgraph.config import get_stream_writer
 from langgraph.graph import END, StateGraph
 from langsmith import traceable
 
-from agent import enrich, retrieve
+from agent import crosscheck, enrich, retrieve
 from agent.facts import fact_answer, is_fact_question
 from agent.schedule_add import events_as_meetings, schedule_add_node
 from ledger import pipeline_registry
@@ -115,6 +115,7 @@ class LedgerDeps:
     chat_llm: Any = None       # 일반 대화 전용 모델 (자동 모드에서 작은 모델). 없으면 fast_llm
     can_view: Any = None       # (user_id, decision) -> bool. 권한 없는 결정은 내용 자체를 LLM에 넘기지 않는다
     calendar: Any = None       # CalendarProvider (ledger/calendar.py). 일정 추가 초안·일정 조회에 쓴다
+    checkers: Any = None       # 교차검증용 작은 모델 목록 (agent/crosscheck.py). 비어 있으면 교차검증 안 함
     today: str = TODAY
     propose_to_ledger: bool = False
 
@@ -843,6 +844,13 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
             pick_evs.append({"type": "CandidatesPicked", "shown": picked["shown"],
                              "picked": [d["decision_id"] for d in picked["decisions"]]
                              + [o["item_id"] for o in picked["opens"]], "check": why})
+            if deps.checkers and res.get("authority") == "decision" and res.get("current"):
+                x = await crosscheck.check(deps, "pick", *crosscheck.pick_job(state["message"], res["current"]))
+                pick_usage.extend(x["usage"])
+                pick_evs.append({"type": "CrossChecked", "kind": "pick", "target": res["current"]["decision_id"],
+                                 "votes": x["votes"], "outcome": x["outcome"]})
+                if x["outcome"] == "defer":
+                    why = [*why, f"교차검증: {res['current']['decision_id']}가 질문에 맞는지 의견이 갈림"]
             item = {**item, **({"discussion": disc} if disc else {}), "check_reasons": why}
         return {**item, "research": res, "waivers": waivers, "authority_check": auth}
 
@@ -1045,6 +1053,10 @@ def _guard_topic(item: dict, review: dict) -> dict:
         그대로이거나 needs_approval로 바꾼 review
     """
     res = item.get("research", {})
+    if item.get("xcheck_reasons"):
+        hard = [c for c in review["conflicts"] if c["type"] in ("policy", "authority")]
+        if not hard:
+            review = {**review, "status": "needs_approval", "notes": item["xcheck_reasons"] + review.get("notes", [])}
     if not (res.get("topic_doubt") or res.get("similar_other")):
         return review
     hard = [c for c in review["conflicts"] if c["type"] in ("policy", "authority")]
@@ -1070,6 +1082,20 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
     """
     if state["mode"] == "question" or not state.get("items"):
         return {"events": _ev(state, {"type": "AnalysisSkipped"})}
+    xevs, xusage = [], []
+    if deps.checkers and state["mode"] == "meeting":
+        # '결정이다'라는 8b 판단을 교차검증 — 이견이면 지우지 않고 확인 필요로 낮춘다
+        by_seq = {s["seq"]: s for s in state.get("segments", [])}
+        state = {**state, "items": [dict(i) for i in state["items"]]}
+        results_x = await asyncio.gather(*(crosscheck.check(deps, "decision", *crosscheck.decision_job(i, by_seq))
+                                           for i in state["items"]))
+        for i, x in zip(state["items"], results_x):
+            xusage += x["usage"]
+            xevs.append({"type": "CrossChecked", "kind": "decision", "target": i["decided_seq"],
+                         "votes": x["votes"], "outcome": x["outcome"]})
+            if x["outcome"] == "defer":
+                i.setdefault("xcheck_reasons", []).append("교차검증: 결정으로 볼지 의견이 갈림")
+
     async def judge(item):
         """
         항목 하나의 기준 관계와 예외 범위를 판정
@@ -1093,6 +1119,19 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
         if usage.get("parse_error") or not out.get("checks"):
             # 모델 출력이 깨지면 판정이 비고, 그대로 두면 판정표가 '문제없음'을 낸다
             return {**item, "review": _needs_human(item, "판정 실패(모델 출력 해석 불가) — 사람 검토 필요")}, usage
+        if deps.checkers:
+            # 충돌을 놓치는 방향('같다·무관하다')만 교차검증 — 이견이면 단정하지 않고 확인 필요
+            by_ref = {s["ref"]: s for s in srcs}
+            risky = [c for c in out["checks"] if c.get("ref") in by_ref and c.get("relation") in ("same", "unrelated")
+                     and by_ref[c["ref"]]["kind"] in ("policy", "decision", "baseline")]
+            for c, x in zip(risky, await asyncio.gather(
+                    *(crosscheck.check(deps, "relation", *crosscheck.relation_job(item, by_ref[c["ref"]])) for c in risky))):
+                xusage.extend(x["usage"])
+                xevs.append({"type": "CrossChecked", "kind": "relation", "target": c["ref"],
+                             "votes": x["votes"], "outcome": x["outcome"]})
+                if x["outcome"] == "defer":
+                    item = {**item, "xcheck_reasons": [*item.get("xcheck_reasons", []),
+                                                       f"교차검증: 기준 {c['ref']}와 충돌하는지 의견이 갈림"]}
         covers = {}
         for w in item.get("waivers", []):          # 예외 범위는 따로 한 문항으로 묻는다 (섞어 물으면 놓친다)
             ans, u = await deps.fast_llm.json(
@@ -1118,8 +1157,9 @@ async def analysis_node(state: LedgerState, deps: LedgerDeps) -> dict:
     evs = [{"type": "ConflictChecked", "statement": i["statement"][:40], "status": i["review"]["status"],
             "conflicts": [f"{c['type']}:{','.join(c['against'])}" for c in i["review"]["conflicts"]]}
            for i in items]
+    evs += xevs
     out = {"items": items}
-    usages = [r[1] for r in results]
+    usages = [r[1] for r in results] + xusage
     if state["mode"] in ("meeting", "opinion"):
         extra, more, more_evs = await _enrich(state, deps, items)
         out.update(extra)

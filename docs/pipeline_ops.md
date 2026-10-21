@@ -18,11 +18,11 @@
 
 | 구성 요소 | 재는 방법 | 바뀌는 예 |
 |---|---|---|
-| 모델 | 분류(fast)·작성(quality) 모델 이름 | qwen3:8b → 다른 모델, 모델 조합(PRESETS) |
+| 모델 | 분류(fast)·작성(quality) 모델 이름, 교차검증 모델(`CROSSCHECK=1`일 때) | qwen3:8b → 다른 모델, 모델 조합(PRESETS), 교차검증 켜기 |
 | 프롬프트 지문 | LLM 호출(`.json`·`.text`)의 시스템 문구·출력 형식, MCP Prompt 본문을 AST로 뽑아 키(`파일:함수#순번`)별 해시 | 판정 지시문 한 줄 수정 |
 | 임계값 | `ledger/thresholds.py` 숫자 상수 | `MIN_TOPIC_SCORE` 0.50 → 0.52 |
 | 주제·별칭 지문 | `topics.json`, `용어집.md`, `data/project/**/*alias*` 파일 해시 | 주제 추가, 별칭 추가 |
-| 코드 지문 | 동작 코드 14개 파일의 AST (docstring·주석 제외) | 게이트 규칙 수정 |
+| 코드 지문 | 동작 코드 15개 파일의 AST (docstring·주석 제외) | 게이트 규칙 수정 |
 
 - 버전 ID = 위 다섯을 합친 해시 (`pv-` + 10자리). git 커밋은 ID에 넣지 않고 기록으로만 둔다. 문서·주석만 고친 커밋마다 재평가하지 않기 위해서다.
 - 감시·관리 코드(metrics, monitor, access, 화면)는 코드 지문에 넣지 않는다.

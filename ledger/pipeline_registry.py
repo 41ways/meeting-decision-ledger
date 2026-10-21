@@ -24,13 +24,13 @@ ROOT = Path(__file__).resolve().parent.parent
 REGISTRY = STORE_DIR / "pipeline_registry.json"
 
 # 동작을 정하는 코드 — 감시·관리 코드(metrics, monitor, access, 화면)는 버전에 넣지 않는다
-CODE_FILES = ["agent/ledger_graph.py", "agent/enrich.py", "agent/retrieve.py", "agent/facts.py",
+CODE_FILES = ["agent/ledger_graph.py", "agent/enrich.py", "agent/retrieve.py", "agent/facts.py", "agent/crosscheck.py",
               "agent/schedule_add.py", "agent/retry.py", "ledger/resolve.py", "ledger/rag.py", "ledger/store.py",
               "ledger/records.py", "ledger/llm.py", "ledger/mcp_bridge.py", "ledger/schedule_parse.py",
               "mcp_ledger_server.py"]
 # LLM에 지시문을 보내는 파일 — 프롬프트 지문은 이 파일들의 LLM 호출 인자와 MCP Prompt에서 뽑는다
 PROMPT_FILES = ["agent/ledger_graph.py", "agent/enrich.py", "agent/retrieve.py", "agent/facts.py",
-                "agent/schedule_add.py", "mcp_ledger_server.py"]
+                "agent/schedule_add.py", "agent/crosscheck.py", "mcp_ledger_server.py"]
 THRESHOLD_FILE = "ledger/thresholds.py"
 # 주제 목록·용어집, 그리고 별칭 파일(이름에 alias가 들어간 JSON — 용어 색인 작업이 더할 예정)
 VOCAB_FILES = ["data/project/topics.json", "data/project/r2_docs/용어집.md"]
@@ -211,19 +211,34 @@ def git_info(root: Path = ROOT) -> dict:
         return {"commit": None, "dirty": None}
 
 
-def components(fast_model: str, quality_model: str, root: Path = ROOT) -> dict:
+def env_checkers() -> list[str]:
+    """
+    환경변수로 켠 교차검증 모델 (agent/crosscheck.py와 같은 규칙: CROSSCHECK=1일 때 CROSSCHECK_MODELS)
+    Returns:
+        모델 이름 목록 ('ollama:' 붙임). 꺼져 있으면 빈 목록
+    """
+    if os.environ.get("CROSSCHECK", "0") != "1":
+        return []
+    names = os.environ.get("CROSSCHECK_MODELS", "qwen3:0.6b,qwen2.5:0.5b").split(",")
+    return [f"ollama:{n.strip()}" for n in names if n.strip()]
+
+
+def components(fast_model: str, quality_model: str, root: Path = ROOT, checkers: list[str] | None = None) -> dict:
     """
     버전을 이루는 구성 요소 계산
     Args:
         fast_model:    분류용 모델 이름 (예: ollama:qwen3:8b)
         quality_model: 작성용 모델 이름
         root:          저장소 루트
+        checkers:      교차검증 모델 이름. None이면 환경변수(CROSSCHECK)로 정한다
     Returns:
         {models, prompt_fp, prompts(키별 지문), thresholds, vocab_fp, vocab(파일별 지문), code_fp}
     """
     prompts = {k: _sha(v, 8) for k, v in sorted(prompt_texts(root).items())}
     vocab = vocab_files(root)
-    return {"models": {"fast": fast_model, "quality": quality_model},
+    # 교차검증은 켜고 끄는 것만으로 판정이 달라진다 — 모델 묶음에 넣는다
+    checks = env_checkers() if checkers is None else list(checkers)
+    return {"models": {"fast": fast_model, "quality": quality_model, "checkers": checks},
             "prompt_fp": _sha(json.dumps(prompts, sort_keys=True)), "prompts": prompts,
             "thresholds": thresholds(root),
             "vocab_fp": _sha(json.dumps(vocab, sort_keys=True, ensure_ascii=False)), "vocab": vocab,
@@ -243,7 +258,7 @@ def version_id(comp: dict) -> str:
 
 
 @lru_cache(maxsize=8)
-def current(fast_model: str, quality_model: str) -> tuple[str, str]:
+def current(fast_model: str, quality_model: str, checkers: tuple[str, ...] | None = None) -> tuple[str, str]:
     """
     이 프로세스가 돌리는 버전 (모델 조합별로 한 번만 계산)
 
@@ -251,10 +266,11 @@ def current(fast_model: str, quality_model: str) -> tuple[str, str]:
     Args:
         fast_model:    분류용 모델 이름
         quality_model: 작성용 모델 이름
+        checkers:      교차검증 모델 이름. None이면 환경변수로
     Returns:
         (버전 ID, 구성 요소 JSON 문자열) — lru_cache가 dict를 못 담아 문자열로 둔다
     """
-    comp = components(fast_model, quality_model)
+    comp = components(fast_model, quality_model, checkers=None if checkers is None else list(checkers))
     return version_id(comp), json.dumps(comp, ensure_ascii=False)
 
 
@@ -266,7 +282,9 @@ def version_of(deps) -> str:
     Returns:
         버전 ID (모델 이름을 모르면 'unknown'으로 계산)
     """
-    return current(getattr(deps.fast_llm, "name", "unknown"), getattr(deps.quality_llm, "name", "unknown"))[0]
+    checkers = tuple(getattr(c, "name", "unknown") for c in (getattr(deps, "checkers", None) or []))
+    return current(getattr(deps.fast_llm, "name", "unknown"), getattr(deps.quality_llm, "name", "unknown"),
+                   checkers)[0]
 
 
 def diff_components(a: dict, b: dict) -> dict:
