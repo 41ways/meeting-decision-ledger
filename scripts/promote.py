@@ -124,7 +124,9 @@ def busy() -> list[str]:
         돌고 있는 프로세스 줄 목록
     """
     out = subprocess.run(["pgrep", "-fl", BUSY], capture_output=True, text=True, check=False).stdout
-    return [ln for ln in out.splitlines() if ln.strip() and "promote.py" not in ln and "pgrep" not in ln]
+    # 셸 명령 줄(zsh -c "… run_eval …")도 글자가 걸리므로 실제로 도는 파이썬 프로세스만 센다
+    return [ln for ln in out.splitlines() if re.search(r"python", ln.split(" ")[1] if " " in ln else "", re.I)
+            and "promote.py" not in ln]
 
 
 def committed_scores(runner: dict) -> dict | None:
