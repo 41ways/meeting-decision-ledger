@@ -583,7 +583,9 @@ def score_opinions(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]:
         if exp and o["expected"] != "no_conflict":
             c["basis_n"] += 1
             c["basis_ok"] += bool(exp & set(p.get("against", [])) or (o.get("waiver") and o["waiver"] == p.get("waiver")))
-        is_auto = p.get("verdict") not in (None, "needs_approval")
+        # 의견을 질문 등 다른 경로로 보내 판정이 없으면 사람에게 넘긴 게 아니라 자동으로 틀린 답을 낸 것이다
+        is_auto = p.get("verdict") != "needs_approval"
+        c["misrouted"] += p.get("mode") not in (None, "opinion")
         auto.append({"type": "의견", "auto": is_auto, "ok": ok,
                      "justified": o["expected"] == "needs_approval" or bool(o.get("ambiguous"))})
     return c, auto, by
@@ -642,6 +644,7 @@ def score_questions(gold: dict, raw: dict, idm: dict) -> tuple[dict, list, dict]
             by[k][1] += 1
             by[k][0] += ok
         is_auto = bool(p.get("label")) and p["label"] != "확인 필요"
+        c["misrouted"] += p.get("mode") not in (None, "question", "fact")
         auto.append({"type": "질문", "auto": is_auto, "ok": ok, "justified": not ok or bool(q.get("ambiguous"))})
     return c, auto, by
 
@@ -702,7 +705,7 @@ def handoff_reasons(raw: dict) -> dict:
                 for r in reason_key(d.get("label_reason")):
                     out["결정"][r] += 1
     for p in raw.get("opinions", {}).values():
-        if p.get("verdict") in (None, "needs_approval"):
+        if p.get("verdict") == "needs_approval":
             for r in reason_key(p.get("label_reason") or p.get("error")):
                 out["의견"][r] += 1
     for p in raw.get("questions", {}).values():
@@ -788,9 +791,11 @@ def summarize(gold: dict, raw: dict) -> dict:
             "충돌·변경 탐지율": rate_m("conf_hit", "conf_gt"),
             "충돌 오탐(충돌 없는 결정 중)": rate_m("fa", "fa_base")})
     if raw.get("opinions"):
-        m.update({"의견 판정 정확": rate(oc["ok"], oc["n"]), "의견 근거 일치": rate(oc["basis_ok"], oc["basis_n"])})
+        m.update({"의견 판정 정확": rate(oc["ok"], oc["n"]), "의견 근거 일치": rate(oc["basis_ok"], oc["basis_n"]),
+                  "의견 경로 오분류(의견으로 처리 안 함)": rate(oc["misrouted"], oc["n"])})
     if raw.get("questions"):
         m["질문 정답률"] = rate(qc["ok"], qc["n"])
+        m["질문 경로 오분류(질의·사실 조회 아님)"] = rate(qc["misrouted"], qc["n"])
         nf = qb.get("상태:찾지 못함", [0, 0])
         m["'찾지 못함' 함정 정답률"] = rate(nf[0], nf[1])
     allauto = ma + oa + qa
@@ -890,7 +895,7 @@ def to_md(split: str, s: dict, meta: dict) -> str:
             rows += ["", f"## {name}", "", "| 구분 | 값 (95% 신뢰구간) · 표본 |", "|---|---|"]
             rows += [f"| {k} | {fmt(v)} |" for k, v in tab.items()]
     rows += ["", "## 지표 정의", "",
-             "- 자동 처리: 결정은 라벨이 '확인 필요'가 아님, 의견은 판정이 needs_approval이 아님, 질문은 답 라벨이 '확인 필요'가 아니고 되묻지 않음.",
+             "- 자동 처리: 결정은 라벨이 '확인 필요'가 아님, 의견은 판정이 needs_approval이 아님(다른 경로로 가 판정이 없으면 자동 처리한 오답), 질문은 답 라벨이 '확인 필요'가 아니고 되묻지 않음.",
              "- 자동 처리 정확도: 결정은 정답 결정이면서 기대 라벨이 '승인 대기'(충돌 없음), 의견은 판정 일치, 질문은 정답.",
              "- 넘긴 것 중 애매·오류: 결정은 정답에 없는 결정이거나 기대 라벨이 '확인 필요'이거나 애매 표시이거나 주제를 잘못 고름, "
              "의견은 기대 판정이 needs_approval이거나 애매 표시, 질문은 답이 틀렸거나 애매 표시.",
