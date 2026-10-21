@@ -22,7 +22,8 @@ def test_normalize_particles_case_and_spaces():
     assert A.strip_particle("캐시는") == "캐시" and A.strip_particle("레디스로") == "레디스"
     assert A.strip_particle("회의") == "회의" and A.strip_particle("평가") == "평가"     # 두 글자 낱말은 한 글자 조사를 떼지 않는다
     assert A.tokens("Redis캐시를 SSE로") == ["redis", "캐시를", "sse", "로"]
-    assert A.content_words("Redis 캐시 쓰기로 했어요?") == ["redis", "캐시"]
+    assert A.content_words("Redis 캐시 쓰기로 했어요?") == ["redis", "cache"]      # 같은 말은 대표 표기로
+    assert A.content_words("레디스 캐싱") == ["redis", "cache"]
     assert A.topics_of("long polling") == A.topics_of("Long Polling") == A.topics_of("LongPolling")
 
 
@@ -189,6 +190,16 @@ def test_full_read_conditions():
     assert out["how"] == "없음" and not llm.prompts and [n for n, _ in mcp.calls] == ["index_candidates"]
 
 
+def test_open_item_key_has_no_colon_and_maps_back():
+    """모델이 쌍점 있는 항목 ID를 잘라 돌려줘 미결이 버려지던 문제 — 쌍점 없는 키로 보이고 되돌린다."""
+    op = {"kind": "open", "item_id": "OPS-M03:open:10", "statement": "캐시 대상 정의", "date": "2026-10-06",
+          "topic": "cache", "evidence": [{"quote": "캐시는 대상부터 정해야 할 것 같아요."}]}
+    assert R.key(op) == "O:OPS-M03-10" and R._line(op).startswith("O:OPS-M03-10 [미결]")
+    assert "(발언: 캐시는 대상부터" in R._line(op)
+    chosen, _ = run(R.read_list(PickLLM(["O:OPS-M03-10"]), "Redis 캐시?", [op]))
+    assert chosen == [op]
+
+
 def test_notice_text_and_chunking():
     assert R.full_read_notice("색인 0건", "OPS", 15, 0, 4.4, 1) == "※ 색인에서 찾지 못해 OPS 기록 전체 15건을 읽었습니다 · 약 4초"
     assert R.full_read_notice("요청", "CSB", 300, 2, 31, 3).endswith("약 31초 · 3번에 나눠 읽음")
@@ -227,3 +238,13 @@ def test_transcript_index_drops_deleted_meeting(tx, tmp_path):
     assert tx.sync(DATA) == 1                                           # 파일이 남아 있으면 다시 색인 (바뀐 것만)
     assert tx.sync(DATA) == 0
     assert Path(DATA / "r1_meetings" / "OPS-M03.json").exists()
+
+
+def test_validate_checks_model_sentence_not_code_blocks():
+    """근거 블록에 '결정되지 않음'이 있어도 모델 문장이 '아직 승인 대기'면 반려 (예전엔 늘 통과)."""
+    item = {"research": {"authority": "discussion", "pending": [], "notes": []},
+            "discussion": [{"meeting_id": "OPS-M03", "seq": 10, "speaker": "서지후", "text": "다음에 다시"}]}
+    st = {"mode": "question", "message": "Redis 캐시?", "items": [item], "answer_sources": "",
+          "draft": "[미결] 아직 승인 대기\n\n### 원문 논의 · 결정되지 않음 (미결)\n- OPS-M03 [10] 서지후: 다음에 다시"}
+    out = run(G.validate_node(st, deps=None))
+    assert "결정되지 않음" in out["validation_feedback"] and "승인 대기" in out["validation_feedback"]

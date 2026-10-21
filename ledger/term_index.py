@@ -234,8 +234,7 @@ class TranscriptIndex:
         """
         tf: dict[str, int] = {}
         for t in A.tokens(text):
-            w = A.strip_particle(t)
-            if w in A.content_words(w):
+            for w in A.content_words(t):          # 조사를 떼고 같은 말은 대표 표기로 (레디스 → redis)
                 tf[w] = tf.get(w, 0) + 1
         for h in A.match(text):
             tf["#" + h.topic] = tf.get("#" + h.topic, 0) + 1

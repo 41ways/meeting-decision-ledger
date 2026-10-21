@@ -89,6 +89,19 @@ def strip_particle(tok: str) -> str:
     return tok
 
 
+def canon(word: str) -> str:
+    """
+    같은 말의 다른 표기를 첫 표기로 맞춘다 (별칭 파일 synonyms)
+    Args:
+        word: 조사 뗀 낱말
+    Returns:
+        대표 표기 낱말 (등록 안 된 낱말은 그대로)
+    Examples:
+        canon('레디스') -> 'redis', canon('캐싱') -> 'cache'
+    """
+    return _load()[2].get(word, word)
+
+
 def content_words(text: str) -> list[str]:
     """
     단어 검색에 쓸 내용어 (조사 뗀 낱말에서 질문 형식어·어미로 끝나는 말을 뺀 것)
@@ -104,7 +117,7 @@ def content_words(text: str) -> list[str]:
             continue
         if "가" <= w[0] <= "힣" and w.endswith(_ENDINGS):
             continue
-        out.append(w)
+        out.append(canon(w))
     return list(dict.fromkeys(out))
 
 
@@ -185,16 +198,18 @@ def build_aliases(table: dict[str, list[str]], glossary: list[tuple[str, list[st
 
 
 @lru_cache(maxsize=1)
-def _load() -> tuple[tuple[Alias, ...], str]:
+def _load() -> tuple[tuple[Alias, ...], str, dict[str, str]]:
     """
-    별칭 파일·용어집을 읽어 별칭 목록과 판(버전) 지문을 만든다 (프로세스당 한 번)
+    별칭 파일·용어집을 읽어 별칭 목록·판(버전) 지문·같은 말 표를 만든다 (프로세스당 한 번)
     Returns:
-        (별칭 목록, 지문) — 지문은 두 파일 내용의 해시. 바뀌면 항목 색인을 다시 만든다
+        (별칭 목록, 지문, {다른 표기: 대표 표기}) — 지문은 두 파일 내용의 해시. 바뀌면 색인을 다시 만든다
     """
     raw = ALIAS_FILE.read_text(encoding="utf-8") if ALIAS_FILE.exists() else '{"aliases": {}}'
     gl = GLOSSARY_FILE.read_text(encoding="utf-8") if GLOSSARY_FILE.exists() else ""
-    al = build_aliases(json.loads(raw)["aliases"], parse_glossary(gl))
-    return tuple(al), hashlib.sha1((raw + gl).encode()).hexdigest()[:12]
+    data = json.loads(raw)
+    al = build_aliases(data["aliases"], parse_glossary(gl))
+    same = {_key(f): _key(g[0]) for g in data.get("synonyms", []) for f in g if _key(f)}
+    return tuple(al), hashlib.sha1((raw + gl).encode()).hexdigest()[:12], same
 
 
 def aliases() -> tuple[Alias, ...]:

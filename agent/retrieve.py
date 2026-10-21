@@ -55,18 +55,24 @@ def _line(c: dict) -> str:
         if c.get("status") == "approved" and not c.get("active"):
             st = "대체됨"
         return f"D:{c['decision_id']} [{st}] {c.get('project_id', '')} · {c.get('topic', '')} · {c['statement']}"
-    return f"O:{c['item_id']} [미결] {c.get('date', '')} · {c.get('topic', '')} · {c['statement']}"
+    # 미결 요약은 짧아서('캐시 대상 정의') 질문 표현과 안 맞기 쉽다 — 근거 발언 앞부분을 함께 보여 준다
+    quote = " / ".join((e.get("quote") or "")[:40] for e in (c.get("evidence") or [])[:2] if e.get("quote"))
+    return (f"{key(c)} [미결] {c.get('date', '')} · {c.get('topic', '')} · {c['statement']}"
+            + (f" (발언: {quote})" if quote else ""))
 
 
-def _key(c: dict) -> str:
+def key(c: dict) -> str:
     """
-    후보의 선택 키 (D:결정 ID 또는 O:항목 ID)
+    후보의 선택 키 (D:결정 ID 또는 O:회의 ID-발언 번호)
     Args:
         c: 후보
     Returns:
         키 문자열
     """
-    return ("D:" + c["decision_id"]) if c["kind"] == "decision" else ("O:" + c["item_id"])
+    if c["kind"] == "decision":
+        return "D:" + c["decision_id"]
+    # 항목 ID의 쌍점(OPS-M03:open:10)은 모델이 'O:OPS-M03'처럼 잘라 돌려줘서 버려졌다 — 쌍점 없는 키로 보인다
+    return "O:" + c["item_id"].replace(":open:", "-")
 
 
 def est_tokens(text: str) -> int:
@@ -111,7 +117,7 @@ async def read_list(llm, question: str, cands: list[dict], budget: int = LIST_TO
     Returns:
         (고른 후보, LLM 사용량 목록)
     """
-    keys = {_key(c): c for c in cands}
+    keys = {key(c): c for c in cands}
     chosen, usages = [], []
     for part in chunks([_line(c) for c in cands], budget):
         out, usage = await llm.json(PICK_SYSTEM, f"## 질문\n{question}\n\n## 후보\n" + "\n".join(part),
@@ -120,8 +126,8 @@ async def read_list(llm, question: str, cands: list[dict], budget: int = LIST_TO
         chosen += [keys[i.strip()] for i in out.get("ids", []) if isinstance(i, str) and i.strip() in keys]
     seen, uniq = set(), []
     for c in chosen:
-        if _key(c) not in seen:
-            seen.add(_key(c))
+        if key(c) not in seen:
+            seen.add(key(c))
             uniq.append(c)
     return uniq, usages
 
@@ -191,7 +197,7 @@ async def pick(deps, question: str, project_id: str, *, topic: str = "", scope_m
                                 meeting_ids=mids, words=aliases.content_words(question),
                                 date_from=(period or ("", ""))[0], date_to=(period or ("", ""))[1])
     cands = found["candidates"]
-    via = {_key(c): c.get("via", []) for c in cands}
+    via = {key(c): c.get("via", []) for c in cands}
     base = {"tier": found.get("tier", ""), "via": via, "topics": hits, "period_dropped": found.get("period_dropped")}
     reason = full_read_reason(question, len(cands), bool(topics or ids or mids or project_explicit))
     full = None

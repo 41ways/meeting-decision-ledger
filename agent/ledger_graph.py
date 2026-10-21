@@ -863,12 +863,13 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
             pick_usage.extend(picked["usages"])
             res, disc, why = retrieve.merge(res, picked, pid)
             ids = [d["decision_id"] for d in picked["decisions"]] + [o["item_id"] for o in picked["opens"]]
+            keys = {retrieve.key(c) for c in picked["decisions"] + picked["opens"]}
             pick_evs.append({"type": "CandidatesPicked", "how": picked["how"], "tier": picked["tier"],
                              "shown": picked["shown"], "picked": ids, "check": why,
                              "aliases": [a for h in picked["topics"] for a in h["aliases"]],
-                             "via": {k: v for k, v in picked["via"].items() if k[2:] in ids},
+                             "via": {k: v for k, v in picked["via"].items() if k in keys},
                              # 사람이 확인할 때 AI가 고르지 않은 색인 후보도 함께 보이게
-                             "not_picked": [k for k in picked["via"] if k[2:] not in ids][:10]})
+                             "not_picked": [k for k in picked["via"] if k not in keys][:10]})
             if picked["full_read"]:
                 fr = picked["full_read"]
                 pick_evs.append({"type": "FullReadFallback", **{k: v for k, v in fr.items() if k != "notice"},
@@ -1580,17 +1581,20 @@ async def validate_node(state: LedgerState, deps: LedgerDeps) -> dict:
         # 다른 프로젝트를 물었으면 그 프로젝트의 결정 ID가 기준 (없으면 위 목록 유지)
         if item.get("project", DEFAULT_PID) != DEFAULT_PID:
             ids = [a["decision_id"] for a in res.get("advisory", []) if a["project_id"] == item["project"]] or ids
-        if ids and not any(i in state["draft"] for i in ids):
+        # 모델이 쓴 답만 본다 — 코드가 붙인 근거 블록(### …)에는 ID·'결정되지 않음'이 늘 있어 검사가 늘 통과했다
+        short = state["draft"].split("\n\n### ")[0]
+        if ids and not any(i in short for i in ids):
             problems.append(f"근거 결정 ID({', '.join(ids)})를 답변에 밝히세요.")
-        if res.get("pending") and "승인 대기" not in state["draft"]:
+        if res.get("pending") and "승인 대기" not in short:
             problems.append("승인 대기 결정이라는 점을 밝히세요.")
         if not ids and res["authority"] in ("none", "discussion"):
-            if item.get("discussion") and "결정되지 않" not in state["draft"]:
+            if item.get("discussion") and "결정되지 않" not in short:
                 problems.append("유효한 결정이 없으니 '결정되지 않음'을 밝히세요.")
-            elif not item.get("discussion") and "찾지 못" not in state["draft"]:
+            elif not item.get("discussion") and "찾지 못" not in short:
                 problems.append("관련 결정·논의가 없으니 '찾지 못했다'고 밝히세요.")
+            if "승인 대기" in short:
+                problems.append("승인 대기 결정이 없습니다. '승인 대기'라고 쓰지 마세요.")
         # 답에 쓴 날짜·숫자·ID가 근거에 있는지 글자로 대조 (공백 무시)
-        short = state["draft"].split("\n\n### ")[0]
         known = (state.get("answer_sources", "") + state["draft"][len(short):]).replace(" ", "")
         made_up = [v for v in dict.fromkeys(VALUE.findall(short)) if v.replace(" ", "") not in known]
         if made_up:

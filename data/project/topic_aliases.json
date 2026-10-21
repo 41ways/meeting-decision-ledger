@@ -23,5 +23,18 @@
   "interview.competency": ["역량", "평가 항목", "루브릭", "채점 기준"],
   "interview.question": ["면접 질문", "질문 적절성", "사적 질문", "개인 질문", "차별 질문"],
   "interview.decision": ["합격", "불합격", "합격 여부", "채용 결정", "당락"]
- }
+ },
+ "_note_synonyms": "같은 말의 다른 표기. 단어 검색에서 한 낱말로 센다 (첫 표기로 맞춘다). 한 낱말짜리 표기만.",
+ "synonyms": [
+  ["Redis", "레디스"],
+  ["PostgreSQL", "포스트그레스", "Postgres"],
+  ["MySQL", "마이에스큐엘"],
+  ["WebSocket", "웹소켓"],
+  ["LongPolling", "롱폴링"],
+  ["SSE", "에스에스이"],
+  ["LangGraph", "랭그래프"],
+  ["Ollama", "올라마"],
+  ["Supervisor", "슈퍼바이저"],
+  ["cache", "캐시", "캐싱"]
+ ]
 }

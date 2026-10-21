@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import random
 import subprocess
 import sys
@@ -243,13 +244,22 @@ async def one(llm, store, records, q, pid, exp, mode: str, everything: list[dict
 
 def others_running() -> list[str]:
     """
-    시간 측정을 흐리는 다른 평가 프로세스
+    시간 측정을 흐리는 다른 평가 프로세스 (파이썬 프로세스만 — 이 스크립트를 띄운 셸 명령줄은 세지 않는다)
     Returns:
-        pgrep 결과 줄 (자기 자신 제외)
+        "pid 명령" 줄 목록 (자기 자신 제외)
     """
-    r = subprocess.run(["pgrep", "-fl", "run_eval|reliability/run.py|process_meetings|list_scaling"],
+    me = {os.getpid(), os.getppid()}
+    r = subprocess.run(["pgrep", "-f", "run_eval|reliability/run.py|process_meetings|promote.py|list_scaling"],
                        capture_output=True, text=True, check=False)
-    return [ln for ln in r.stdout.splitlines() if ln.split()[0] != str(__import__("os").getpid())]
+    out = []
+    for pid in (int(x) for x in r.stdout.split()):
+        if pid in me:
+            continue
+        ps = subprocess.run(["ps", "-o", "args=", "-p", str(pid)], capture_output=True, text=True, check=False)
+        line = ps.stdout.strip()
+        if line and "python" in line.split()[0].lower():
+            out.append(f"{pid} {line[:160]}")
+    return out
 
 
 def to_md(res: dict, sizes: list[int]) -> str:
