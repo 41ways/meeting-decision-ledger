@@ -7,7 +7,7 @@
 
 - 개발 셋(1~5주)만 보고 코드·프롬프트를 고친다.
 - **시험 셋(6~10주)은 마지막 측정에만 쓴다.** 시험 셋 결과·전사문을 보고 코드를 고치지 않는다. 고쳤다면 그 결과는 시험 셋 수치로 발표하지 않는다.
-- 시험 셋 실행 시점은 메인 작업에서 정한다. 실행 기록은 `results_test.md`에 남는다.
+- 시험 셋은 2026-10-21 22:22에 한 번 쟀다(코드 04d0187 = main 7f571eb, 교차검증 끔). 기록은 `results_test.md`. 이후 코드를 고쳐도 이 수치를 다시 재서 바꾸지 않는다.
 
 ## 규모
 
@@ -34,7 +34,8 @@ world/           data/project에 덧붙는 프로젝트·인물·주제·정책�
                  새 주제의 별칭(topic_aliases.json)·권한표 주제 연결표(auth_topics.json) — 코드가 그 파일을 읽는 버전에서만 합친다
 meetings/        회의 전사문 40건
 gold/            프로젝트별 정답 (결정·할 일·미결·함정, 의견, 질문)
-results_dev.*    개발 셋 결과
+results_*.md     회차별 결과 (dev_baseline · dev_index · dev_fixed · test), results_compare.md 비교표
+error_analysis.md 개발 셋 오류 분석 (원인별 항목 ID)
 ```
 
 ## 실행
