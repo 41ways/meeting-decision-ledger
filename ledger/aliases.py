@@ -23,6 +23,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+from . import vocab
+
 DATA = Path(__file__).resolve().parent.parent / "data" / "project"
 ALIAS_FILE = DATA / "topic_aliases.json"
 GLOSSARY_FILE = DATA / "r2_docs" / "용어집.md"
@@ -207,9 +209,26 @@ def _load() -> tuple[tuple[Alias, ...], str, dict[str, str]]:
     raw = ALIAS_FILE.read_text(encoding="utf-8") if ALIAS_FILE.exists() else '{"aliases": {}}'
     gl = GLOSSARY_FILE.read_text(encoding="utf-8") if GLOSSARY_FILE.exists() else ""
     data = json.loads(raw)
-    al = build_aliases(data["aliases"], parse_glossary(gl))
+    table = {k: list(v) for k, v in data["aliases"].items()}
+    for k, v in vocab.extra()["aliases"].items():          # 운영 중 팀장이 더한 주제·별칭
+        table[k] = table.get(k, []) + [a for a in v if a not in table.get(k, [])]
+    al = build_aliases(table, parse_glossary(gl))
     same = {_key(f): _key(g[0]) for g in data.get("synonyms", []) for f in g if _key(f)}
-    return tuple(al), hashlib.sha1((raw + gl).encode()).hexdigest()[:12], same
+    return tuple(al), hashlib.sha1((raw + gl + vocab.extra_text()).encode()).hexdigest()[:12], same
+
+
+def base_table() -> dict[str, list[str]]:
+    """
+    기본 별칭 표 (data/project/topic_aliases.json)
+    Returns:
+        {주제 키: [별칭]}
+    """
+    return json.loads(ALIAS_FILE.read_text(encoding="utf-8"))["aliases"] if ALIAS_FILE.exists() else {}
+
+
+def reload() -> None:
+    """별칭을 더한 뒤 다시 읽게 한다 (판 지문이 바뀌어 색인도 다시 만들어진다)"""
+    _load.cache_clear()
 
 
 def aliases() -> tuple[Alias, ...]:

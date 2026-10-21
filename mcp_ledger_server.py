@@ -10,6 +10,7 @@ approve_decision은 사람(승인 화면)만 부르는 경로다. Agent 그래�
 """
 import hashlib
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -19,6 +20,7 @@ ROOT = Path(__file__).resolve().parent
 # 백엔드가 다른 작업 디렉터리에서 자식 프로세스로 띄워도 ledger 패키지를 찾도록 프로젝트 루트를 경로에 추가
 sys.path.insert(0, str(ROOT))
 
+from ledger import aliases as aliases_mod, term_index, vocab   # noqa: E402
 from ledger.calendar import build_calendar, find_conflicts   # noqa: E402
 from ledger.rag import LedgerRAG          # noqa: E402
 from ledger.records import MeetingRecords  # noqa: E402
@@ -307,6 +309,49 @@ def reindex_decision(decision_id: str) -> dict:
 
 
 @mcp.tool()
+def add_topic(key: str, desc: str, aliases: list[str], actor: str) -> dict:
+    """[사람 전용] 새 주제를 만든다 (목록에 없는 사안이 나왔을 때). 별칭 색인도 다시 만든다.
+
+    모델은 주제를 만들지 않는다 — '새 주제(목록에 없음)'까지만 말하고, 이름은 팀장이 정한다.
+    Args:
+        key:     주제 키 (예: notice.channel)
+        desc:    설명
+        aliases: 질문·발언에 나오는 표현
+        actor:   만든 사람
+    Returns:
+        {"topic", "desc", "aliases", "reindexed"}
+    """
+    out = vocab.add_topic(key, desc, aliases)
+    _reindex_vocab()
+    records.log(actor, "topic_added", out["topic"], out)
+    return {**out, "reindexed": True}
+
+
+@mcp.tool()
+def add_topic_aliases(topic: str, aliases: list[str], actor: str) -> dict:
+    """[사람 전용] 기존 주제에 별칭을 보탠다 (질문에 나온 표현을 찾지 못했을 때). 별칭 색인도 다시 만든다.
+
+    Args:
+        topic:   주제 키
+        aliases: 보탤 표현
+        actor:   보탠 사람
+    Returns:
+        {"topic", "added", "reindexed"}
+    """
+    out = vocab.add_aliases(topic, aliases, aliases_mod.base_table())
+    _reindex_vocab()
+    records.log(actor, "aliases_added", topic, out)
+    return {**out, "reindexed": True}
+
+
+def _reindex_vocab() -> None:
+    """별칭 판이 바뀌었으니 결정·미결 낱말 색인을 새 판으로 다시 만든다"""
+    aliases_mod.reload()
+    with sqlite3.connect(store.db_path) as c:
+        term_index.ensure(c, ("D", "O"))
+
+
+@mcp.tool()
 def meeting_info(meeting_id: str) -> dict:
     """회의 정보 (날짜·제목·참석자·원문 파기 여부·저장된 요약). 원문을 파기해도 남는다.
 
@@ -545,6 +590,19 @@ def search_policies(query: str, k: int = 4) -> list[dict]:
 
 
 @mcp.tool()
+def alias_topics(text: str) -> list[dict]:
+    """문장에 나온 별칭으로 주제를 찾는다 (점수가 아니라 일치 — 결정·문서가 아직 없는 새 주제도 걸린다).
+
+    Args:
+        text: 결정 문장·질문
+    Returns:
+        [{"topic", "alias"}] 일치한 주제와 근거 별칭
+    """
+    return [{"topic": h["topic"], "alias": h.get("alias") or ", ".join(h.get("aliases", []))}
+            for h in aliases_mod.topics_of(text)]
+
+
+@mcp.tool()
 def topic_candidates(text: str, k: int = 3) -> list[dict]:
     """발언·의견이 어느 주제(topic)에 해당하는지 후보를 유사도 순으로 돌려준다.
 
@@ -626,8 +684,7 @@ def get_topics() -> str:
     Returns:
         "주제 키: 설명" 줄 목록
     """
-    t = json.loads((DATA / "topics.json").read_text())["topics"]
-    return "\n".join(f"{k}: {v}" for k, v in t.items())
+    return "\n".join(f"{k}: {v}" for k, v in vocab.topics().items())   # 기본 목록 + 팀장이 더한 주제
 
 
 @mcp.resource("project-doc://{doc_id}/current")

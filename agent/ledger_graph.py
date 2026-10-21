@@ -452,22 +452,38 @@ TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
                 "project": {"type": "string", "enum": list(PROJECTS)}}, "required": ["topic", "project"]}
 
 
-def topic_key(raw: str | None) -> str:
+def topic_keys(topics_text: str) -> set[str]:
     """
-    모델이 돌려준 주제 문자열에서 주제 키만 추출
+    주제 목록 문자열(ledger://topics, '키: 설명' 줄)에서 키 집합
+    Args:
+        topics_text: 주제 목록
+    Returns:
+        주제 키 집합
+    """
+    return {ln.split(":", 1)[0].strip() for ln in topics_text.splitlines() if ln.strip()}
+
+
+def topic_key(raw: str | None, known: set[str] | None = None) -> str:
+    """
+    모델이 돌려준 주제 문자열에서 주제 키만 추출 — 목록에 있는 키만 받는다
 
     모델이 주제 목록 줄을 통째로 돌려줘도('session.store: 대화 세션 저장소') 키만 남긴다. 키가 틀리면 원장 조회가 빈다.
+    목록에 없으면 'new:이름'이든 그냥 지은 이름이든 버린다 — 모델이 지은 주제가 원장에 들어가면 같은 사안이
+    매번 다른 이름으로 갈라져 '같은 주제는 대체' 규칙이 깨진다. 새 주제의 이름은 사람이 승인 화면에서 정한다.
     Args:
-        raw: 모델이 고른 주제 문자열 (None 가능)
+        raw:   모델이 고른 주제 문자열 (None 가능)
+        known: 주제 목록의 키 (None이면 형식만 본다 — 시험용)
     Returns:
-        주제 키. 키 형식이 아니면 빈 문자열
+        주제 키. 형식이 아니거나 목록에 없으면 빈 문자열(= 새 주제)
     Examples:
         topic_key('session.store: 대화 세션 저장소') -> 'session.store'
-        topic_key('new:<영문 소문자>') -> ''
+        topic_key('new:notice_channel', {'cache'}) -> ''
     """
     t = (raw or "").strip().removeprefix("new:").split(":")[0].strip()
     # 작은 모델은 지시문 예시('<영문 소문자>')를 그대로 따라 쓰기도 한다 → 키 형식이 아니면 버리고 검색 후보로 대신
-    return t if re.fullmatch(r"[a-z][a-z0-9_.]*", t) else ""
+    if not re.fullmatch(r"[a-z][a-z0-9_.]*", t):
+        return ""
+    return t if known is None or t in known else ""
 
 
 async def ensure_topic(deps: "LedgerDeps", topic: str, text: str) -> str:
@@ -523,7 +539,7 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             + "\n\n문장이 어느 프로젝트 이야기인지도 고른다 (언급이 없으면 현재 프로젝트).\n" + projects,
             state["message"], TOPIC_SCHEMA)
         # 주제: 별칭 일치가 먼저, 별칭이 없거나 여럿일 때만 LLM, 둘 다 없으면 검색 1순위 (ensure_topic)
-        llm_topic = topic_key(out.get("topic"))
+        llm_topic = topic_key(out.get("topic"), topic_keys(topics))
         ch = aliases.choose_topic(state["message"], llm_topic)
         topic = await ensure_topic(deps, ch["topic"], state["message"])
         # 판단 기준 프로젝트: 사용자가 고른 것 > 질문에서 판단한 것 > 기본값(OPS). 어떻게 정했는지 화면에 남긴다
@@ -615,9 +631,10 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
                     "statement": r["statement"], "topic": r.get("topic") or ""})
     mpid = KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)      # 회의 정리는 그 회의의 프로젝트가 기준
     items, disagree = [], []
+    known = topic_keys(topics)
     for d in out.get("decisions", []):
         # 결정 주제도 별칭 일치가 먼저 (결정 문장은 용어집 표기로 쓰게 했다). 다르면 기록만
-        ch = aliases.choose_topic(d["statement"], topic_key(d["topic"]))
+        ch = aliases.choose_topic(d["statement"], topic_key(d["topic"], known))
         if ch["disagree"]:
             disagree.append({"seq": d["seq"], "alias": ch["topic"], "llm": ch["llm"]})
         items.append({**d, "decided_seq": d["seq"], "topic": await ensure_topic(deps, ch["topic"], d["statement"]),

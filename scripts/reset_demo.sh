@@ -2,6 +2,7 @@
 # 시연 상태 초기화: 원장·RAG를 시드로 되돌리고 대화방·권한·알림을 비운다. 서버를 끈 상태에서 실행.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+rm -f store/vocab_extra.json       # 시연 중 더한 주제·별칭도 기본 목록으로 되돌린다
 ./.venv/bin/python scripts/ingest.py
 # 회의를 날짜순으로 실제 정리해 회의 기록(미결·할 일·요약·사안)을 채운다 (로컬 LLM, 회의당 1분 안팎). 건너뛰려면 SKIP_PROCESS=1
 if [ "${SKIP_PROCESS:-0}" != "1" ]; then ./.venv/bin/python scripts/process_meetings.py; fi
