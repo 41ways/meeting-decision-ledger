@@ -537,6 +537,8 @@ tr.lock td { color: var(--muted); }
             <div class="adm-sec">권한과 기록</div>
             <button :class="{ on: atab === 'acl' }" @click="atab = 'acl'; sel = ''; loadAcl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>회의 접근 권한<small>역할별 열람 범위</small></span></button>
             <button :class="{ on: atab === 'his' }" @click="atab = 'his'; sel = '';"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span>처리 이력<small>승인·반려·열람 기록</small></span></button>
+            <div class="adm-sec">운영</div>
+            <button :class="{ on: atab === 'mon' }" @click="atab = 'mon'; sel = ''; loadMonitor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>품질 감시<small>버전·드리프트 판정</small></span><em v-if="mon && mon.alerts" class="warn">{{ mon.alerts }}</em></button>
           </nav>
           <section class="adm-main">
             <div v-if="atab === 'dec'">
@@ -646,6 +648,39 @@ tr.lock td { color: var(--muted); }
                   <td :class="r.status === 'approved' ? 'st-ok' : r.status === 'rejected' ? 'st-bad' : 'st-wait'">{{ { approved: '승인', rejected: '반려', pending: '대기' }[r.status] }}{{ r.scope ? ' · ' + scopeKo(r.scope) + (r.duration ? ' · ' + durKo(r.duration, r.expires) : '') : '' }}</td>
                   <td>{{ r.decided_by ? userName(r.decided_by) : '—' }}</td><td class="mono">{{ when(r.decided || r.created) }}</td></tr>
               </table>
+            </div>
+
+            <div v-if="atab === 'mon'">
+              <div class="adm-hd"><h2>품질 감시</h2><span class="muted" v-if="mon"><span :class="mon.alerts ? 'st-bad' : 'st-ok'">경보 {{ mon.alerts }}</span> · <span :class="mon.warnings ? 'st-wait' : ''">주의 {{ mon.warnings }}</span></span></div>
+              <p class="note">champion 승격 직후 요청(기준선)과 최근 요청을 비교합니다. 비율은 차이가 10%p 이상이면서 p&lt;0.01이면 경보, p&lt;0.05면 주의입니다. 승격·롤백은 scripts/promote.py로 합니다.</p>
+              <p v-if="!mon" class="muted">불러오는 중</p>
+              <template v-else>
+                <p class="note">실행 <span class="mono">{{ mon.running.id }}</span> · {{ monStatus(mon.running.status) }} · champion <span class="mono">{{ mon.champion ? mon.champion.id : '없음' }}</span> · 기준선 {{ mon.window.base.count }}건 · 최근 {{ mon.window.recent.count }}건</p>
+                <div v-if="mon.policy && mon.policy.changed" class="perm">
+                  <span class="st-bad">정책 개정 {{ mon.policy.seen }} → {{ mon.policy.current }}</span>
+                  <span v-if="!mon.policy.review.length">다시 볼 승인 결정 없음</span>
+                  <span v-for="d in mon.policy.review" :key="d.decision_id"><span class="mono">{{ d.decision_id }}</span> 재검토 필요 — {{ d.rules.map(r => r.rule_id + ' ' + r.change).join(', ') }}</span>
+                </div>
+                <table class="atable" style="margin-top:10px">
+                  <tr><th style="width:56px">묶음</th><th>지표</th><th style="width:140px">기준선</th><th style="width:140px">최근</th><th style="width:210px">검정</th><th style="width:56px">판정</th></tr>
+                  <tr v-for="f in mon.findings" :key="f.group + f.metric">
+                    <td class="muted">{{ f.group }}</td><td>{{ f.metric }}</td>
+                    <td class="mono">{{ monVal(f.base) }}</td><td class="mono">{{ monVal(f.recent) }}</td>
+                    <td class="mono muted" :title="f.rule">{{ f.test }}</td>
+                    <td :class="{ '경보': 'st-bad', '주의': 'st-wait', '정상': 'st-ok' }[f.level] || 'muted'">{{ f.level }}</td>
+                  </tr>
+                </table>
+                <p class="note" style="margin-top:12px" v-if="mon.nodes && mon.nodes.recent.length">노드별 지연 (최근 창, 중앙값 · 최대): <span class="mono" v-for="x in mon.nodes.recent" :key="x.node">{{ x.node }} {{ (x.median_ms / 1000).toFixed(1) }}·{{ (x.max_ms / 1000).toFixed(1) }}초 &nbsp;</span></p>
+                <table class="atable" style="margin-top:14px">
+                  <tr><th>버전</th><th style="width:120px">상태</th><th style="width:150px">승격</th><th style="width:80px">커밋</th><th style="width:70px">요청</th><th style="width:80px">평균 초</th><th style="width:170px">사람 신호 (승인·반려·수정)</th></tr>
+                  <tr v-for="v in mon.versions" :key="v.id">
+                    <td class="mono">{{ v.id }}</td><td :class="v.status === 'champion' ? 'st-ok' : ''">{{ monStatus(v.status) }}</td>
+                    <td class="mono">{{ v.promoted_at ? when(v.promoted_at) : '—' }}</td><td class="mono">{{ (v.commit || '—').slice(0, 7) }}</td>
+                    <td class="mono">{{ v.requests }}</td><td class="mono">{{ v.avg_sec ?? '—' }}</td>
+                    <td class="mono">{{ mon.human[v.id] ? mon.human[v.id].approved + '·' + mon.human[v.id].rejected + '·' + mon.human[v.id].edited : '—' }}</td>
+                  </tr>
+                </table>
+              </template>
             </div>
           </section>
         </div>
@@ -932,7 +967,7 @@ const PickMenu = {
     }
     const outside = e => { if (open.value && root.value && !root.value.contains(e.target)) open.value = false; };
     document.addEventListener('mousedown', outside);
-    return { open, up, maxH, hi, root, list, cur, toggle, pick, key };
+    return { mon, loadMonitor, monStatus, monVal, open, up, maxH, hi, root, list, cur, toggle, pick, key };
   },
   template: `<div class="dd" :class="{ open }" ref="root">
     <button type="button" class="dd-btn" :class="btnClass" :style="{ width }" :title="title" @click="toggle" @keydown="key" aria-haspopup="listbox" :aria-expanded="open">
@@ -1118,6 +1153,10 @@ createApp({
     }
     async function loadAcl() { acl.value = (await api(`/admin/acl?user=${me.value.user_id}`)).meetings; }
     const openItems = ref([]);
+    const mon = ref(null);           // 품질 감시 (GET /admin/monitor)
+    async function loadMonitor() { if (me.value?.role === '팀장') mon.value = await api(`/admin/monitor?user=${me.value.user_id}`); }
+    const monStatus = s => ({ champion: '운영 중(champion)', challenger: '후보(challenger)', retired: '내림(retired)' }[s] || '미등록');
+    const monVal = v => v === null || v === undefined ? '—' : typeof v === 'object' ? (Object.entries(v).map(([k, n]) => k + ' ' + n).join(' · ') || '—') : v;
     async function loadOpen() { if (me.value?.role === '팀장') openItems.value = (await api(`/open-items?user=${me.value.user_id}`)).items; }
     async function closeOpen(o) {
       const reason = await ask({ title: '미결 닫기', message: `${o.meeting_id} '${o.statement}' — 결정 없이 닫는 사유를 적어 주세요 (예: 회의 밖에서 하지 않기로 함).`, input: '', placeholder: '사유', ok: '닫기' });
@@ -1363,7 +1402,7 @@ createApp({
       if (saved && users.value.some(u => u.user_id === saved)) await login(saved);
       if (me.value && qs.get('thread')) { const t = threads.value.find(x => x.thread_id === qs.get('thread')); if (t) await openThread(t); }
       if (me.value && qs.get('page')) go(qs.get('page'));
-      if (me.value && qs.get('tab')) { atab.value = qs.get('tab'); if (qs.get('tab') === 'acl') loadAcl(); }
+      if (me.value && qs.get('tab')) { atab.value = qs.get('tab'); if (qs.get('tab') === 'acl') loadAcl(); if (qs.get('tab') === 'mon') loadMonitor(); }
       if (me.value && qs.get('sel')) sel.value = qs.get('sel');   // 캡처용: 관리자 콘솔에서 펼칠 대기 건
       if (me.value && qs.get('edit')) editDec({ decision_id: qs.get('edit') });   // 캡처용: 결정 수정 패널
       if (me.value && qs.get('prj')) { drawer.value = true; await loadMeetings(); await loadProjects(); await pickPrj(qs.get('prj')); }
