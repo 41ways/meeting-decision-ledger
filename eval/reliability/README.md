@@ -46,6 +46,14 @@ pgrep -fl "run_eval|reliability/run.py|process_meetings"   # 다른 평가가 �
 .venv/bin/python eval/reliability/run.py --split dev --rescore                   # 실행 없이 다시 채점
 ```
 
+교차검증(작은 모델 2개가 8b 판단 확인)을 켜고 다시 재려면 `CROSSCHECK=1`을 붙인다. 결과는 `results_dev_crosscheck.*`로 따로 남아 끈 기준선과 비교된다.
+
+```bash
+CROSSCHECK=1 .venv/bin/python eval/reliability/run.py --split dev
+```
+
+결과 JSON의 `raw`에는 항목별 라벨·사유와 `CrossChecked` 이벤트(kind·target·votes·outcome)가 남는다. 결과 표의 '교차검증' 절은 '이견으로 넘긴 것 중 8b가 실제로 틀린 비율'과 '4/4 동의일 때 8b 정확도'를 정답 기준으로 계산한다.
+
 - 격리: 코드와 `data/project`를 임시 폴더로 복사하고 데이터셋 세계를 합친 뒤 돌린다. 원장·벡터 DB는 임시 `LEDGER_STORE`. 시연 `store/`는 건드리지 않는다.
 - 기본 세계 임베딩은 `.cache/`에 두고 재사용한다(입력이 바뀌면 다시 만든다). 원자료는 `.cache/raw_<split>.json`.
 - 모델: 로컬 qwen3:8b (분류·작성 모두). 유료 API 없음.
