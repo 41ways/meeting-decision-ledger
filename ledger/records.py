@@ -18,6 +18,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
+from . import term_index
 from .store import DATA, DEFAULT_DB, project_key
 
 SCHEMA = """
@@ -94,6 +95,7 @@ class MeetingRecords:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._conn() as c:
             c.executescript(SCHEMA)
+            term_index.ensure(c, ("O",))      # 별칭 판이 바뀌었거나 색인이 없으면 미결 색인을 다시 만든다
 
     @contextmanager
     def _conn(self):
@@ -127,6 +129,18 @@ class MeetingRecords:
                 d[k] = json.loads(d[k])
         return d
 
+    @staticmethod
+    def _reindex(c: sqlite3.Connection, where: str, args: tuple) -> None:
+        """
+        조건에 맞는 항목의 낱말 색인을 다시 쓴다 (같은 연결 안에서)
+        Args:
+            c:     열린 연결
+            where: items WHERE 절
+            args:  WHERE 절 인자
+        """
+        for r in c.execute(f"SELECT * FROM items WHERE {where}", args).fetchall():
+            term_index.index_item(c, dict(r))
+
     def reset(self) -> None:
         """
         회의 기록을 비운다 (시연·평가 초기화용 — 시드 재적재와 함께만 쓴다)
@@ -134,6 +148,7 @@ class MeetingRecords:
         with self._conn() as c:
             for table in ("items", "threads", "events"):
                 c.execute(f"DELETE FROM {table}")
+            term_index.drop(c, "O")
             c.execute("UPDATE meetings SET summary=NULL, processed_at=NULL, pipeline_version=NULL")
 
     # ---------------- 이력 ----------------
@@ -283,6 +298,8 @@ class MeetingRecords:
                     c.execute("UPDATE items SET state='linked', linked_to=?, updated=? WHERE item_id=?",
                               (it.get("decision_id") or did, now, r["item_id"]))
                     linked.append({"open": r["item_id"], "to": it.get("decision_id") or did})
+            self._reindex(c, f"meeting_id=? OR item_id IN ({','.join('?' * len(linked))})",
+                          (meeting_id, *[x["open"] for x in linked]))
         self.log(actor, "meeting_processed", meeting_id, {"items": len(items), "pipeline": pipeline_version})
         for x in linked:
             self.log(actor, "item_linked", x["open"], {"to": x["to"]})
@@ -345,6 +362,7 @@ class MeetingRecords:
             c.execute("UPDATE items SET decision_id=?, state='proposed', updated=? WHERE item_id=?",
                       (decision_id, _now(), item_id))
             c.execute("UPDATE items SET linked_to=? WHERE linked_to=?", (decision_id, item_id))
+            self._reindex(c, "item_id=? OR linked_to=?", (item_id, decision_id))
         self.log(actor, "decision_proposed", decision_id, {"item": item_id})
 
     def close_open(self, item_id: str, actor: str, reason: str) -> dict:
@@ -417,5 +435,6 @@ class MeetingRecords:
             c.execute("UPDATE meetings SET summary=NULL, transcript_deleted=1 WHERE meeting_id=?", (meeting_id,))
             n = c.execute("UPDATE items SET statement='(원문 파기 — 내용 삭제)', evidence='[]', slots='{}' "
                           "WHERE meeting_id=? AND kind='open'", (meeting_id,)).rowcount
+            self._reindex(c, "meeting_id=?", (meeting_id,))
         self.log(actor, "meeting_details_forgotten", meeting_id, {"open_trimmed": n})
         return {"summary_cleared": bool(had and had["summary"]), "open_trimmed": n}

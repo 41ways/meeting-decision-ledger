@@ -10,7 +10,10 @@ import json
 import re
 from pathlib import Path
 
-PIPELINE_VERSION = "2026-10-20.2"
+from ledger import aliases
+from ledger.aliases import parse_glossary  # noqa: F401  pylint: disable=unused-import  # 용어집 해석은 별칭 색인과 한곳에서
+
+PIPELINE_VERSION = "2026-10-21.1"    # 주제 배정: 별칭 일치 먼저
 _USERS = Path(__file__).resolve().parent.parent / "data" / "project" / "users.json"
 LEADS = [u["name"] for u in json.loads(_USERS.read_text(encoding="utf-8"))["users"] if u["role"] == "팀장"] \
     if _USERS.exists() else []
@@ -51,24 +54,6 @@ def label_for(review: dict) -> tuple[str, str]:
 
 
 # ---------------------------------------------------------------- 용어 통일
-def parse_glossary(md: str) -> list[tuple[str, list[str]]]:
-    """
-    용어집 표에서 (표준 표기, 오인식 목록) 추출
-    Args:
-        md: 용어집 마크다운 (| 표준 용어 | 뜻 | STT 오인식 예 |)
-    Returns:
-        [(표준 표기, [오인식 …])] — 표준 표기는 괄호 앞 부분
-    """
-    out = []
-    for row in md.splitlines():
-        cols = [c.strip() for c in row.strip().strip("|").split("|")]
-        if len(cols) < 3 or cols[0] in ("표준 용어", "") or set(cols[0]) <= {"-"}:
-            continue
-        std = cols[0].split(" (")[0].strip()
-        out.append((std, [v.strip() for v in cols[2].split(",") if len(v.strip()) >= 2]))
-    return out
-
-
 def normalize(text: str, glossary: list[tuple[str, list[str]]]) -> str:
     """
     오인식 표기를 용어집 표준 표기로 바꾼다 ('버니게이트' → '권위 게이트')
@@ -299,30 +284,39 @@ OPEN_TOPIC_SCHEMA = {"type": "object", "properties": {"items": {"type": "array",
     "i": {"type": "integer"}, "topic": {"type": "string"}}, "required": ["i", "topic"]}}}, "required": ["items"]}
 
 
-async def open_topics(llm, undecided: list[dict], topics_text: str) -> dict | None:
+async def open_topics(llm, undecided: list[dict], topics_text: str) -> tuple[dict | None, list[dict]]:
     """
-    미결마다 주제 목록에서 주제를 고른다 (다음 회의의 결정과 같은 사안으로 이으려면 주제가 있어야 한다)
+    미결마다 주제를 정한다 (다음 회의의 결정과 같은 사안으로 이으려면 주제가 있어야 한다)
 
-    목록에 없는 키는 버린다(빈 주제 = 잇지 않음). 검색 점수로는 기존 자료가 없는 주제(예: cache)를 고를 수 없어 LLM에 맡긴다.
+    별칭 일치(ledger/aliases.choose_topic)를 먼저 보고, 별칭이 없거나 여럿일 때만 LLM 선택을 쓴다.
+    둘이 다르면 미결에 topic_llm으로 남긴다 (투표는 하지 않는다). 목록에 없는 키는 버린다(빈 주제 = 잇지 않음).
     Args:
         llm:         주제 선택 모델
-        undecided:   미결 (subject, evidence) — topic을 붙인다
+        undecided:   미결 (subject, evidence) — topic·topic_by를 붙인다
         topics_text: 주제 목록 (ledger://topics)
     Returns:
-        LLM 사용량 (미결이 없으면 None)
+        (LLM 사용량, 별칭과 LLM이 다른 미결 [{subject, alias, llm}]) — 미결이 없으면 (None, [])
     """
     if not undecided:
-        return None
+        return None, []
     keys = set(re.findall(r"^-?\s*([a-z][a-z0-9_.]+)", topics_text, re.M))
     rows = "\n".join(f"[{n}] {u['subject']} — " + " / ".join(e["quote"] for e in u["evidence"])
                      for n, u in enumerate(undecided))
     out, usage = await llm.json("미결 논의마다 아래 주제 목록의 키 하나를 고른다. 맞는 키가 없으면 빈 문자열.\n" + topics_text,
                                 rows, OPEN_TOPIC_SCHEMA, max_tokens=200)
     got = {x.get("i"): (x.get("topic") or "").split(":")[0].strip() for x in out.get("items", [])}
+    disagree = []
     for n, u in enumerate(undecided):
-        t = got.get(n, "")
-        u["topic"] = t if t in keys else ""
-    return usage
+        llm_t = got.get(n, "")
+        llm_t = llm_t if llm_t in keys else ""
+        ch = aliases.choose_topic(f"{u['subject']} / " + " / ".join(e["quote"] for e in u["evidence"]), llm_t)
+        if ch["topic"] not in keys:          # 별칭 주제가 목록에 없으면(목록을 줄여 보낸 경우) LLM 선택으로
+            ch = {**ch, "topic": llm_t, "by": "LLM" if llm_t else "", "disagree": False}
+        u["topic"], u["topic_by"] = ch["topic"], ch["by"]
+        if ch["disagree"]:
+            u["topic_llm"] = llm_t
+            disagree.append({"subject": u["subject"], "alias": ch["topic"], "llm": llm_t})
+    return usage, disagree
 
 
 # ---------------------------------------------------------------- 근거 달린 요약

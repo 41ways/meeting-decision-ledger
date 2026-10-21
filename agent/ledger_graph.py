@@ -39,6 +39,7 @@ from langsmith import traceable
 from agent import enrich, retrieve
 from agent.facts import fact_answer, is_fact_question
 from agent.schedule_add import events_as_meetings, schedule_add_node
+from ledger import aliases
 from ledger.schedule_parse import is_add_request
 from ledger.thresholds import MIN_TOPIC_SCORE
 
@@ -149,6 +150,7 @@ class LedgerState(TypedDict, total=False):
     competencies: list[dict]  # 면접 전사문: 질문·답변 요약 쌍
     replan_rounds: int
     draft: str
+    notice: str               # 답 앞에 코드가 붙이는 알림 (전체 읽기 대비책을 썼을 때)
     validation_attempts: int
     validation_feedback: str | None
     report: dict
@@ -222,6 +224,10 @@ def _usage(state, *us) -> dict:
 # 일정 질문 판별: 상대 주(이번·지난·N주 전), 상대 날짜(오늘·어제), 월, 개수('몇 개') 표현
 SCHEDULE_Q = re.compile(r"(이번|지난|지지난|저번|저저번|다음|다다음)\s*주|전전?주|\d+\s*주\s*(전|후|뒤)"
                         r"|오늘|내일|어제|이번\s*달|지난\s*달|다음\s*달|\d{1,2}월|몇\s*(개|건|번)|언제\s*있")
+
+# 근거 질문의 기간 범위로 쓰는 표현 — '언제 있어'·'몇 개'처럼 기간이 아닌 일정 표현은 뺀다
+PERIOD_Q = re.compile(r"(이번|지난|지지난|저번|저저번|다음|다다음)\s*주|전전?주|\d+\s*주\s*(전|후|뒤)"
+                      r"|오늘|어제|(이번|지난|다음)\s*달|\d{1,2}월(?!\s*\d)")
 
 ROUTE_SCHEMA = {"type": "object", "properties": {"mode": {"type": "string",
                 "enum": ["meeting", "opinion", "question", "chat"]}}, "required": ["mode"]}
@@ -513,7 +519,10 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             "문장의 주제를 아래 목록의 키 하나로 고른다. 맞는 게 없으면 new:<영문 소문자>.\n" + topics
             + "\n\n문장이 어느 프로젝트 이야기인지도 고른다 (언급이 없으면 현재 프로젝트).\n" + projects,
             state["message"], TOPIC_SCHEMA)
-        topic = await ensure_topic(deps, topic_key(out.get("topic")), state["message"])
+        # 주제: 별칭 일치가 먼저, 별칭이 없거나 여럿일 때만 LLM, 둘 다 없으면 검색 1순위 (ensure_topic)
+        llm_topic = topic_key(out.get("topic"))
+        ch = aliases.choose_topic(state["message"], llm_topic)
+        topic = await ensure_topic(deps, ch["topic"], state["message"])
         # 판단 기준 프로젝트: 사용자가 고른 것 > 질문에서 판단한 것 > 기본값(OPS). 어떻게 정했는지 화면에 남긴다
         if state.get("scope_project") in KEY_TO_PID:
             pid, how = KEY_TO_PID[state["scope_project"]], "직접 지정"
@@ -521,10 +530,12 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
             pid, how = out["project"], "질문에서 판단"
         else:
             pid, how = DEFAULT_PID, "기본값 — 질문에 프로젝트 언급 없음"
-        item = {"statement": state["message"], "topic": topic, "project": pid}
-        return {"items": [item], "usage": _usage(state, usage),
-                "events": _ev(state, {"type": "PlanCreated", "items": 1, "topic": topic,
-                                      "project": PID_TO_KEY.get(pid, pid), "how": how})}
+        item = {"statement": state["message"], "topic": topic, "project": pid, "project_how": how}
+        ev = {"type": "PlanCreated", "items": 1, "topic": topic, "project": PID_TO_KEY.get(pid, pid), "how": how,
+              "topic_by": ch["by"] or ("검색" if topic else ""), "aliases": ch["aliases"]}
+        if ch["disagree"]:        # 투표는 하지 않는다 — 별칭을 쓰고, LLM이 달리 골랐다는 사실만 남긴다
+            ev["topic_disagree"] = {"alias": ch["topic"], "llm": llm_topic}
+        return {"items": [item], "usage": _usage(state, usage), "events": _ev(state, ev)}
 
     if state["mode"] == "interview":
         return await plan_interview(state, deps)
@@ -600,14 +611,23 @@ async def plan_node(state: LedgerState, deps: LedgerDeps) -> dict:
                     "seq": r["seq"], "proposal_seq": r.get("proposal_seq") or r["seq"],
                     "statement": r["statement"], "topic": r.get("topic") or ""})
     mpid = KEY_TO_PID.get(state["meeting_id"].split("-")[0], DEFAULT_PID)      # 회의 정리는 그 회의의 프로젝트가 기준
-    items = [{**d, "decided_seq": d["seq"], "topic": await ensure_topic(deps, topic_key(d["topic"]), d["statement"]),
-              "project": mpid} for d in out.get("decisions", [])]
+    items, disagree = [], []
+    for d in out.get("decisions", []):
+        # 결정 주제도 별칭 일치가 먼저 (결정 문장은 용어집 표기로 쓰게 했다). 다르면 기록만
+        ch = aliases.choose_topic(d["statement"], topic_key(d["topic"]))
+        if ch["disagree"]:
+            disagree.append({"seq": d["seq"], "alias": ch["topic"], "llm": ch["llm"]})
+        items.append({**d, "decided_seq": d["seq"], "topic": await ensure_topic(deps, ch["topic"], d["statement"]),
+                      "topic_by": ch["by"], "project": mpid})
+    plan_ev = {"type": "PlanCreated", "items": len(items), "action_items": len(out.get("action_items", [])),
+               "rechecked": len(missed)}
+    if disagree:
+        plan_ev["topic_disagree"] = disagree
     return {"segments": segs, "meeting_date": segs[0]["date"], "meeting_meta": meta or {},
             "attendee_roles": sorted({s["role"] for s in segs}), "items": items,
             "action_items": out.get("action_items", []), "undecided": out.get("undecided", []),
             "overview": out.get("overview") or {}, "usage": _usage(state, usage, recheck_usage),
-            "events": _ev(state, {"type": "PlanCreated", "items": len(items),
-                                  "action_items": len(out.get("action_items", [])), "rechecked": len(missed)})}
+            "events": _ev(state, plan_ev)}
 
 
 # ---------------------------------------------------------------- 면접 전사문 (같은 그래프, plan·write만 도메인별)
@@ -833,17 +853,29 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
                                        decided_by_role=item["decided_by_role"],
                                        attendee_roles=state["attendee_roles"])
         if state["mode"] == "question":
-            # 후보를 넓게 모아 LLM이 관련 ID만 고르고, 주제로 찾은 결과와 대조한다
-            picked = await retrieve.pick(deps, state["message"], item.get("project") or DEFAULT_PID)
-            pick_usage.append(picked["usage"])
-            res, disc, why = retrieve.merge(res, picked, item.get("project") or DEFAULT_PID)
-            pick_evs.append({"type": "CandidatesPicked", "shown": picked["shown"],
-                             "picked": [d["decision_id"] for d in picked["decisions"]]
-                             + [o["item_id"] for o in picked["opens"]], "check": why})
-            item = {**item, **({"discussion": disc} if disc else {}), "check_reasons": why}
+            # 색인으로 좁힌 후보에서 LLM이 관련 ID만 고르고, 주제로 찾은 결과와 대조한다
+            pid = item.get("project") or DEFAULT_PID
+            period = _range(state["message"], deps.today)[:2] if PERIOD_Q.search(state["message"]) else None
+            picked = await retrieve.pick(deps, state["message"], pid, topic=item.get("topic") or "",
+                                         scope_meeting=state.get("scope_meeting") or "", period=period,
+                                         project_explicit=item.get("project_how") in ("직접 지정", "질문에서 판단"),
+                                         project_key=PID_TO_KEY.get(pid, pid))
+            pick_usage.extend(picked["usages"])
+            res, disc, why = retrieve.merge(res, picked, pid)
+            ids = [d["decision_id"] for d in picked["decisions"]] + [o["item_id"] for o in picked["opens"]]
+            pick_evs.append({"type": "CandidatesPicked", "how": picked["how"], "tier": picked["tier"],
+                             "shown": picked["shown"], "picked": ids, "check": why,
+                             "aliases": [a for h in picked["topics"] for a in h["aliases"]],
+                             "via": {k: v for k, v in picked["via"].items() if k[2:] in ids}})
+            if picked["full_read"]:
+                fr = picked["full_read"]
+                pick_evs.append({"type": "FullReadFallback", **{k: v for k, v in fr.items() if k != "notice"},
+                                 "project": PID_TO_KEY.get(pid, pid), "notice": fr["notice"]})
+                notices.append(fr["notice"])
+            item = {**item, **({"discussion": disc} if disc else {}), "check_reasons": why, "pick_how": picked["how"]}
         return {**item, "research": res, "waivers": waivers, "authority_check": auth}
 
-    pick_usage, pick_evs = [], []
+    pick_usage, pick_evs, notices = [], [], []
     # 재조사 이벤트와 첫 조사 이벤트를 구분하려고 호출 전 상태를 기억한다
     before = [bool(i.get("research")) for i in state["items"]]
     # 조회 실패 항목은 failed 표시를 남긴다 — '기준 없음'과 섞이면 오류가 '문제없음'으로 조용히 바뀐다
@@ -858,6 +890,8 @@ async def research_node(state: LedgerState, deps: LedgerDeps) -> dict:
     out = {"items": list(items), "events": _ev(state, *evs, *pick_evs)}
     if any(pick_usage):
         out["usage"] = _usage(state, *pick_usage)
+    if notices:
+        out["notice"] = "\n".join(notices)
     return out
 
 
@@ -1146,7 +1180,8 @@ async def _enrich(state: LedgerState, deps: LedgerDeps, items: list[dict]) -> tu
     glossary = enrich.parse_glossary(await deps.mcp.resource("project-doc://GLOSSARY/current"))
     usages.append(await enrich.fill_slots(deps.quality_llm, items, glossary))
     undecided = [dict(u) for u in state.get("undecided", [])]
-    usages.append(await enrich.open_topics(deps.fast_llm, undecided, await deps.mcp.resource("ledger://topics")))
+    ou, open_disagree = await enrich.open_topics(deps.fast_llm, undecided, await deps.mcp.resource("ledger://topics"))
+    usages.append(ou)
     actions = [dict(a) for a in state.get("action_items", [])]
     enrich.tie_actions(actions, items)
     summary, su = await enrich.write_summary(deps.quality_llm, state["segments"], items, actions, undecided)
@@ -1163,6 +1198,8 @@ async def _enrich(state: LedgerState, deps: LedgerDeps, items: list[dict]) -> tu
     evs = [{"type": "SlotsFilled", "items": len(items), "warn": sum(bool(d.get("slot_warn")) for d in items)},
            {"type": "SummaryWritten", "lines": len(summary["lines"]), "dropped": summary["dropped"]},
            {"type": "Suggested", "count": sum(len(d["suggestions"]) for d in items)}]
+    if open_disagree:          # 별칭과 LLM이 다른 주제를 고른 미결 — 별칭을 썼고, 다르다는 사실만 남긴다
+        evs.append({"type": "TopicDisagree", "target": "open", "items": open_disagree})
     return ({"action_items": actions, "undecided": undecided, "summary": summary, "insights": insights,
              "resolved": resolved}, usages, evs)
 
@@ -1378,7 +1415,9 @@ async def _question_sources(item: dict, deps: LedgerDeps, user_id: str = "",
     if not decs and res["authority"] != "baseline" and not item.get("discussion"):
         # 아무것도 못 찾았으면 그렇다고 말한다 — 가장 가까운 발언을 '관련 논의'로 붙이지 않는다
         rows.append("[찾지 못함] 이 질문과 관련된 결정·기준 문서·회의 논의가 없다")
-        blocks.append("### 찾지 못함\n이 질문과 관련된 결정·기준 문서·회의 논의를 찾지 못했습니다.")
+        hint = ("\n색인에 걸리는 용어가 없었습니다. '전부 찾아봐'를 붙여 물으면 프로젝트 기록 전체를 읽습니다."
+                if item.get("pick_how") == "없음" else "")
+        blocks.append("### 찾지 못함\n이 질문과 관련된 결정·기준 문서·회의 논의를 찾지 못했습니다." + hint)
     if res.get("topic_doubt") or res.get("similar_other") or item.get("check_reasons"):
         warn = [n for n in res.get("notes", []) if "주제" in n] + item.get("check_reasons", [])
         blocks.append("### 확인 필요\n" + "\n".join(f"- {n}" for n in warn))
@@ -1635,7 +1674,9 @@ async def finalize_node(state: LedgerState, deps: LedgerDeps) -> dict:
               "action_items": state.get("action_items", []), "undecided": state.get("undecided", []),
               "proposed": proposed, "restricted": state.get("restricted", []),
               "linked": (saved or {}).get("linked", []), "refs": _refs(state, proposed)}
-    return {"final": state["draft"], "report": report,
+    # 전체 읽기 알림은 검증 뒤에 코드가 붙인다 — 알림 속 건수·초가 답의 '근거에 없는 값' 검사에 걸리지 않게
+    final = f"{state['notice']}\n\n{state['draft']}" if state.get("notice") else state["draft"]
+    return {"final": final, "report": report,
             "events": _ev(state, {"type": "Finalize", "pipeline": state["mode"], "proposed": proposed})}
 
 

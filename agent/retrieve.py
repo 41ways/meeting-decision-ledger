@@ -1,12 +1,31 @@
-"""근거 질문의 후보 선택 — 후보를 넓게 찾고, LLM은 관련 ID만 고른다 (docs/설계_재구성안.md §4.4).
+"""근거 질문의 후보 선택 — 색인으로 좁히고, LLM은 좁힌 목록에서 관련 ID만 고른다 (docs/설계_재구성안.md §8).
 
-벡터 점수만으로는 "캐시 쓰기로 했어?" 같은 질문이 문장이 비슷한 다른 사안(Redis를 기각한 대화 저장소)으로 붙는다.
-그래서 후보를 넉넉히(결정 상위 12건 + 프로젝트의 미결) 모은 뒤, LLM이 질문에 실제로 답하는 데 필요한 ID만 고르게 한다.
+순서
+  1. 범위: 질문 프로젝트 · 질문의 기간 표현 · 입력창에서 고른 회의
+  2. 색인: 별칭이 가리킨 주제(없으면 plan이 고른 주제) · 질문에 적힌 결정 ID·회의 ID로 낱말 색인을 찾는다.
+     하나도 없으면 질문 내용어로 한 번 더 (ledger/term_index.find_candidates)
+  3. 읽기: 후보가 CANDIDATE_LIMIT(50)건 이내면 LLM이 그 목록만 읽고 ID를 고른다
+
+벡터 검색은 결정·미결 후보에 쓰지 않는다. 점수로 붙이면 "Redis 캐시 쓰기로 했어?"가 Redis를 기각한
+대화 저장소 결정으로 새고, 왜 붙었는지 설명할 수 없다. 색인이 비는 질문은 아래 전체 읽기로 드러나게 처리한다.
+
+전체 읽기 대비책 (프로젝트 기록 전체를 읽고, 답 앞에 코드가 알림을 붙인다 · 이벤트 FullReadFallback)
+  - 색인 후보가 0건인데 질문이 알려진 주제·프로젝트·ID를 가리킬 때
+  - 별칭 충돌로 후보가 CANDIDATE_LIMIT를 넘을 때
+  - 사용자가 '전부 찾아봐'처럼 요청했을 때
+  목록이 LIST_TOKEN_BUDGET을 넘으면 나눠 읽고 고른 ID를 합친다.
+
 LLM은 ID만 고르고 문장을 쓰지 않으며, 고른 ID가 후보에 없으면 버린다. "해당 없음"도 고를 수 있다.
-
 고른 결과는 주제로 찾은 결과(resolve_current)와 대조한다. 둘이 다른 결정을 가리키면 단정하지 않고 '확인 필요'.
 """
 from __future__ import annotations
+
+import re
+import time
+
+from ledger import aliases
+from ledger.term_index import DECISION_ID
+from ledger.thresholds import CANDIDATE_LIMIT, LIST_TOKEN_BUDGET
 
 PICK_SCHEMA = {"type": "object", "properties": {"ids": {"type": "array", "items": {"type": "string"}}},
                "required": ["ids"]}
@@ -17,6 +36,10 @@ PICK_SYSTEM = (
     "관련 후보가 하나도 없으면 빈 목록.")
 
 STATUS_KO = {"approved": "확정", "proposed": "승인 대기", "rejected": "반려"}
+
+# 사용자가 색인을 건너뛰고 전부 읽으라고 한 표현
+FULL_READ_Q = re.compile(r"전부\s*(찾|읽|봐|확인)|전체\s*(를\s*)?(찾|읽|봐|확인|기록)|다\s*찾아|모두\s*(찾|읽|확인)|빠짐없이")
+MEETING_REF = re.compile(r"(?<![A-Za-z0-9])([A-Z]{3})-([MI]\d{2})(?!\d)")
 
 
 def _line(c: dict) -> str:
@@ -35,29 +58,160 @@ def _line(c: dict) -> str:
     return f"O:{c['item_id']} [미결] {c.get('date', '')} · {c.get('topic', '')} · {c['statement']}"
 
 
-async def pick(deps, question: str, project_id: str) -> dict:
+def _key(c: dict) -> str:
     """
-    후보를 넓게 모으고 LLM이 관련 ID만 고르게 한다
+    후보의 선택 키 (D:결정 ID 또는 O:항목 ID)
     Args:
-        deps:       의존성 (mcp, quality_llm)
-        question:   사용자 질문
-        project_id: 질문 대상 프로젝트 (미결 후보 범위)
+        c: 후보
     Returns:
-        {"decisions": 고른 결정 후보, "opens": 고른 미결, "shown": 보여 준 후보 수, "usage": 사용량}
+        키 문자열
     """
-    decs = [{**d, "kind": "decision"} for d in
-            await deps.mcp.call("search_decisions", query=question, k=12, include_proposed=True)]
-    opens = [{**o, "kind": "open"} for o in
-             (await deps.mcp.call("open_items", project_id=project_id, include_linked=True))[-30:]]
-    cands = decs + opens
-    if not cands:
-        return {"decisions": [], "opens": [], "shown": 0, "usage": None}
-    keys = {("D:" + c["decision_id"]) if c["kind"] == "decision" else ("O:" + c["item_id"]): c for c in cands}
-    out, usage = await deps.quality_llm.json(PICK_SYSTEM, f"## 질문\n{question}\n\n## 후보\n"
-                                             + "\n".join(_line(c) for c in cands), PICK_SCHEMA, max_tokens=200)
-    chosen = [keys[i.strip()] for i in out.get("ids", []) if isinstance(i, str) and i.strip() in keys]
-    return {"decisions": [c for c in chosen if c["kind"] == "decision"],
-            "opens": [c for c in chosen if c["kind"] == "open"], "shown": len(cands), "usage": usage}
+    return ("D:" + c["decision_id"]) if c["kind"] == "decision" else ("O:" + c["item_id"])
+
+
+def est_tokens(text: str) -> int:
+    """
+    목록 글의 토큰 수 어림 (qwen3 토크나이저에서 한글·영문 섞인 줄이 대략 1.6자당 1토큰)
+    Args:
+        text: 글
+    Returns:
+        어림 토큰 수
+    """
+    return int(len(text) / 1.6) + 1
+
+
+def chunks(lines: list[str], budget: int = LIST_TOKEN_BUDGET) -> list[list[str]]:
+    """
+    목록을 토큰 상한 안에서 나눈다 (순서 유지)
+    Args:
+        lines:  후보 줄
+        budget: 한 번에 보낼 토큰 상한
+    Returns:
+        줄 묶음 목록 (빈 목록이면 빈 목록)
+    """
+    out, cur, size = [], [], 0
+    for ln in lines:
+        t = est_tokens(ln) + 1
+        if cur and size + t > budget:
+            out.append(cur)
+            cur, size = [], 0
+        cur.append(ln)
+        size += t
+    return out + ([cur] if cur else [])
+
+
+async def read_list(llm, question: str, cands: list[dict], budget: int = LIST_TOKEN_BUDGET) -> tuple[list[dict], list]:
+    """
+    후보 목록을 LLM이 읽고 관련 ID를 고른다 (상한을 넘으면 나눠 읽고 합친다)
+    Args:
+        llm:      선택 모델
+        question: 질문
+        cands:    후보
+        budget:   한 번에 보낼 토큰 상한
+    Returns:
+        (고른 후보, LLM 사용량 목록)
+    """
+    keys = {_key(c): c for c in cands}
+    chosen, usages = [], []
+    for part in chunks([_line(c) for c in cands], budget):
+        out, usage = await llm.json(PICK_SYSTEM, f"## 질문\n{question}\n\n## 후보\n" + "\n".join(part),
+                                    PICK_SCHEMA, max_tokens=200)
+        usages.append(usage)
+        chosen += [keys[i.strip()] for i in out.get("ids", []) if isinstance(i, str) and i.strip() in keys]
+    seen, uniq = set(), []
+    for c in chosen:
+        if _key(c) not in seen:
+            seen.add(_key(c))
+            uniq.append(c)
+    return uniq, usages
+
+
+def full_read_reason(question: str, n_found: int, known: bool) -> str:
+    """
+    전체 읽기로 갈 까닭 (가지 않으면 빈 문자열)
+    Args:
+        question: 질문
+        n_found:  색인 후보 수
+        known:    질문이 알려진 주제·프로젝트·ID를 가리키는가
+    Returns:
+        "요청" | "충돌" | "색인 0건" | ""
+    """
+    if FULL_READ_Q.search(question):
+        return "요청"
+    if n_found > CANDIDATE_LIMIT:
+        return "충돌"
+    if n_found == 0 and known:
+        return "색인 0건"
+    return ""
+
+
+def full_read_notice(reason: str, project_key: str, n_read: int, n_found: int, sec: float,  # pylint: disable=too-many-arguments,too-many-positional-arguments
+                     parts: int) -> str:
+    """
+    전체 읽기 알림 문구 (답 앞에 코드가 붙인다)
+    Args:
+        reason:      full_read_reason 결과
+        project_key: 프로젝트 약자 (OPS)
+        n_read:      읽은 기록 수
+        n_found:     색인 후보 수
+        sec:         읽는 데 걸린 초
+        parts:       나눠 읽은 횟수
+    Returns:
+        알림 한 줄
+    """
+    head = {"요청": "요청에 따라", "충돌": f"색인 후보가 {n_found}건으로 많아(별칭 충돌)",
+            "색인 0건": "색인에서 찾지 못해"}[reason]
+    split = f" · {parts}번에 나눠 읽음" if parts > 1 else ""
+    return f"※ {head} {project_key} 기록 전체 {n_read}건을 읽었습니다 · 약 {sec:.0f}초{split}"
+
+
+async def pick(deps, question: str, project_id: str, *, topic: str = "", scope_meeting: str = "",  # pylint: disable=too-many-locals,too-many-arguments
+               period: tuple[str, str] | None = None, project_explicit: bool = False, project_key: str = "") -> dict:
+    """
+    색인으로 후보를 좁히고 LLM이 관련 ID만 고르게 한다 (필요할 때만 전체 읽기)
+    Args:
+        deps:             의존성 (mcp, quality_llm)
+        question:         사용자 질문
+        project_id:       질문 대상 프로젝트
+        topic:            plan이 정한 주제 키 (별칭이 없을 때 색인에 쓴다)
+        scope_meeting:    입력창에서 고른 회의 ID
+        period:           질문 속 기간 (시작일, 종료일)
+        project_explicit: 프로젝트를 사용자가 고르거나 질문에서 판단했는가 (기본값이 아님)
+        project_key:      알림에 쓸 프로젝트 약자
+    Returns:
+        {"decisions", "opens", "shown", "usages", "how": "색인" | "전체" | "없음", "tier", "via": {키: 일치 설명},
+         "topics": 별칭 일치, "full_read": 전체 읽기 정보 또는 None}
+    """
+    hits = aliases.topics_of(question)
+    topics = [h["topic"] for h in hits] or ([topic] if topic else [])
+    ids = list(dict.fromkeys(DECISION_ID.findall(question)))
+    mids = list(dict.fromkeys([f"{a}-{b}" for a, b in MEETING_REF.findall(question)]
+                              + ([scope_meeting] if scope_meeting else [])))
+    found = await deps.mcp.call("index_candidates", project_id=project_id, topics=topics, decision_ids=ids,
+                                meeting_ids=mids, words=aliases.content_words(question),
+                                date_from=(period or ("", ""))[0], date_to=(period or ("", ""))[1])
+    cands = found["candidates"]
+    via = {_key(c): c.get("via", []) for c in cands}
+    base = {"tier": found.get("tier", ""), "via": via, "topics": hits, "period_dropped": found.get("period_dropped")}
+    reason = full_read_reason(question, len(cands), bool(topics or ids or mids or project_explicit))
+    full = None
+    t0 = time.perf_counter()
+    if reason:
+        reading = await deps.mcp.call("project_records_all", project_id=project_id)
+        chosen, usages = await read_list(deps.quality_llm, question, reading)
+        sec = time.perf_counter() - t0
+        parts = len(usages)
+        full = {"reason": reason, "read": len(reading), "found": len(cands), "parts": parts, "sec": round(sec, 1),
+                "notice": full_read_notice(reason, project_key or project_id, len(reading), len(cands), sec, parts)}
+        shown, how = len(reading), "전체"
+    elif cands:
+        chosen, usages = await read_list(deps.quality_llm, question, cands)
+        shown, how = len(cands), "색인"
+    else:
+        chosen, usages, shown, how = [], [], 0, "없음"
+    return {**base, "decisions": [c for c in chosen if c["kind"] == "decision"],
+            "opens": [c for c in chosen if c["kind"] == "open"], "shown": shown, "usages": usages, "how": how,
+            "full_read": full}
 
 
 def merge(res: dict, picked: dict, project_id: str) -> tuple[dict, list[dict], list[str]]:

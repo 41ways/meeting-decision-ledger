@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 from ledger.records import MeetingRecords  # noqa: E402
 from ledger.store import DATA  # noqa: E402
+from ledger.term_index import TranscriptIndex  # noqa: E402
 
 
 def expired(records: MeetingRecords, today: str, days: int) -> list[dict]:
@@ -56,8 +57,9 @@ def run(records: MeetingRecords, data_dir: Path, today: str, days: int, apply: b
             continue
         if f.exists():
             f.unlink()
+        TranscriptIndex(records.db_path).delete(mid)     # 에이전트가 쓰는 단어 색인
         if rag is not None:
-            rag.delete_transcript(mid)
+            rag.delete_transcript(mid)                   # Before-B 기준선용 벡터 색인
         records.forget_meeting_details(mid, actor="retention")
     if not log:
         log.append(f"보존 기한({days}일)이 지난 회의 없음 (기준일 {today})")
