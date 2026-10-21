@@ -19,7 +19,11 @@ import run as R
 CONFIRM = re.compile(r"걸로|겠습니다|확정|하죠|합시다|바꾸죠|가죠|그렇게 하|갑시다")
 NOT_CONFIRM = re.compile(r"확정은 아닙|아직 확정|결론 내지|다음에 다시|보고 정할|검토해")
 ASSIGN = re.compile(r"까지|주세요|부탁")
-AUTH_TOPIC = {"schedule", "budget", "perf.latency", "scope.core", "answer.grounding", "llm.external", "meeting.retention"}
+# 권한표 주제 연결표 — 파일로 빠진 버전(data/project/auth_topics.json)이면 데이터셋 세계 연결표까지 합친다
+_AT = D.BASE / "auth_topics.json"
+AUTH_TOPIC = ({*json.loads(_AT.read_text(encoding="utf-8"))["map"],
+               *json.loads((D.WORLD / "auth_topics.json").read_text(encoding="utf-8"))["map"]} if _AT.exists() else
+              {"schedule", "budget", "perf.latency", "scope.core", "answer.grounding", "llm.external", "meeting.retention"})
 
 
 def segs_of(mid: str) -> dict:

@@ -108,6 +108,11 @@ def build_data_dir(dst: Path, meetings: list[str]) -> None:
             for k, v in _j(WORLD / "topic_aliases.json")["aliases"].items():
                 al["aliases"].setdefault(k, v)
             _w(dst / "topic_aliases.json", al)
+        if (dst / "auth_topics.json").exists():           # 권한표 주제 연결표가 파일로 빠진 버전에서만
+            at = _j(dst / "auth_topics.json")
+            for k, v in _j(WORLD / "auth_topics.json")["map"].items():
+                at["map"].setdefault(k, v)
+            _w(dst / "auth_topics.json", at)
         for f in (WORLD / "r2_docs").glob("*.md"):
             shutil.copy(f, dst / "r2_docs" / f.name)
         _w(dst / "r3_ledger" / "decisions_seed.json", {"decisions": merged_seed()})

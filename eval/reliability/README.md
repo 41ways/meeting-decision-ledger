@@ -30,7 +30,8 @@ AUTHORING.md     작성 기준 (정답 스키마, 충돌 판단 기준, 현상 �
 dataset.py       세계 합치기 · 정답 읽기 · 원장 시뮬레이션 · 검사 (--check)
 run.py           평가 러너
 review_sample.py 사람 검수 표본 (docs/reliability_review.md)
-world/           data/project에 덧붙는 프로젝트·인물·주제·정책·예외·기준 문서·원장 시드
+world/           data/project에 덧붙는 프로젝트·인물·주제·정책·예외·기준 문서·원장 시드,
+                 새 주제의 별칭(topic_aliases.json)·권한표 주제 연결표(auth_topics.json) — 코드가 그 파일을 읽는 버전에서만 합친다
 meetings/        회의 전사문 40건
 gold/            프로젝트별 정답 (결정·할 일·미결·함정, 의견, 질문)
 results_dev.*    개발 셋 결과
