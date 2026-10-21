@@ -63,7 +63,10 @@ def ask(key: str, user: str, message: str, project: str, meeting: str) -> dict:
         for line in r.iter_lines():
             if not line.startswith("data: "):
                 continue
-            ev = json.loads(line[6:])
+            try:
+                ev = json.loads(line[6:])
+            except json.JSONDecodeError:          # 끝 표시처럼 JSON이 아닌 줄은 건너뛴다
+                continue
             if ev.get("type") == "FullReadFallback":
                 full_read = True
             if ev.get("type") == "FinalAnswer":
