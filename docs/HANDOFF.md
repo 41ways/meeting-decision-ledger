@@ -19,7 +19,7 @@ SKALA AI Capstone 과제 2. 회의 전사문에서 결정·할 일을 근거와 
 | 저장소 | `41ways/meeting-decision-ledger` (public) · 브랜치 `main` |
 | 맥북 로컬 | `~/workspace/skala-capstnproj/meeting-decision-ledger` |
 | 맥북에만 있음 | `.env`(LangSmith 키 — 키는 직접 다시 넣는다), `store/`(원장·색인 — 스크립트로 재생성), `session.db` |
-| 발표 자료 | https://claude.ai/artifact/QRWEgspT5Meao14ndZDdTM (9장, 비공개) · 대본 `docs/발표대본.md` |
+| 발표 자료 | https://claude.ai/artifact/QRWEgspT5Meao14ndZDdTM (7장, 비공개 — 설명 3분 · 시연 2분) · 대본 `docs/발표대본.md` |
 
 ---
 

@@ -11,7 +11,7 @@ import re
 from agent.enrich import LEADS
 
 FACT_Q = re.compile(r"참석|참가자|참여자|누가\s*(승인|결정|정했|참석|있었)|승인(자|한\s*사람|했어|한\s*거|한거|받았)"
-                    r"|언제\s*(회의|정했|결정|승인)|무슨\s*회의|어느\s*회의|회의\s*날짜|며칠")
+                    r"|언제\s*(회의|정했|결정|승인)|무슨\s*회의|어느\s*회의|회의\s*날짜|며칠\s*(에|날)?\s*(회의|정했|결정|승인)")
 DECISION_ID = re.compile(r"(?<![A-Za-z0-9])[A-Z]{3}-\d{4}(?!\d)")
 MEETING_REF = re.compile(r"(?<![A-Za-z0-9])[A-Z]{3}-[MI]\d{2}(?!\d)")
 

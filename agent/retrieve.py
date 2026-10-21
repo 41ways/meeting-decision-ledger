@@ -266,6 +266,12 @@ def merge(res: dict, picked: dict, project_id: str) -> tuple[dict, list[dict], l
             res["current"], res["authority"] = {**top, "_picked": True}, "decision"
     elif topic_cur and picked.get("shown"):
         why.append(f"주제로 찾은 결정 {topic_cur['decision_id']}를 질문에 맞는 후보로 고르지 않음")
+    # 주제로 찾은 승인 대기 결정 중 질문에 맞는 후보로 고르지 않은 것은 답의 근거에서 뺀다
+    # (같은 주제라는 이유만으로 무관한 승인 대기 건을 대며 '아직 승인 대기'라고 답하던 오류)
+    if picked.get("shown"):
+        chosen = {d["decision_id"] for d in picked["decisions"]}
+        res["pending_unpicked"] = [p for p in res.get("pending", []) if p["decision_id"] not in chosen]
+        res["pending"] = [p for p in res.get("pending", []) if p["decision_id"] in chosen]
     seen = {p["decision_id"] for p in res.get("pending", [])}
     res["pending"] = res.get("pending", []) + [d for d in picked["decisions"] if d.get("status") == "proposed"
                                                and d.get("project_id") == project_id and d["decision_id"] not in seen]

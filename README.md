@@ -4,7 +4,7 @@
 
 SKALA AI Capstone 미니 프로젝트 · 과제 2(신규 AI 서비스). 강사 배포 `all_total_vue_student`의 구조(LangGraph 노드, MCP stdio, FastAPI·SSE, Vue 화면, SQLite 세션, 의존성 주입)를 재사용했다.
 
-![회의 정리 화면](docs/images/m04_report.jpg)
+<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/m04_report.jpg"><img src="docs/images/m04_report.jpg" width="100%" alt="회의 정리 화면"></a>
 
 ## 1. 주제 선정 배경
 
@@ -253,7 +253,7 @@ bash scripts/reset_demo.sh
 
 원장·RAG를 시드로 되돌리고, 시연용 대화방 9개와 승인 대기·열람 요청 각 1건을 넣는다. **시연용 대화 내용은 실제 실행 결과를 옮겨 적은 하드코딩 목업**(`scripts/seed_demo.py`)이다. 실제 결과는 화면에서 새로 질문하면 나온다.
 
-Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_KEY`를 넣으면 OpenAI(gpt-4o-mini)로 실행된다. 과금되며, 임베딩은 계속 로컬 Ollama를 쓴다. 실측 수치는 로컬 qwen3:8b 기준이다.
+Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_KEY`를 넣으면 OpenAI(gpt-4o-mini)로 실행된다(강의 안내 대안). 과금되며, 임베딩은 계속 로컬 Ollama를 쓴다. **가상 시연 데이터로 개발·실습할 때만 쓴다** — 실제 회의 원문은 외부로 보내지 않는다(10장 '외부 LLM을 쓰지 않음'). 실측 수치는 로컬 qwen3:8b 기준이다.
 
 일정 저장소는 `.env`의 `CALENDAR_PROVIDER`로 고른다. `local`(기본)은 `store/calendar.db`에 저장한다. `google`은 연결 준비만 된 상태라 저장하지 않고 보낼 요청을 로그로만 남긴다(dry-run). 실제 연결 절차는 [docs/calendar_integration.md](docs/calendar_integration.md).
 
@@ -291,41 +291,52 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 | 열람 승인 | 정한결이 관리자 콘솔에서 '이 사람만'으로 승인 | 윤하린에게 "열람 요청이 승인되었습니다", 이후 OPS-M04 열람 가능 |
 | 결정 승인 | 서지후가 정리한 M04의 OPS-0011(런북 캐시)을 정한결이 승인 | 서지후에게 "승인 요청이 승인되었습니다", 정한결에게 "OPS-0011 승인했습니다", 확인 → 열람 범위 체크 |
 
-| 첫 화면 — 프로젝트·회의·모델은 입력창 아래에서 | 회의 선택 메뉴 (날짜 달력 아이콘 옆) |
-|---|---|
-| ![](docs/images/home.jpg) | ![](docs/images/scope_menu.jpg) |
+사진을 누르면 원본 크기로 열립니다.
 
-| 회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점 | 근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회) |
-|---|---|
-| ![](docs/images/m04_report.jpg) | ![](docs/images/question_answer.jpg) |
+<table>
+<tr><th width="50%">첫 화면 — 프로젝트·회의·모델은 입력창 아래에서</th><th width="50%">회의 선택 메뉴 (날짜 달력 아이콘 옆)</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/home.jpg"><img src="docs/images/home.jpg" width="100%" alt="첫 화면 — 프로젝트·회의·모델은 입력창 아래에서"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/scope_menu.jpg"><img src="docs/images/scope_menu.jpg" width="100%" alt="회의 선택 메뉴 (날짜 달력 아이콘 옆)"></a></td></tr>
+</table>
 
-| 근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름 | 의견 검토 — 충돌과 해결 방향 |
-|---|---|
-| ![](docs/images/sse_flow.jpg) | ![](docs/images/opinion_question.jpg) |
+<table>
+<tr><th width="50%">회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점</th><th width="50%">근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회)</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/m04_report.jpg"><img src="docs/images/m04_report.jpg" width="100%" alt="회의 정리 — 상태 라벨·해결 방향·눈여겨볼 점"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/question_answer.jpg"><img src="docs/images/question_answer.jpg" width="100%" alt="근거 질의 [승인 대기] + 이전 미결 → "이거 누가 승인했어?" (표 조회)"></a></td></tr>
+</table>
 
-| 관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의 | 미결함 — 경과일·후속 할 일·결정 없이 닫기 |
-|---|---|
-| ![](docs/images/admin_approve.jpg) | ![](docs/images/open_items.jpg) |
+<table>
+<tr><th width="50%">근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름</th><th width="50%">의견 검토 — 충돌과 해결 방향</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/sse_flow.jpg"><img src="docs/images/sse_flow.jpg" width="100%" alt="근거 질의 [확정] — 이유·기각 대안·원문·사안의 흐름"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/opinion_question.jpg"><img src="docs/images/opinion_question.jpg" width="100%" alt="의견 검토 — 충돌과 해결 방향"></a></td></tr>
+</table>
 
-| 면접 전사문 — 질문·답변 요약, 공정성 점검 | 일정 달력 — 회의 상세 |
-|---|---|
-| ![](docs/images/i01_interview.jpg) | ![](docs/images/meeting_detail.jpg) |
+<table>
+<tr><th width="50%">관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의</th><th width="50%">미결함 — 경과일·후속 할 일·결정 없이 닫기</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_approve.jpg"><img src="docs/images/admin_approve.jpg" width="100%" alt="관리자 콘솔 승인함 — 누르면 근거 발언·근거 회의·대체될 결정·이전 논의"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/open_items.jpg"><img src="docs/images/open_items.jpg" width="100%" alt="미결함 — 경과일·후속 할 일·결정 없이 닫기"></a></td></tr>
+</table>
 
-| 일정 추가 — 초안 카드와 겹침 경고 | 겹침 확인 대화상자 | 일정 달력 — 추가된 일정 상세 |
-|---|---|---|
-| ![](docs/images/schedule_add.jpg) | ![](docs/images/schedule_conflict.jpg) | ![](docs/images/schedule_calendar.jpg) |
+<table>
+<tr><th width="50%">면접 전사문 — 질문·답변 요약, 공정성 점검</th><th width="50%">일정 달력 — 회의 상세</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/i01_interview.jpg"><img src="docs/images/i01_interview.jpg" width="100%" alt="면접 전사문 — 질문·답변 요약, 공정성 점검"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/meeting_detail.jpg"><img src="docs/images/meeting_detail.jpg" width="100%" alt="일정 달력 — 회의 상세"></a></td></tr>
+</table>
 
-| 관리자 콘솔 — 열람 요청 (범위·기간) | |
-|---|---|
-| ![](docs/images/admin_requests.jpg) | |
+<table>
+<tr><th width="33%">일정 추가 — 초안 카드와 겹침 경고</th><th width="33%">겹침 확인 대화상자</th><th width="33%">일정 달력 — 추가된 일정 상세</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_add.jpg"><img src="docs/images/schedule_add.jpg" width="100%" alt="일정 추가 — 초안 카드와 겹침 경고"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_conflict.jpg"><img src="docs/images/schedule_conflict.jpg" width="100%" alt="겹침 확인 대화상자"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/schedule_calendar.jpg"><img src="docs/images/schedule_calendar.jpg" width="100%" alt="일정 달력 — 추가된 일정 상세"></a></td></tr>
+</table>
 
-| 회의 접근 권한 (역할별) | 팀장 알림 |
-|---|---|
-| ![](docs/images/admin_acl.jpg) | ![](docs/images/notify_lead.jpg) |
+<table>
+<tr><th width="50%">관리자 콘솔 — 열람 요청 (범위·기간)</th><th></th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_requests.jpg"><img src="docs/images/admin_requests.jpg" width="100%" alt="관리자 콘솔 — 열람 요청 (범위·기간)"></a></td><td></td></tr>
+</table>
 
-| 설정 — RAG 저장소 보기 | 사용자 선택 (역할별 시연) |
-|---|---|
-| ![](docs/images/settings_rag.jpg) | ![](docs/images/login.jpg) |
+<table>
+<tr><th width="50%">회의 접근 권한 (역할별)</th><th width="50%">팀장 알림</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/admin_acl.jpg"><img src="docs/images/admin_acl.jpg" width="100%" alt="회의 접근 권한 (역할별)"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/notify_lead.jpg"><img src="docs/images/notify_lead.jpg" width="100%" alt="팀장 알림"></a></td></tr>
+</table>
+
+<table>
+<tr><th width="50%">설정 — RAG 저장소 보기</th><th width="50%">사용자 선택 (역할별 시연)</th></tr>
+<tr><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/settings_rag.jpg"><img src="docs/images/settings_rag.jpg" width="100%" alt="설정 — RAG 저장소 보기"></a></td><td><a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/login.jpg"><img src="docs/images/login.jpg" width="100%" alt="사용자 선택 (역할별 시연)"></a></td></tr>
+</table>
 
 ### 7.2 오류·예외 상황 테스트
 
@@ -351,7 +362,7 @@ Ollama가 느린 맥북은 `.env`에 `LLM_BACKEND=openai`와 본인 `OPENAI_API_
 
 OPS-M04 정리 한 번(59.9초)을 LangSmith에 기록한 화면. route → plan → gate → research → … 순서로 노드가 펼쳐지고, 노드 안에서 부른 MCP Resource·Prompt·Tool과 로컬 LLM 호출이 시간과 함께 남는다.
 
-![LangSmith 트레이스](docs/images/langsmith_trace.jpg)
+<a href="https://raw.githubusercontent.com/41ways/meeting-decision-ledger/main/docs/images/langsmith_trace.jpg"><img src="docs/images/langsmith_trace.jpg" width="100%" alt="LangSmith 트레이스"></a>
 
 - 한 번 실행에 기록된 것: 노드·분기 43개, MCP 호출 18개, LLM 호출 7개
 - 느린 곳이 바로 보인다: plan 34.6초 중 결정 후보 분류 LLM 한 번이 32.1초. 처리 시간을 줄이려면 이 호출의 입력(후보 발언 수)을 줄여야 한다는 근거가 됐다
@@ -433,6 +444,8 @@ OPS-M04 정리 한 번(59.9초)을 LangSmith에 기록한 화면. route → plan
 - 회의 정리에 칸 기록·요약·대안 호출이 더해져 회의 1건이 60~80초로 늘었다 (정확성을 우선한 선택)
 - 벡터 하한은 주제 대조·보조 배정(0.50)과 규정·기준 문서 검색에만 남는다(결정·미결·회의 원문은 낱말 색인). 0.50은 30문장·18질의의 작은 자체 평가셋으로 정하고 같은 셋으로 확인했다. 데이터가 바뀌면 다시 재야 한다
 - **별칭 관리 비용**: 결정·미결 찾기가 별칭 표(`topic_aliases.json`)에 기댄다. 새 주제·새 표현이 생기면 사람이 별칭을 보태야 하고(승인 화면 수정 창에서 새 주제·별칭을 바로 더한다 — `store/vocab_extra.json`, 이력과 파이프라인 버전 지문에 남음. 모델은 주제를 만들지 않고 '새 주제'까지만 말한다), 빠진 표현은 '전체 읽기 알림'으로 드러난다(조용히 틀리지 않는 대신 느려진다). 너무 흔한 말(일정·비용·MCP)을 별칭으로 두면 후보가 늘고, 50건을 넘으면 전체 읽기로 간다. 동의어 사전은 없어 Redis·레디스처럼 표기가 다른 말은 별칭 주제로만 이어진다
+- **같은 뜻 다른 글자 질문은 답을 재사용하지 않음**: 답 캐시는 띄어쓰기·문장부호만 무시한 같은 문장일 때만 쓴다. 뜻이 비슷한 질문을 같은 답으로 돌려주는 의미 캐시는 넣지 않았다 — 'SSE 왜 골랐어?'와 'SSE 왜 버렸어?'처럼 글자는 거의 같고 뜻이 반대인 질문에 저장된 답을 잘못 돌려줄 위험이 시간 절약보다 크고, 프로젝트 기간 안에 그 오판을 막을 장치까지 만들기 어려웠다. 글자가 달라도 찾기는 별칭으로 같은 주제에 닿아 답 자체는 대개 같고, 처리 시간만 다시 든다
+- **외부 LLM을 쓰지 않음 (로컬 한계는 로컬 방법으로)**: 회의 원문은 마스킹으로 해결되지 않는다. 이름·연락처를 가려도 무엇을 정했는지(기술 선택·예산·일정·고객사) 자체가 민감 정보이고, 그걸 가리면 판단할 내용이 사라진다. 그래서 서비스 경로(회의 정리·질문·의견 검토)는 전부 로컬 모델로 돌린다. 대가로 로컬 한계가 남는다 — 8b 컨텍스트 16k 토큰을 넘는 긴 회의는 나눠 읽어야 하고, 결정·미결 400건 전체 읽기는 정답 23%(좁힌 뒤 읽기는 92%, `eval/list_scaling.md`). 이 한계는 좁힌 뒤 읽기·나눠 읽기로 버티고, 규모가 커지면 사내 GPU 서버에 더 큰 오픈 모델을 올리는 쪽으로 푼다. 외부 API는 실제 데이터가 들어가지 않는 개발·평가(가상 데이터셋 작성, 채점 보조)에만 쓴다
 - **전체 읽기 비용**: 대비책은 프로젝트 기록 전체를 읽는다. 목록이 길수록 느리고 정확도가 떨어진다(목록 크기 곡선: 전체 읽기 정답률 50건 77% → 200건 42% → 400건 23%, 400건은 컨텍스트 한도에 걸려 잘림 · 응답 5.7초 → 49초). 6,000토큰 단위로 나눠 읽어 컨텍스트 한도는 넘지 않지만, 나눈 횟수만큼 LLM 호출이 는다
 - 회의 원문 단어 검색(BM25)은 짧은 발언에 점수를 더 준다. 같은 주제 안에서 할 일 배정 같은 짧은 발언이 논의 발언보다 앞에 올 수 있다
 - 권한 검사는 "결정자 또는 참석자 중 권한자"로 본다. 권한자가 참석만 하고 동의하지 않은 경우를 구분하지 못한다

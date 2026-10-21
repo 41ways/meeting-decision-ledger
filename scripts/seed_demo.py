@@ -1,8 +1,8 @@
-"""시연용 대화방·요청 시드 (하드코딩 목업).
+"""시연용 대화방·요청 시드.
 
-대화 내용은 실제 그래프 실행 결과를 옮겨 적은 것이다(사람 이름·번호는 현재 체계로). 시연 화면의 대화방 목록,
+대화방의 답은 scripts/demo_outputs.json(capture_demo.py가 지금 코드로 서버에 실제로 물어 받은 답)이 있으면 그것을,
+없으면 아래 상수(예전 실제 실행 결과를 옮겨 적은 목업)를 쓴다. 시연 화면의 대화방 목록,
 관리자 콘솔의 승인 대기·열람 요청, 알림이 비어 있지 않게 하려는 용도이며 평가(eval)에는 쓰지 않는다.
-실제 결과를 보려면 화면에서 새 대화로 다시 실행하면 된다.
 
 사용: .venv/bin/python scripts/seed_demo.py   (reset_demo.sh가 자동 실행)
 """
@@ -203,34 +203,46 @@ CACHE_ANSWER = """[승인 대기] 캐시는 런북 문서에만 적용하기로 
 ### 이전 논의 · 이후 결정으로 이어짐
 - OPS-M03 [10] 서지후: 캐시는 대상부터 정해야 할 것 같아요. 오늘 결론 내지 말고 상민 님이 후보 정리해서 다음에 다시 봅시다."""
 
-# (thread_id, user, 제목, 프로젝트, 회의, 몇 시간 전, [(질문, 답)])
-CACHE_FACT = """[승인 대기] **OPS-0011** · 캐시 적용 범위를 런북 문서로 제한
-- 회의에서 정한 사람: 서지후
-- 승인: 아직 승인 전 · 승인 요청 서지후 (2026-10-20)
-- 승인할 사람: 팀장 정한결 (원장 기록은 팀장 승인)
-- 승인하면 대체될 결정: 없음
-- 회의: OPS-M04 기능 확장 회의 · 2026-10-13
-- 참석: 서지후(PL) · 장상민(백엔드) · 노영오(AI 개발) · 한소율(운영팀)
-- 불참: 정한결(팀장)
-- 이전 논의: OPS-M03 구현 점검 회의 · 2026-10-06 · 미결 '캐시 대상 정의' · 참석 정한결(PM) · 서지후(PL) · 장상민(백엔드) · 노영오(AI 개발)"""
+OUTPUTS_FILE = ROOT / "scripts" / "demo_outputs.json"
+CAPTURED = json.loads(OUTPUTS_FILE.read_text(encoding="utf-8")) if OUTPUTS_FILE.exists() else {}
 
+
+def ans(key: str, fallback: str) -> str:
+    """
+    대화방 답 — 캡처한 실제 답이 있으면 그것, 없으면 목업 상수
+    Args:
+        key:      demo_outputs.json의 키 (capture_demo.SPECS)
+        fallback: 목업 상수
+    Returns:
+        답 문장
+    """
+    return CAPTURED.get(key, {}).get("reply") or fallback
+
+
+# (thread_id, user, 제목, 프로젝트, 회의, 몇 시간 전, [(질문, 답)])
+M04, SSE, CACHE = ans("m04", M04_REPORT), ans("sse", SSE_ANSWER), ans("cache", CACHE_ANSWER)
 THREADS = [
-    ("demo-1", "kjh", "OPS-M04 회의 정리해줘", "OPS", "OPS-M04", 0.3, [("OPS-M04 회의 정리해줘", M04_REPORT)]),
-    ("demo-2", "kjh", "SSE는 왜 골랐어?", "OPS", "OPS-M02", 1.5, [("SSE는 왜 골랐어?", SSE_ANSWER)]),
-    ("demo-3", "kjh", "HBE-I01 면접 요약해줘", "HBE", "HBE-I01", 3, [("HBE-I01 면접 요약해줘", I01_SUMMARY)]),
-    ("demo-4", "kjh", "세션 저장소를 Redis로 바꾸면 어때?", "OPS", None, 26, [("세션 저장소를 Redis로 바꾸면 어때?", REDIS_REVIEW)]),
-    ("demo-5", "kjh", "예전 고객센터 챗봇에서 웹소켓을 그만둔 이유", "CSB", None, 30, [("예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?", CSB_ANSWER)]),
-    ("demo-6", "kjh", "캐시는 어떻게 하기로 했어?", "OPS", "OPS-M03", 75, [("캐시는 어떻게 하기로 했어?", CACHE_ANSWER),
-                                                                    ("이거 누가 승인한거야?", CACHE_FACT)]),
-    ("demo-7", "pdy", "OPS-M04 회의 정리해줘", "OPS", "OPS-M04", 0.5, [("OPS-M04 회의 정리해줘", M04_REPORT)]),
-    ("demo-8", "pdy", "SSE는 왜 골랐어?", "OPS", "OPS-M02", 20, [("SSE는 왜 골랐어?", SSE_ANSWER)]),
-    ("demo-9", "lsj", "캐시는 어떻게 하기로 했어?", "OPS", "OPS-M03", 2, [("캐시는 어떻게 하기로 했어?", CACHE_ANSWER)]),
+    ("demo-1", "kjh", "OPS-M04 회의 정리해줘", "OPS", "OPS-M04", 0.3, [("OPS-M04 회의 정리해줘", M04)]),
+    ("demo-2", "kjh", "SSE는 왜 골랐어?", "OPS", "OPS-M02", 1.5, [("SSE는 왜 골랐어?", SSE)]),
+    ("demo-3", "kjh", "HBE-I01 면접 요약해줘", "HBE", "HBE-I01", 3, [("HBE-I01 면접 요약해줘", ans("i01", I01_SUMMARY))]),
+    ("demo-4", "kjh", "세션 저장소를 Redis로 바꾸면 어때?", "OPS", None, 26,
+     [("세션 저장소를 Redis로 바꾸면 어때?", ans("redis_session", REDIS_REVIEW))]),
+    ("demo-5", "kjh", "예전 고객센터 챗봇에서 웹소켓을 그만둔 이유", "CSB", None, 30,
+     [("예전 고객센터 챗봇에서는 왜 웹소켓을 그만뒀어요?", ans("csb", CSB_ANSWER))]),
+    # 시연에서 이 방에 '이거 누가 승인했어?'를 직접 입력한다 (사실 질문은 모델 없이 표에서 바로 답함)
+    ("demo-6", "kjh", "캐시는 어떻게 하기로 했어?", "OPS", "OPS-M03", 75, [("캐시는 어떻게 하기로 했어?", CACHE)]),
+    ("demo-7", "pdy", "OPS-M04 회의 정리해줘", "OPS", "OPS-M04", 0.5, [("OPS-M04 회의 정리해줘", M04)]),
+    ("demo-8", "pdy", "SSE는 왜 골랐어?", "OPS", "OPS-M02", 20, [("SSE는 왜 골랐어?", SSE)]),
+    ("demo-9", "lsj", "캐시는 어떻게 하기로 했어?", "OPS", "OPS-M03", 2, [("캐시는 어떻게 하기로 했어?", CACHE)]),
 ]
+if "redis_cache" in CAPTURED:      # 용어 색인 검색 예시 (미결 답) — 캡처한 답이 있을 때만
+    THREADS.append(("demo-10", "kjh", "Redis 캐시 쓰기로 했어?", "OPS", None, 1,
+                    [("Redis 캐시 쓰기로 했어?", CAPTURED["redis_cache"]["reply"])]))
 
 
 def main():
     """
-    시연용 대화방·승인 대기 결정·열람 요청을 넣는다 (하드코딩 목업)
+    시연용 대화방·승인 대기 결정·열람 요청을 넣는다
 
     access.db의 모든 행과 session.db의 demo-* 대화를 지운 뒤 다시 넣는다. 원장(LedgerStore)은 비우지 않는다.
     """
@@ -253,14 +265,19 @@ def main():
 
     # 승인 대기 1건 (서지후가 M04 정리에서 올린 런북 캐시 결정) — 원장에는 proposed로
     m04 = {s["seq"]: s for s in json.loads((ROOT / "data/project/r1_meetings/OPS-M04.json").read_text())["segments"]}
-    # 이미 cache 주제 결정이 있으면 다시 올리지 않는다 (재실행 시 중복 방지)
-    if not any(d["topic"] == "cache" for d in ledger.decisions(project_id="PRJ-OPSAI")):
+    # 이미 cache 주제 결정이 있으면 다시 올리지 않는다 (재실행 시 중복 방지). 요청 기록은 acc.reset 뒤라 매번 넣는다
+    cached = [d for d in ledger.decisions(project_id="PRJ-OPSAI") if d["topic"] == "cache"]
+    did = cached[0]["decision_id"] if cached else None
+    if not did:
         did = ledger.propose({"project_id": "PRJ-OPSAI", "topic": "cache", "statement": "캐시 적용 범위를 런북 문서로 제한",
                               "rationale": "모니터링 수치는 계속 바뀌어 캐시하면 옛 값이 나옴",
                               "alternatives_rejected": ["자주 묻는 질문 Redis 캐시"],
                               "decided_by": "서지후",
                               "evidence": [{"meeting_id": "OPS-M04", "seq": q, "quote": m04[q]["text"]}
                                            for q in (10, 11)]})
+    if cached and cached[0]["status"] != "proposed":
+        did = None                                  # 이미 승인·반려된 원장이면 승인 대기 시드는 건너뛴다
+    if did:
         acc.record_proposal(did, "pdy", "OPS-M04")
         # 회의 기록(process_meetings.py가 채운 OPS-M04 결정 후보)에 이 원장 번호를 잇는다 — 사안 흐름·미결 연결이 원장을 가리키게
         from ledger.records import MeetingRecords  # pylint: disable=import-outside-toplevel
@@ -269,7 +286,8 @@ def main():
             rec.link_decision("OPS-M04:decision:11", did, "서지후")
     # 열람 요청 1건 (인턴이 참석하지 않은 회의)
     acc.request_access("yhr", "OPS-M04", "온보딩 자료 정리")
-    print(f"시드 완료: 대화방 {len(THREADS)}개, 승인 대기 1건, 열람 요청 1건")
+    src = f"캡처 답 {len(CAPTURED)}개(demo_outputs.json)" if CAPTURED else "목업 상수"
+    print(f"시드 완료: 대화방 {len(THREADS)}개 ({src}), 승인 대기 {1 if did else 0}건, 열람 요청 1건")
 
 
 if __name__ == "__main__":

@@ -89,3 +89,18 @@ def test_merge_open_items_become_discussion_and_labels():
     assert R.answer_label({"research": res, "discussion": disc}) == "미결"
     assert R.answer_label({"research": {"authority": "none"}}) == "찾지 못함"
     assert R.answer_label({"research": {"authority": "decision"}, "check_reasons": ["x"]}) == "확인 필요"
+
+
+def test_how_many_days_policy_question_is_not_a_fact_lookup():
+    assert not F.is_fact_question("대화 이력은 며칠 보관하기로 했어요?")   # 결정 내용을 묻는 질문
+    assert F.is_fact_question("그거 며칠에 정했어?")
+
+
+def test_merge_drops_same_topic_pending_that_was_not_picked():
+    res = {"authority": "none", "advisory": [],
+           "pending": [{"decision_id": "OPS-0032", "status": "proposed", "project_id": "PRJ-OPSAI"}]}
+    out, _, _ = R.merge(res, {"decisions": [], "opens": [], "shown": 4}, "PRJ-OPSAI")
+    assert out["pending"] == [] and out["pending_unpicked"][0]["decision_id"] == "OPS-0032"
+    assert R.answer_label({"research": out}) == "찾지 못함"            # '아직 승인 대기'로 답하지 않는다
+    kept, _, _ = R.merge(res, {"decisions": [res["pending"][0]], "opens": [], "shown": 4}, "PRJ-OPSAI")
+    assert [p["decision_id"] for p in kept["pending"]] == ["OPS-0032"]
