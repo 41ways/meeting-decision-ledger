@@ -70,7 +70,11 @@ def test_gate_clears_invented_owner_and_due():
 
 def test_topic_key_strips_description_and_new_prefix():
     assert G.topic_key("session.store: 대화 세션 저장소") == "session.store"
-    assert G.topic_key("new:agent.gate") == "agent.gate"
+    assert G.topic_key("new:agent.gate") == "agent.gate"                    # 목록 없이 부르면 형식만 본다
+    assert G.topic_key("new:notice_channel", {"cache"}) == ""                # 모델이 지은 주제는 버린다
+    assert G.topic_key("notice_channel", {"cache"}) == ""
+    assert G.topic_key("cache: 캐시 적용 범위", {"cache"}) == "cache"
+    assert G.topic_keys("cache: 캐시 적용 범위\nrelease: 운영 반영 절차\n") == {"cache", "release"}
     assert G.topic_key(None) == ""
 
 
