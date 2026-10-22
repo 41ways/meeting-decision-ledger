@@ -198,7 +198,12 @@ def apply_thresholds(values: dict) -> list[str]:
     path = ROOT / PR.THRESHOLD_FILE
     text, done = path.read_text(encoding="utf-8"), []
     for name, val in values.items():
-        new, n = re.subn(rf"^({re.escape(name)}\s*=\s*)[0-9.]+", rf"\g<1>{val}", text, flags=re.M)
+        def keep_digits(m, val=val):
+            # 0.50을 0.5로 바꿔 쓰면 값이 같아도 git 차이가 생긴다 — 원래 소수 자릿수를 지킨다
+            old = m.group(2)
+            places = len(old.split(".")[1]) if "." in old else 0
+            return m.group(1) + (f"{val:.{places}f}" if places else str(val))
+        new, n = re.subn(rf"^({re.escape(name)}\s*=\s*)([0-9.]+)", keep_digits, text, flags=re.M)
         if n:
             text = new
             done.append(f"{name} = {val}")
