@@ -465,7 +465,8 @@ RECHECK_SCHEMA = {"type": "object", "properties": {"items": {"type": "array", "i
 
 # 할 일 배정: 날짜·요일·기간 앞의 '까지'만 기한으로 본다 — '3번까지 재시도', '10장까지'는 결정 내용이다
 DEADLINE = r"(\d{1,2}\s*일|\d{1,2}\s*/\s*\d{1,2}|[월화수목금토일]요일|내일|모레|오늘|이번\s*주|다음\s*주|주말|월말|말일|퇴근\s*전|오전|오후|금주|차주)"
-ASSIGN = re.compile(DEADLINE + r"\s*(중으로|안으로|안에)?\s*까지|주세요|부탁")
+# '회의 전까지', '배포 전까지'처럼 '…전까지'도 기한이다 (689a7d3에서 좁혔다가 할 일 정정을 결정으로 뽑는 회귀 — 승격 게이트가 잡음)
+ASSIGN = re.compile(DEADLINE + r"\s*(중으로|안으로|안에)?\s*까지|전\s*까지|주세요|부탁")
 
 TOPIC_SCHEMA = {"type": "object", "properties": {"topic": {"type": "string"},
                 "project": {"type": "string", "enum": list(PROJECTS)}}, "required": ["topic", "project"]}
