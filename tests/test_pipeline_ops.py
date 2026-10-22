@@ -158,6 +158,9 @@ def test_apply_thresholds_rewrites_constants(tmp_path, monkeypatch):
     monkeypatch.setattr(promote, "ROOT", tmp_path)
     assert promote.apply_thresholds({"MIN_TOPIC_SCORE": 0.6}) == ["MIN_TOPIC_SCORE = 0.6"]
     assert PR.thresholds(tmp_path)["MIN_TOPIC_SCORE"] == 0.6
+    assert "MIN_TOPIC_SCORE = 0.60" in (tmp_path / PR.THRESHOLD_FILE).read_text(encoding="utf-8")   # 자릿수 유지
+    promote.apply_thresholds({"MIN_TOPIC_SCORE": 0.5})
+    assert (tmp_path / PR.THRESHOLD_FILE).read_text(encoding="utf-8") == (ROOT / PR.THRESHOLD_FILE).read_text(encoding="utf-8")
 
 
 def test_read_scores_accepts_run_eval_and_flat_formats(tmp_path):
