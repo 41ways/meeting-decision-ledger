@@ -548,3 +548,8 @@ def test_validate_rejects_pending_wording_when_basis_is_approved():
           "items": [{"research": {"authority": "decision", "current": {"decision_id": "OPS-0007"}, "pending": []}}]}
     out = run(G.validate_node(st, deps=None))
     assert "승인 대기" in (out["validation_feedback"] or "")
+
+
+def test_who_proposed_routes_to_fact_not_opinion():
+    deps = G.LedgerDeps(fast_llm=_NoLLM(), quality_llm=_NoLLM(), mcp=None)
+    assert run(G.route_node({"message": "OPS-0011 누가 제안했어?", "events": []}, deps))["mode"] == "fact"

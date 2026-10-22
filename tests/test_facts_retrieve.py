@@ -104,3 +104,8 @@ def test_merge_drops_same_topic_pending_that_was_not_picked():
     assert R.answer_label({"research": out}) == "찾지 못함"            # '아직 승인 대기'로 답하지 않는다
     kept, _, _ = R.merge(res, {"decisions": [res["pending"][0]], "opens": [], "shown": 4}, "PRJ-OPSAI")
     assert [p["decision_id"] for p in kept["pending"]] == ["OPS-0032"]
+
+
+def test_who_proposed_is_a_fact_question():
+    assert F.is_fact_question("이 아이디어 누가 제안했어?")
+    assert F.is_fact_question("이거 처음 꺼낸 사람 누구야?")

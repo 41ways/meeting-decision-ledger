@@ -10,7 +10,8 @@ import re
 
 from agent.enrich import LEADS
 
-FACT_Q = re.compile(r"참석|참가자|참여자|누가\s*(승인|결정|정했|참석|있었)|승인(자|한\s*사람|했어|한\s*거|한거|받았)"
+FACT_Q = re.compile(r"참석|참가자|참여자|누가\s*(승인|결정|정했|참석|있었|제안|제시|꺼냈|낸)|승인(자|한\s*사람|했어|한\s*거|한거|받았)"
+                    r"|제안(자|한\s*사람)|처음\s*(말|꺼)"
                     r"|언제\s*(회의|정했|결정|승인)|무슨\s*회의|어느\s*회의|회의\s*날짜|며칠\s*(에|날)?\s*(회의|정했|결정|승인)")
 DECISION_ID = re.compile(r"(?<![A-Za-z0-9])[A-Z]{3}-\d{4}(?!\d)")
 MEETING_REF = re.compile(r"(?<![A-Za-z0-9])[A-Z]{3}-[MI]\d{2}(?!\d)")
@@ -119,6 +120,11 @@ async def fact_answer(deps, msg: str, refs: list[str]) -> tuple[str, list[str]]:
         label = _status_label(d)
         rows.append(f"[{label}] **{did}** · {d['statement'].rstrip('.')}")
         rows.append(f"- 회의에서 정한 사람: {d.get('decided_by') or '?'}")
+        # 근거의 첫 발언이 확정 발언보다 앞이면 그 발언이 제안 — 아이디어를 꺼낸 사람에게 다시 물어볼 수 있게
+        ev = sorted((e for e in d.get("evidence", []) if e.get("seq") is not None), key=lambda e: e["seq"])
+        if len(ev) > 1 and ev[0].get("speaker"):
+            rows.append(f"- 처음 제안한 사람: {ev[0]['speaker']} ({ev[0].get('meeting_id', '')} [{ev[0]['seq']}] "
+                        f"\"{(ev[0].get('quote') or '')[:40]}…\")")
         if d["status"] == "approved":
             rows.append(f"- 승인: {d.get('approved_by') or '?'} · 시행 {d.get('effective_from') or '?'}")
         elif d["status"] == "proposed":
