@@ -256,6 +256,11 @@ tr.stale td { background: #fffaf2; }
 .tp-form { border: 1px dashed var(--line2); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: #fbfcfe; }
 .tp-form p { margin: 0; font-size: 12.5px; } .tp-act { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
 .err2 { color: #a32d2d; font-size: 12.5px; flex: 1; } .ok2 { color: #27500A; font-size: 12.5px; flex: 1; }
+.fb { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.fb-h { font-size: 15px; margin: 0 0 8px; } .fb-h .muted { font-weight: 400; font-size: 12.5px; }
+.fb-sum { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; } .fb-sum span { background: #f1f4f8; border-radius: 6px; padding: 4px 10px; font-size: 13px; }
+.fb-sum span.hot { background: #fdecea; color: #a32d2d; } .fb-sum b { font-size: 15px; }
+.fb-chip { border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; padding: 1px 7px; font-size: 12.5px; margin: 2px 4px 2px 0; background: #fff; } .fb-chip:hover { background: #e6eef9; }
 .ed-ft { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--line); } .ed-ft .muted { flex: 1; font-size: 12.5px; }
 .ver { position: absolute; right: 14px; bottom: 4px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
 
@@ -542,7 +547,7 @@ tr.lock td { color: var(--muted); }
             <button :class="{ on: atab === 'acl' }" @click="atab = 'acl'; sel = ''; loadAcl()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>회의 접근 권한<small>역할별 열람 범위</small></span></button>
             <button :class="{ on: atab === 'his' }" @click="atab = 'his'; sel = '';"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span>처리 이력<small>승인·반려·열람 기록</small></span></button>
             <div class="adm-sec">운영</div>
-            <button :class="{ on: atab === 'mon' }" @click="atab = 'mon'; sel = ''; loadMonitor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>품질 감시<small>버전·드리프트 판정</small></span><em v-if="mon && mon.alerts" class="warn">{{ mon.alerts }}</em></button>
+            <button :class="{ on: atab === 'mon' }" @click="atab = 'mon'; sel = ''; loadMonitor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>품질 감시<small>놓침 · 반려 · 드리프트</small></span><em v-if="mon && mon.alerts" class="warn">{{ mon.alerts }}</em></button>
           </nav>
           <section class="adm-main">
             <div v-if="atab === 'dec'">
@@ -657,6 +662,21 @@ tr.lock td { color: var(--muted); }
 
             <div v-if="atab === 'mon'">
               <div class="adm-hd"><h2>품질 감시</h2><span class="muted" v-if="mon"><span :class="mon.alerts ? 'st-bad' : 'st-ok'">경보 {{ mon.alerts }}</span> · <span :class="mon.warnings ? 'st-wait' : ''">주의 {{ mon.warnings }}</span></span></div>
+              <div class="fb" v-if="fb">
+                <h3 class="fb-h">사람이 고친 것에서 찾은 놓침 <span class="muted">— 팀장 수정·반려를 '모델이 왜 틀렸나'로 나눠 고칠 거리로</span></h3>
+                <div class="fb-sum"><span v-for="(n, k) in fb.summary" :key="k" :class="{ hot: (k === '주제 놓침' || k === '반려') && n }"><b>{{ n }}</b> {{ k }}</span></div>
+                <table class="atable" v-if="fb.misses.length || fb.rejections.length">
+                  <tr><th style="width:110px">종류</th><th style="width:100px">결정</th><th>무엇이 틀렸나</th><th style="width:320px">고칠 거리</th><th style="width:80px">상태</th></tr>
+                  <tr v-for="(m, i) in fb.misses" :key="'m' + i"><td :class="m.kind.startsWith('주제') ? 'st-bad' : ''">{{ m.kind }}</td><td class="mono">{{ m.decision_id }}</td>
+                    <td>{{ m.why }}<div class="muted">{{ m.statement }}</div></td>
+                    <td><template v-if="m.alias_candidates.length"><span class="muted">{{ m.after }} 별칭 후보:</span>
+                      <button v-for="w in m.alias_candidates" :key="w" class="fb-chip" @click="addAlias(m.after, w)">+ {{ w }}</button></template>
+                      <span v-else class="muted">—</span></td>
+                    <td :class="m.status === '열림' ? 'st-wait' : 'st-ok'">{{ m.status }}</td></tr>
+                  <tr v-for="(r, i) in fb.rejections" :key="'r' + i"><td class="st-bad">반려</td><td class="mono">{{ r.decision_id }}</td><td>{{ r.reason }}<div class="muted">{{ r.statement }}</div></td><td class="muted">사유를 추출 규칙 점검에</td><td class="muted">기록</td></tr>
+                </table>
+                <p class="muted" v-else>아직 사람이 고친 결정이 없습니다. 팀장이 수정 창에서 주제를 고치거나 반려하면 여기에 쌓입니다.</p>
+              </div>
               <p class="note">champion 승격 직후 요청(기준선)과 최근 요청을 비교합니다. 비율은 차이가 10%p 이상이면서 p&lt;0.01이면 경보, p&lt;0.05면 주의입니다. 승격·롤백은 scripts/promote.py로 합니다.</p>
               <p v-if="!mon" class="muted">불러오는 중</p>
               <template v-else>
@@ -1180,7 +1200,16 @@ createApp({
     async function loadAcl() { acl.value = (await api(`/admin/acl?user=${me.value.user_id}`)).meetings; }
     const openItems = ref([]);
     const mon = ref(null);           // 품질 감시 (GET /admin/monitor)
-    async function loadMonitor() { if (me.value?.role === '팀장') mon.value = await api(`/admin/monitor?user=${me.value.user_id}`); }
+    const fb = ref(null);            // 놓침 신호 (GET /admin/feedback)
+    async function loadMonitor() {
+      if (me.value?.role !== '팀장') return;
+      mon.value = await api(`/admin/monitor?user=${me.value.user_id}`);
+      fb.value = await api(`/admin/feedback?user=${me.value.user_id}`).catch(() => null);
+    }
+    async function addAlias(topic, word) {   // 놓침에서 나온 별칭 후보를 보탠다 → 색인 다시 만듦 → 그 놓침은 '반영됨'
+      try { await post(`/topics/${topic}/aliases`, { user: me.value.user_id, aliases: [word] }); loadMonitor(); }
+      catch (e) { await ask({ title: '별칭 보태기 실패', message: String(e.message || e), cancel: '' }); }
+    }
     const monStatus = s => ({ champion: '운영 중(champion)', challenger: '후보(challenger)', retired: '내림(retired)' }[s] || '미등록');
     const monVal = v => v === null || v === undefined ? '—' : typeof v === 'object' ? (Object.entries(v).map(([k, n]) => k + ' ' + n).join(' · ') || '—') : v;
     async function loadOpen() { if (me.value?.role === '팀장') openItems.value = (await api(`/open-items?user=${me.value.user_id}`)).items; }
@@ -1458,7 +1487,7 @@ createApp({
       setInterval(loadNotes, 8000);
     })();
 
-    return { mon, loadMonitor, monStatus, monVal, ed, createTopic, addAliases, edPreview, moreCtx, edChanges, saveEdit, sel, openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
+    return { fb, addAlias, mon, loadMonitor, monStatus, monVal, ed, createTopic, addAliases, edPreview, moreCtx, edChanges, saveEdit, sel, openItems, loadOpen, closeOpen, editDec, prjOpts, mtgOpts, modelOpts, miniPos, miniEl, inputEl, autoGrow, miniOpen, miniY, miniM, miniCells, openMini, miniMove, pickMiniDate, presets, modelKey, scopePrj, scopeMtg, scopeDate, scopeMeetings, meetingDates, onScopeMtg, onScopePrj, onScopeDate, dlg, dlgInput, dlgClose, switchOpen, users, me, version, build, threads, threadId, threadBox, chatBox, threadRows, log, input, sending, page, notes, unread, popOpen,
       drawer, selPrj, projects, meetings, ledger, reqSent, calY, calM, calCells, admin, doneDec, atab, acl, stab, ragCounts, ragQ, ragCol,
       ragFiltered, ragRows, samples, titleText, titleSub, md, when, userName, prjKey, prjColor, prjBg, scopeKo, durKo, todayIso, ragState,
       login, newChat, goHome, removeThread, openThread, send, onChatScroll, requestAccess, quickRequest, proposeOpinion, decide, toggleDecRole, decideReq, setAcl,
