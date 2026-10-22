@@ -49,6 +49,7 @@ def test_is_decision_utterance(text, role, expected):
     ("항목당 10장까지 열어 둘게요.", False),
     ("서지후 님 17일까지 설계 공유해 주세요.", True),
     ("금요일까지 정리해서 올려 드릴게요.", True),
+    ("캐시 후보는 10월 13일 회의 전까지로 할게요.", True),          # 승격 게이트가 잡은 회귀 (OPS-M03 [15])
 ])
 def test_assign_means_deadline_not_any_kkaji(text, is_assign):
     assert bool(G.ASSIGN.search(text)) is is_assign

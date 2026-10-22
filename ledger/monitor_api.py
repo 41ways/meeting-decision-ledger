@@ -9,6 +9,7 @@ server.py가 include_router로 붙이고, 상태는 app.state(metrics, versions,
 """
 from __future__ import annotations
 
+import json
 import time
 
 from fastapi import APIRouter, HTTPException, Request
@@ -105,3 +106,26 @@ async def admin_monitor(request: Request, user: str):
         raise HTTPException(403, "팀장만 할 수 있습니다.")
     return monitor.report(st.metrics, MeetingRecords(), pipeline_registry.Registry(), LedgerStore(),
                           running=st.versions["accurate"])
+
+
+@router.get("/admin/feedback")
+async def admin_feedback(request: Request, user: str):
+    """
+    사람이 고친 흔적에서 찾은 놓침 — 주제 놓침(별칭 후보)·목록 밖 사안·문장 수정·반려 (팀장 전용)
+    Args:
+        request: 요청 (app.state 접근)
+        user:    요청한 사용자 ID
+    Returns:
+        feedback.report 결과 (misses, rejections, summary)
+    Raises:
+        HTTPException: 403 — 팀장이 아님
+    """
+    from . import aliases, feedback, vocab  # pylint: disable=import-outside-toplevel
+    st = request.app.state
+    if not st.access.is_lead(user):
+        raise HTTPException(403, "팀장만 할 수 있습니다.")
+    aliases.reload()                       # 별칭은 MCP 서버가 보탠다 — 이 프로세스의 캐시를 새로 읽는다
+    store = LedgerStore()
+    decisions = {d["decision_id"]: d for d in store.decisions()}
+    base = set(json.loads((vocab.DATA / "topics.json").read_text(encoding="utf-8"))["topics"])
+    return feedback.report(MeetingRecords().events(), decisions, base)
