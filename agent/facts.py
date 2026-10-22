@@ -122,9 +122,18 @@ async def fact_answer(deps, msg: str, refs: list[str]) -> tuple[str, list[str]]:
         rows.append(f"- 회의에서 정한 사람: {d.get('decided_by') or '?'}")
         # 근거의 첫 발언이 확정 발언보다 앞이면 그 발언이 제안 — 아이디어를 꺼낸 사람에게 다시 물어볼 수 있게
         ev = sorted((e for e in d.get("evidence", []) if e.get("seq") is not None), key=lambda e: e["seq"])
-        if len(ev) > 1 and ev[0].get("speaker"):
-            rows.append(f"- 처음 제안한 사람: {ev[0]['speaker']} ({ev[0].get('meeting_id', '')} [{ev[0]['seq']}] "
-                        f"\"{(ev[0].get('quote') or '')[:40]}…\")")
+        if len(ev) > 1:
+            who = ev[0].get("speaker")
+            if not who and ev[0].get("meeting_id"):       # 원장 근거에 화자가 없으면 회의 원문에서 (원문 파기 뒤면 생략)
+                try:
+                    seg = await deps.mcp.call("get_segments", meeting_id=ev[0]["meeting_id"],
+                                              seq_from=ev[0]["seq"], seq_to=ev[0]["seq"])
+                    who = seg[0]["speaker"] if isinstance(seg, list) and seg else ""
+                except Exception:  # pylint: disable=broad-exception-caught  # 원문 조회 실패는 이 줄만 빼고 답한다
+                    who = ""
+            if who:
+                rows.append(f"- 처음 제안한 사람: {who} ({ev[0].get('meeting_id', '')} [{ev[0]['seq']}] "
+                            f"\"{(ev[0].get('quote') or '')[:40]}…\")")
         if d["status"] == "approved":
             rows.append(f"- 승인: {d.get('approved_by') or '?'} · 시행 {d.get('effective_from') or '?'}")
         elif d["status"] == "proposed":
