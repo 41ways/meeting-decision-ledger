@@ -857,7 +857,9 @@ def xcheck_summary(gold: dict, raw: dict, idm: dict) -> dict:
         d = [w for o, _, w in xs if o == "defer"]
         r = [not w for o, _, w in xs if o == "keep_after_rejudge"]
         a = [not w for o, al, w in xs if o == "keep" and al]
-        out[k] = {"검증 건수": rate(len(xs), len(xs)), "이견으로 넘긴 것 중 8b 오류": rate(sum(d), len(d)),
+        obj = [w for o, _, w in xs if o in ("keep_after_rejudge", "defer")]    # 이의가 한 표라도 있었던 것
+        out[k] = {"검증 건수": rate(len(xs), len(xs)), "이의 있음 중 8b 오류": rate(sum(obj), len(obj)),
+                  "이견으로 넘긴 것 중 8b 오류": rate(sum(d), len(d)),
                   "재심 뒤 유지한 것 중 8b 정확": rate(sum(r), len(r)), "4/4 동의일 때 8b 정확": rate(sum(a), len(a))}
     return out
 
@@ -995,9 +997,9 @@ def to_md(split: str, s: dict, meta: dict) -> str:
         rows += [f"| {k} | {r} | {n} |" for k, tab in s["handoff_reasons"].items() for r, n in tab.items()]
     if s.get("crosscheck"):
         rows += ["", "## 교차검증 (작은 모델 2개)", "",
-                 "| 검증 대상 | 건수 | 이견으로 넘긴 것 중 8b 오류 | 재심 뒤 유지한 것 중 8b 정확 | 4/4 동의일 때 8b 정확 |",
-                 "|---|---|---|---|---|"]
-        rows += [f"| {k} | {v['검증 건수']['n']} | {fmt(v['이견으로 넘긴 것 중 8b 오류'])} | "
+                 "| 검증 대상 | 건수 | 이의 있음 중 8b 오류 | 이견으로 넘긴 것 중 8b 오류 | 재심 뒤 유지한 것 중 8b 정확 | 4/4 동의일 때 8b 정확 |",
+                 "|---|---|---|---|---|---|"]
+        rows += [f"| {k} | {v['검증 건수']['n']} | {fmt(v['이의 있음 중 8b 오류'])} | {fmt(v['이견으로 넘긴 것 중 8b 오류'])} | "
                  f"{fmt(v['재심 뒤 유지한 것 중 8b 정확'])} | {fmt(v['4/4 동의일 때 8b 정확'])} |"
                  for k, v in s["crosscheck"].items()]
     for name, tab in s["breakdown"].items():
