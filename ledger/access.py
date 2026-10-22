@@ -316,7 +316,7 @@ class AccessStore:
         return {"id": req_id, "status": "approved" if approve else "rejected", "scope": scope, "duration": duration}
 
     # ---------------------------------------------------------------- 결정·의견 승인 요청
-    def record_proposal(self, decision_id: str, requested_by: str, source: str) -> None:
+    def record_proposal(self, decision_id: str, requested_by: str, source: str, to: str = "") -> None:
         """
         결정·의견 승인 요청을 기록하고 처음 들어온 경우에만 팀장에게 알림
 
@@ -325,6 +325,7 @@ class AccessStore:
             decision_id:  결정 ID
             requested_by:  요청자 ID
             source:  요청 출처 (근거 회의 ID, 또는 '회의 정리'·'의견' 같은 경로)
+            to:  받는 사람 ID. 비우면 팀장 전원. 팀장이 아니면 승인은 팀장만 하므로 팀장에게도 보낸다
         """
         exists = self.conn.execute("SELECT 1 FROM proposals WHERE decision_id=?", (decision_id,)).fetchone()
         with self.conn:
@@ -332,7 +333,8 @@ class AccessStore:
                               (decision_id, requested_by, source, now()))
         if not exists:
             name = self.user(requested_by)["name"]
-            for lead in self.leads():
+            targets = list(dict.fromkeys(([to] if to else []) + ([] if to and self.is_lead(to) else self.leads())))
+            for lead in targets:
                 if lead != requested_by:
                     self.notify(lead, f"{decision_id} 승인 요청 ({name}, {source})", "request", "admin")
 

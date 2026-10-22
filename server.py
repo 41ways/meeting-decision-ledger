@@ -126,12 +126,16 @@ class ProposalReq(BaseModel):
         topic: 결정 주제 (원장에서 같은 주제의 유효 결정과 대체 관계를 판단하는 기준)
         project_id: 대상 프로젝트 ID
         source: 요청 출처 (관리자 콘솔에 표시)
+        reason: 요청 사유 (충돌 요약·근거 결정·해결 방향 — 원장 rationale로 저장, 관리자 콘솔에 표시)
+        to: 받는 사람 ID (비우면 팀장 전원)
     """
     user: str
     statement: str
     topic: str
     project_id: str = "PRJ-OPSAI"
     source: str = "의견 검토"
+    reason: str = ""
+    to: str = ""
 
 
 class AccessReq(BaseModel):
@@ -721,14 +725,22 @@ async def propose(req: ProposalReq):
 
     원장에는 승인 대기(proposed)로만 올라가고, 승인은 팀장이 관리자 콘솔에서 한다 (HITL).
     Args:
-        req: 제안자·결정 문장·주제·프로젝트·출처
+        req: 제안자·결정 문장·주제·프로젝트·출처·사유·받는 사람
     Returns:
         MCP propose_decision 결과 (proposed에 결정 ID)
+    Raises:
+        HTTPException: 400 — 요청 내용이 비었거나 받는 사람이 없는 사용자
     """
-    name = app.state.access.user(req.user)["name"]
-    r = await app.state.deps.mcp.call("propose_decision", statement=req.statement, topic=req.topic,
-                                      decided_by=name, evidence=[], project_id=req.project_id)
-    app.state.access.record_proposal(r["proposed"], req.user, req.source)
+    acc = app.state.access
+    if not req.statement.strip():
+        raise HTTPException(400, "요청 내용이 비어 있습니다")
+    if req.to and req.to not in acc.users:
+        raise HTTPException(400, f"없는 사용자: {req.to}")
+    name = acc.user(req.user)["name"]
+    r = await app.state.deps.mcp.call("propose_decision", statement=req.statement.strip(), topic=req.topic,
+                                      decided_by=name, evidence=[], project_id=req.project_id,
+                                      rationale=req.reason.strip())
+    acc.record_proposal(r["proposed"], req.user, req.source, to=req.to)
     monitor_api.link_decision(app.state, r["proposed"])     # 사람 신호(승인·반려)를 버전에 묶는다
     return r
 
@@ -762,6 +774,8 @@ async def admin_pending(user: str):
             "meetings": sorted({e["meeting_id"] for e in r.get("evidence", [])}),
             # 승인하면 대체될 결정 미리보기 — 주제가 틀리면 무관한 결정이 무효가 되므로 누르기 전에 보여 준다
             "will_supersede": await app.state.deps.mcp.call("will_supersede", decision_id=did),
+            # 요청 사유(의견에서 올린 건) 또는 결정 이유 — 목록 도구엔 없어 한 건씩 읽는다 (팀장 전용 화면이라 노출 무관)
+            "rationale": ((await app.state.deps.mcp.call("get_decision", decision_id=did)) or {}).get("rationale") or "",
             "quotes": [e.get("quote") for e in r.get("evidence", [])][:2]} | await _decision_detail(r))
     requests = acc.requests("pending")
     for q in requests:                        # 열람 대상 회의 정보 — 펼쳤을 때 왜 못 보는지(참석자 아님) 바로 보이게
